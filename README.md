@@ -1,14 +1,14 @@
-> # Bounding Expert Hierarchies
-> [Julius Überall](https://juliusuberall.com/), [Tobias Ritschel](https://www.homepages.ucl.ac.uk/~ucactri/)
-> University College London
-> X (__X__), September 2025
+# Bounding Expert Hierarchies
+> [Julius Überall](https://juliusuberall.com/), [Tobias Ritschel](https://www.homepages.ucl.ac.uk/~ucactri/) <br>
+> University College London <br>
+> X (__X__), September 2025 <br>
 > [Project page]() | [Paper]() | [Video]() | [Presentation]() | [BibTeX]()
 
 Python/JAX implementation of Bounding Expert Hierarchies, using neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 4D+ spaces. Using Mixture of Experts (MoE) the data is distributed and learnt by multiple expert neural networks such that they indiviudally are learning only a part of the data and collectivly can reproduce all data.
 
-<img src="docs/4Dfluid.png" width="450"/> <img src="docs/4Da.png" width="450"/> <img src="docs/4Dd.png" width="450"/>
+<img src="docs/4Dfluid.png" width="300"/> <img src="docs/4Da.png" width="300"/> <img src="docs/4Dd.png" width="300"/>
 
-## Repo structure
+## Repo structure
 
 ```
 bounding-expert-hierarchies/
@@ -36,19 +36,19 @@ bounding-expert-hierarchies/
     ├── mlp.py                # Multilayer Perceptron (MLP) Implementation 
 ```
 
-## Installation
+## Installation
 
 How to get the enviornemnt up and running ?
 
-## Usage
+## Usage
 
 How to use my own data to test it with ?
 
-## Data
+## Data
 
 4D fluid samples and 10D robot sample dataset description.
 
-## Citation
+## Citation
 
 ```bibtex
 @article{something_interesting,

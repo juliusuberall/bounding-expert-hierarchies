@@ -6,7 +6,7 @@
 
 Python/JAX implementation of Bounding Expert Hierarchies, using neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 4D+ spaces. Using Mixture of Experts (MoE) the data is distributed and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the data and collectivly learn the whole data.
 
-![Paper thumbnail](docs/4D_thumbnail.jpg)
+![Paper thumbnail](docs/4D_thumbnail.png)
 
 ## Getting Started
 <details>

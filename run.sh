@@ -10,7 +10,7 @@ objects=("dolphin" "freeform")
 for object in "${objects[@]}"; do
 
     # Define command line arguments for query
-    point="--object_name ${object} --query point --dim 2"
+    point="--data_name ${object} --query point --dim 2"
 
     # Execute python script with arguments
     python3 scripts/run_experiments.py $point

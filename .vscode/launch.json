@@ -9,7 +9,7 @@
             "program": "${workspaceFolder}/scripts/run_experiments.py",
             "console": "integratedTerminal",
             "args": [
-                "--object_name", "dolphin",
+                "--data_name", "dolphin",
                 "--query", "point",
                 "--dim", "2",
             ],

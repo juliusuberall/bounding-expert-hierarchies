@@ -1,12 +1,12 @@
 import jax
 import jax.numpy as jnp
 
-def Remap(value, low1, high1, low2, high2):
+def remap(value, low1, high1, low2, high2):
     # Remap values from one domain to another
     ## Taken from: https://stackoverflow.com/questions/3451553/value-remapping
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1)
 
-def Checkpoint_Training_Data(x:jax.Array, y:jax.Array):
+def checkpoint_training_data(x:jax.Array, y:jax.Array):
     # Checkpoint to catch numeric and type missmatches which are
     # difficult to debug on lower levels
     print(f"JAX Accelerator: {jax.devices()[0].device_kind}")

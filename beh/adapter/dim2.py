@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
-def preprocess_RGBA (path:str):
+def preprocess_rgba (path:str):
 
     # Load image
     img = plt.imread(path)

@@ -1,0 +1,10 @@
+general:
+  batch_size: 2048
+  epochs: 10000
+  learning_rate: 0.01
+mlp:
+  hidden_layer: [4,4,4]
+moe:
+  nex : 8
+  expert_hidden_layer: [4,4,4]
+  gate_hidden_layer: [2,2,2]

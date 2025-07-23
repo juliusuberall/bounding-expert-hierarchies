@@ -1,17 +1,61 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
+import optax
+
+from beh.core.models.moe import *
+from beh.core.params import *
 
 def train_moe(
-    key:jax.Array,
-    object_name: str,
-    query:str,
-    dimension:int
-):
-    print(f"Pre-processing {dimension}D data")
+    key : jax.Array,
+    x : jax.Array,
+    y : jax.Array,
+    query : str,
+    configs,
+    dimension : int):
 
+    # Extract model configurations
+    nex = configs['moe']['nex']
+    gate_hid_lay = configs['moe']['gate_hidden_layer']
+    expert_hid_lay = configs['moe']['expert_hidden_layer']
+
+    # Set training hyperparameters
+    epoch = 0
+    epochs = configs['general']['epochs']
+    batch_size = configs['general']['batch_size']
+    learning_rate = configs['general']['learning_rate']
     
+    # Initalize MoE and optimizer
+    moe = init_moe(
+        [dimension] + gate_hid_lay + [nex],
+        [dimension] + expert_hid_lay + [1],
+        nex,
+        key
+    )
+    opt = optax.adam(learning_rate)
+    opt_state = opt.init(moe)
 
-    print(f"Starting {dimension}D MoE training")
+    @jax.jit
+    def update(p, opt_state, xB, yB):
+        grads = jax.grad(moe_dense_KL_BCE_loss)(p, xB, yB)
+        updates, opt_state = opt.update(grads, opt_state)
+        p = optax.apply_updates(p, updates)
+        return p, opt_state, grads
 
+    # Training loop
+    print(f"++++++++++++ Starting MoE training ++++++++++++")
+    for i in range(epochs):
 
+        # Used numpy for random sampling because we dont need random determinism
+        # and numpy runs therefor much faster on CPU when debugging 
+        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=False)
+        xB, yB = x[idx,...], y[idx,...]
+        moe, opt_state, gradient = update(moe, opt_state, xB, yB)
+        
+        if epoch % 100 == 0: 
+            val_loss = moe_dense_validation_loss_full(x, y, moe, batch_size)
+            print(f"Epoch {epoch}, Val-MSE-Loss: {val_loss}")
+
+        epoch += 1
+    
     return

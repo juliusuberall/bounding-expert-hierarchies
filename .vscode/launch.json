@@ -1,0 +1,21 @@
+// Ensure all configurations use the correct data to fit
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Experiments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/run_experiments.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--object_name", "dolphin",
+                "--query", "point",
+                "--dim", "2",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}

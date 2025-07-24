@@ -1,5 +1,6 @@
-# Ignore data folder for now
+# Folder to ignore
 /data
+/results
 
 # Ignore macOS DS_Store
 **/.DS_Store

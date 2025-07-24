@@ -58,4 +58,4 @@ def train_moe(
 
         epoch += 1
     
-    return
+    return moe

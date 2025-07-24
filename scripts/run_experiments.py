@@ -4,10 +4,13 @@ import jax
 
 from beh.core.train_moe import train_moe
 from beh.adapter.wiring import *
+from beh.styler.wiring import *
 
 def main():
 
     key = jax.random.PRNGKey(28)
+
+    # Check that all registry paths and folder exists to catch errors before code runs
 
     # Parse command line arguments
     parser = argparse.ArgumentParser()
@@ -41,6 +44,7 @@ def main():
         dimension = args.dim
     )
     checkpoint_training_data(x, y)
+    checkpoint_plot_training_data(x, y, args.dim)
 
     # Load model configurations / architectures
     with open(model_config_dir_registry[args.dim], "r") as file:
@@ -49,7 +53,7 @@ def main():
     # Instantiate registry for storing results of these experiments 
 
     # Train models 
-    train_moe(
+    moe = train_moe(
         key = key,
         x = x,
         y = y,

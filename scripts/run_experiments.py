@@ -5,6 +5,7 @@ import jax
 from beh.core.train_moe import train_moe
 from beh.adapter.wiring import *
 from beh.styler.wiring import *
+from beh.core.registry import *
 
 def main():
 
@@ -20,7 +21,6 @@ def main():
         type = str,
         default = None,
         help ='Name of training data')
-    
     parser.add_argument(
         "--query",
         required=True, 
@@ -28,7 +28,6 @@ def main():
         type = str,
         default = None,
         help = "Query type") 
-    
     parser.add_argument(
         "--dim",
         required=True, 
@@ -51,15 +50,34 @@ def main():
         configs = yaml.safe_load(file)
 
     # Instantiate registry for storing results of these experiments 
+    reg = CoreRegistry()
 
-    # Train models 
-    moe = train_moe(
+    # MoE
+    ## Training 
+    moe, reg = train_moe(
         key = key,
         x = x,
         y = y,
+        reg = reg,
         configs = configs,
-        query = args.query,
+        query = args.query,  # Currently not used but ideally for point and ray queries
         dimension = args.dim)
+    
+    print(reg.get('moe' + core_registration_keys['train_val_loss_key']))
+    
+    ## Benchmarking
+    
+    ## Result Collection
+    # generate_model_output(
+    #     model = moe,
+    #     x = x,
+    #     configs = configs,
+    #     dimension = args.dim)
+    
+
+
+    ## MLP
+
 
     # Save results to file in the 'results' directory at the project root
 

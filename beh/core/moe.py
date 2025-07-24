@@ -3,6 +3,7 @@ import jax.numpy as jnp
 import optax
 
 from beh.adapter.shared import *
+from beh.core.shared import *
 
 @jax.jit
 def moe_forward_expert(p, x, idx, a=0.5, b=3.0):
@@ -13,6 +14,8 @@ def moe_forward_expert(p, x, idx, a=0.5, b=3.0):
     x = jnp.append(x, 1)
     return jax.nn.tanh(jnp.dot(x, p['experts'][-1][idx]) *a) *b
 
+#------------------------------------------------------------------------------------
+
 @jax.jit
 def moe_forward_gate(p, x):
     for l in p['gate'][:-1]:
@@ -21,16 +24,27 @@ def moe_forward_gate(p, x):
     x = jnp.append(x, 1)
     return jax.nn.softmax(jnp.dot(x, p['gate'][-1]))
 
+#------------------------------------------------------------------------------------
+
 @jax.jit
-def moe_forward(p, x):
+def moe_forward_dense(p, x):
     activation = moe_forward_gate(p, x)
     x = jax.vmap(lambda idx: moe_forward_expert(p, x, idx))(jnp.arange(activation.shape[0]))
     return jnp.sum(x * jnp.expand_dims(activation, axis=-1))
 
+#------------------------------------------------------------------------------------
+
+@jax.jit
+def moe_forward_sparse (p, x, topk):
+  _ , idx = jax.lax.top_k(moe_forward_gate(p, x), topk)
+  return moe_forward_expert(p, x, idx)
+
+#------------------------------------------------------------------------------------
+
 @jax.jit
 def moe_KL_BCE_loss(p, x, y): 
     # Binary Cross-Entropy 
-    yp = jax.vmap(lambda x: moe_forward(p,x))(x)
+    yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
     bce_loss = jnp.mean(optax.sigmoid_binary_cross_entropy(yp, y))
 
     # KL-divergence of the expert activation distribution against uniform distribution 
@@ -40,22 +54,21 @@ def moe_KL_BCE_loss(p, x, y):
 
     return kl_loss + bce_loss
 
+#------------------------------------------------------------------------------------
+
 def moe_dense_validation_loss_full(x, y, p, b_size):
-    # Break training data into batches
-    batches =[]
-    for i in range(0, y.shape[0], b_size):
-        batches.append(x[i : i + b_size, ...])
-    
+    batches = batch_data(x, b_size)
+        
     ## Trim tail of x that does not fit with batchsize
     ## Minibatching of shape [batch, minibatch, coordinate]
     ## -> Causes double nested vmapping
     x_batched = jnp.stack(batches[0:-1])
     yp = jax.vmap(lambda x: 
-                  jax.vmap(lambda x: moe_forward(p, x))(x)
+                  jax.vmap(lambda x: moe_forward_dense(p, x))(x)
                   )(x_batched).flatten()
 
     ## Add tail
-    x_tail = jax.vmap(lambda x: moe_forward(p,x))(batches[-1])
+    x_tail = jax.vmap(lambda x: moe_forward_dense(p,x))(batches[-1])
     yp = jnp.concatenate((yp, x_tail.flatten()))
 
     # MSE
@@ -63,5 +76,3 @@ def moe_dense_validation_loss_full(x, y, p, b_size):
     yp = remap(yp, jnp.min(yp), jnp.max(yp), 0, 1)
     mse = jnp.mean((y - yp)**2)
     return mse
-
-# FUNCTION: Batch loss

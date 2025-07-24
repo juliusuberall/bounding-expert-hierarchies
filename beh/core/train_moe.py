@@ -3,14 +3,16 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 
-from beh.core.training.moe import *
+from beh.core.moe import *
 from beh.core.params import *
 from beh.styler.shared import *
+from beh.core.registry import *
 
 def train_moe(
     key : jax.Array,
     x : jax.Array,
     y : jax.Array,
+    reg : CoreRegistry,
     query : str,
     configs,
     dimension : int):
@@ -25,6 +27,7 @@ def train_moe(
     epochs = configs['general']['epochs']
     batch_size = configs['general']['batch_size']
     learning_rate = configs['general']['learning_rate']
+    loss_logging_frequency = configs['general']['loss_logging_frequency']
     
     # Initalize MoE and optimizer
     moe = init_moe(
@@ -45,6 +48,7 @@ def train_moe(
 
     # Training loop
     print(f"++++++++++++ Starting MoE training ++++++++++++")
+    val_loss_cache = [loss_logging_frequency]
     for i in range(epochs):
 
         # Used numpy for random sampling because we dont need random determinism
@@ -53,11 +57,15 @@ def train_moe(
         xB, yB = x[idx,...], y[idx,...]
         moe, opt_state, gradient = update(moe, opt_state, xB, yB)
         
-        if epoch % 100 == 0: 
-            val_loss = moe_dense_validation_loss_full(x, y, moe, batch_size)
+        if epoch % loss_logging_frequency == 0: 
+            val_loss = moe_dense_validation_loss_full(x, y, moe, batch_size)  
+            val_loss_cache.append(val_loss)          
             print(f"Epoch {epoch}, Val-MSE-Loss: {val_loss}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, epoch)
 
         epoch += 1
     
-    return moe
+    reg_key = 'moe' + core_registration_keys['train_val_loss_key']
+    reg.add( reg_key, jnp.array(val_loss_cache))
+    
+    return moe, reg

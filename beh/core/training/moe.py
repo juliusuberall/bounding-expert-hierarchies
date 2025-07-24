@@ -22,15 +22,15 @@ def moe_forward_gate(p, x):
     return jax.nn.softmax(jnp.dot(x, p['gate'][-1]))
 
 @jax.jit
-def moe_forward_dense_full(p, x):
+def moe_forward(p, x):
     activation = moe_forward_gate(p, x)
     x = jax.vmap(lambda idx: moe_forward_expert(p, x, idx))(jnp.arange(activation.shape[0]))
     return jnp.sum(x * jnp.expand_dims(activation, axis=-1))
 
 @jax.jit
-def moe_dense_KL_BCE_loss(p, x, y): 
+def moe_KL_BCE_loss(p, x, y): 
     # Binary Cross-Entropy 
-    yp = jax.vmap(lambda x: moe_forward_dense_full(p,x))(x)
+    yp = jax.vmap(lambda x: moe_forward(p,x))(x)
     bce_loss = jnp.mean(optax.sigmoid_binary_cross_entropy(yp, y))
 
     # KL-divergence of the expert activation distribution against uniform distribution 
@@ -51,11 +51,11 @@ def moe_dense_validation_loss_full(x, y, p, b_size):
     ## -> Causes double nested vmapping
     x_batched = jnp.stack(batches[0:-1])
     yp = jax.vmap(lambda x: 
-                  jax.vmap(lambda x: moe_forward_dense_full(p, x))(x)
+                  jax.vmap(lambda x: moe_forward(p, x))(x)
                   )(x_batched).flatten()
 
     ## Add tail
-    x_tail = jax.vmap(lambda x: moe_forward_dense_full(p,x))(batches[-1])
+    x_tail = jax.vmap(lambda x: moe_forward(p,x))(batches[-1])
     yp = jnp.concatenate((yp, x_tail.flatten()))
 
     # MSE
@@ -65,4 +65,3 @@ def moe_dense_validation_loss_full(x, y, p, b_size):
     return mse
 
 # FUNCTION: Batch loss
-# FUNCTION: Gradient visualizer

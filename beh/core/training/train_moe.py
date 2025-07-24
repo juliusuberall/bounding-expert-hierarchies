@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 
-from beh.core.models.moe import *
+from beh.core.training.moe import *
 from beh.core.params import *
 from beh.styler.shared import *
 
@@ -38,7 +38,7 @@ def train_moe(
 
     @jax.jit
     def update(p, opt_state, xB, yB):
-        grads = jax.grad(moe_dense_KL_BCE_loss)(p, xB, yB)
+        grads = jax.grad(moe_KL_BCE_loss)(p, xB, yB)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads

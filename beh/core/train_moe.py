@@ -5,6 +5,7 @@ import optax
 
 from beh.core.models.moe import *
 from beh.core.params import *
+from beh.styler.shared import *
 
 def train_moe(
     key : jax.Array,
@@ -55,6 +56,7 @@ def train_moe(
         if epoch % 100 == 0: 
             val_loss = moe_dense_validation_loss_full(x, y, moe, batch_size)
             print(f"Epoch {epoch}, Val-MSE-Loss: {val_loss}")
+            checkpoint_moe_export_plot_gradient(gradient, dimension, epoch)
 
         epoch += 1
     

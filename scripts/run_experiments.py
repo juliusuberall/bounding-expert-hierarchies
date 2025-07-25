@@ -14,7 +14,6 @@ def main():
     key = jax.random.PRNGKey(28)
 
     # Check that all registry paths and folder exists to catch errors before code runs
-
     args, configs = parse_config()
 
     # Load, preprocess and check data once before trained with all models

@@ -19,11 +19,11 @@ def accuracy_benchmark(
     x_batches = batch_data(x, batch_size)
 
     # Dense MoE inference
-    dense_mse = moe_loss_dense(x_batches, y, moe)
+    dense_mse = moe_loss(x_batches, y, moe, moe_forward_dense_INF)
     dense_mse = round(float(dense_mse),4)
 
     # Sparse MoE inference
-    sparse_mse = moe_loss_sparse(x_batches, y, moe)
+    sparse_mse = moe_loss(x_batches, y, moe, moe_forward_sparse_INF)
     sparse_mse = round(float(sparse_mse),4)
 
 

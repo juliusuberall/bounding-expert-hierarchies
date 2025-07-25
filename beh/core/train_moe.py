@@ -61,7 +61,7 @@ def train_moe(
         moe, opt_state, gradient = update(moe, opt_state, xB, yB)
         
         if epoch % loss_logging_frequency == 0: 
-            val_loss = moe_loss_dense(batches, y, moe)  
+            val_loss = moe_loss(batches, y, moe, moe_forward_dense_INF)  
             val_loss_cache.append(val_loss)          
             print(f"Epoch {epoch}, Val-MSE-Loss: {val_loss}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, epoch)

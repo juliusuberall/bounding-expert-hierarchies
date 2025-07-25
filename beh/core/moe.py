@@ -84,40 +84,17 @@ def moe_KL_BCE_loss(p, x, y):
 
 #------------------------------------------------------------------------------------
 
-def moe_loss_dense(x_batches : list, y : jax.Array , moe : dict):
+def moe_loss(x_batches : list, y : jax.Array , moe : dict, func):
     ## Trim tail of x that does not fit with batchsize
     ## Minibatching of shape [batch, minibatch, coordinate]
     ## -> Causes double nested vmapping
     x_batched = jnp.stack(x_batches[0:-1])
-    yp = jax.vmap(lambda x: 
-                  jax.vmap(lambda x: moe_forward_dense(moe, x))(x)
+    yp = jax.vmap(lambda batch: 
+                  jax.vmap(lambda x: func(moe, x))(batch)
                   )(x_batched).flatten()
 
     ## Add tail remaining when batching with batch size
-    x_tail = jax.vmap(lambda x: moe_forward_dense(moe,x))(x_batches[-1])
-    yp = jnp.concatenate((yp, x_tail.flatten()))
-
-    # MSE
-    yp = jax.nn.sigmoid(yp) # Train-MoE output is not sigmoided due to optax.BCE
-    yp = remap(
-        yp, 
-        jnp.min(yp),
-        jnp.max(yp),
-        0,
-        1,)
-    mse = jnp.mean((y - yp)**2)
-
-    return mse
-
-#------------------------------------------------------------------------------------
-
-def moe_loss_sparse(x_batches : list, y : jax.Array , moe : dict):
-    # Batched sparse inference
-    x_batched = jnp.stack(x_batches[0:-1])
-    yp = jax.vmap(jax.vmap(lambda x: moe_forward_sparse_INF(moe, x)))(x_batched).flatten()
-
-    ## Add tail remaining when batching with batch size
-    x_tail = jax.vmap(lambda x: moe_forward_sparse_INF(moe, x))(x_batches[-1])
+    x_tail = jax.vmap(lambda x: func(moe,x))(x_batches[-1])
     yp = jnp.concatenate((yp, x_tail.flatten()))
 
     # MSE

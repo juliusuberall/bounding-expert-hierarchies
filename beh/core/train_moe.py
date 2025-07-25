@@ -28,6 +28,9 @@ def train_moe(
     batch_size = configs['general']['batch_size']
     learning_rate = configs['general']['learning_rate']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
+
+    # Create validation loss batches
+    batches = batch_data(x, batch_size)
     
     # Initalize MoE and optimizer
     moe = init_moe(
@@ -58,7 +61,7 @@ def train_moe(
         moe, opt_state, gradient = update(moe, opt_state, xB, yB)
         
         if epoch % loss_logging_frequency == 0: 
-            val_loss = moe_dense_validation_loss_full(x, y, moe, batch_size)  
+            val_loss = moe_loss_dense(batches, y, moe)  
             val_loss_cache.append(val_loss)          
             print(f"Epoch {epoch}, Val-MSE-Loss: {val_loss}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, epoch)

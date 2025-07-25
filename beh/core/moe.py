@@ -1,18 +1,34 @@
 import jax
 import jax.numpy as jnp
 import optax
+import yaml
+import argparse
 
 from beh.adapter.shared import *
 from beh.core.shared import *
+from beh.registry import *
+from beh.config_parser import *
+
+# Get topk value from config
+## We can not pass topk as argument due to JIT errors, 
+## given that topk value determines the shape of output.
+args, configs = parse_config()
+topk = batch_size = configs['moe']['topk']
+
+#------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_expert(p, x, idx, a=0.5, b=3.0):
+def moe_forward_expert(p, x, idx):
     for e in p['experts'][:-1]:
         # We use the bias trick for all MoE implementation
         x = jnp.append(x, 1)
         x = jax.nn.tanh(jnp.dot(x, e[idx]))
     x = jnp.append(x, 1)
-    return jax.nn.tanh(jnp.dot(x, p['experts'][-1][idx]) *a) *b
+    return jax.nn.tanh(jnp.dot(x, p['experts'][-1][idx]) *0.5) *3.0
+
+@jax.jit
+def moe_forward_expert_INF(p, x, idx):
+    return jax.nn.sigmoid(moe_forward_expert(p,x,idx))
 
 #------------------------------------------------------------------------------------
 
@@ -24,6 +40,10 @@ def moe_forward_gate(p, x):
     x = jnp.append(x, 1)
     return jax.nn.softmax(jnp.dot(x, p['gate'][-1]))
 
+@jax.jit
+def moe_forward_gate_INF(p, x):
+    return moe_forward_expert(p, x)
+
 #------------------------------------------------------------------------------------
 
 @jax.jit
@@ -32,12 +52,20 @@ def moe_forward_dense(p, x):
     x = jax.vmap(lambda idx: moe_forward_expert(p, x, idx))(jnp.arange(activation.shape[0]))
     return jnp.sum(x * jnp.expand_dims(activation, axis=-1))
 
+@jax.jit
+def moe_forward_dense_INF(p, x):
+    return jax.nn.sigmoid(moe_forward_dense(p, x))
+
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse (p, x, topk):
+def moe_forward_sparse(p, x):
   _ , idx = jax.lax.top_k(moe_forward_gate(p, x), topk)
   return moe_forward_expert(p, x, idx)
+
+@jax.jit
+def moe_forward_sparse_INF(p, x):
+    return jax.nn.sigmoid(moe_forward_sparse(p, x))
 
 #------------------------------------------------------------------------------------
 
@@ -56,23 +84,49 @@ def moe_KL_BCE_loss(p, x, y):
 
 #------------------------------------------------------------------------------------
 
-def moe_dense_validation_loss_full(x, y, p, b_size):
-    batches = batch_data(x, b_size)
-        
+def moe_loss_dense(x_batches : list, y : jax.Array , moe : dict):
     ## Trim tail of x that does not fit with batchsize
     ## Minibatching of shape [batch, minibatch, coordinate]
     ## -> Causes double nested vmapping
-    x_batched = jnp.stack(batches[0:-1])
+    x_batched = jnp.stack(x_batches[0:-1])
     yp = jax.vmap(lambda x: 
-                  jax.vmap(lambda x: moe_forward_dense(p, x))(x)
+                  jax.vmap(lambda x: moe_forward_dense(moe, x))(x)
                   )(x_batched).flatten()
 
-    ## Add tail
-    x_tail = jax.vmap(lambda x: moe_forward_dense(p,x))(batches[-1])
+    ## Add tail remaining when batching with batch size
+    x_tail = jax.vmap(lambda x: moe_forward_dense(moe,x))(x_batches[-1])
     yp = jnp.concatenate((yp, x_tail.flatten()))
 
     # MSE
-    yp = jax.nn.sigmoid(yp)
-    yp = remap(yp, jnp.min(yp), jnp.max(yp), 0, 1)
+    yp = jax.nn.sigmoid(yp) # Train-MoE output is not sigmoided due to optax.BCE
+    yp = remap(
+        yp, 
+        jnp.min(yp),
+        jnp.max(yp),
+        0,
+        1,)
     mse = jnp.mean((y - yp)**2)
+
+    return mse
+
+#------------------------------------------------------------------------------------
+
+def moe_loss_sparse(x_batches : list, y : jax.Array , moe : dict):
+    # Batched sparse inference
+    x_batched = jnp.stack(x_batches[0:-1])
+    yp = jax.vmap(jax.vmap(lambda x: moe_forward_sparse_INF(moe, x)))(x_batched).flatten()
+
+    ## Add tail remaining when batching with batch size
+    x_tail = jax.vmap(lambda x: moe_forward_sparse_INF(moe, x))(x_batches[-1])
+    yp = jnp.concatenate((yp, x_tail.flatten()))
+
+    # MSE
+    yp = remap(
+        yp, 
+        jnp.min(yp),
+        jnp.max(yp),
+        0,
+        1,)
+    mse = jnp.mean((y - yp)**2)
+
     return mse

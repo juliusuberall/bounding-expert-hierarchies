@@ -1,11 +1,12 @@
 general:
   batch_size: 2048
-  epochs: 500
+  epochs: 100
   learning_rate: 0.01
   loss_logging_frequency: 100 # Each N epoch we print and save the loss
 mlp:
   hidden_layer: [4,4,4]
 moe:
   nex : 8 # Number of Experts
+  topk : 1
   expert_hidden_layer: [4,4,4]
   gate_hidden_layer: [2,2,2]

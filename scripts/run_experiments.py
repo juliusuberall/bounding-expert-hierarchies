@@ -6,6 +6,8 @@ from beh.core.train_moe import train_moe
 from beh.adapter.wiring import *
 from beh.styler.wiring import *
 from beh.core.registry import *
+from beh.core.moe_benchmarking import *
+from beh.config_parser import *
 
 def main():
 
@@ -13,29 +15,7 @@ def main():
 
     # Check that all registry paths and folder exists to catch errors before code runs
 
-    # Parse command line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--data_name',
-        required=True, 
-        type = str,
-        default = None,
-        help ='Name of training data')
-    parser.add_argument(
-        "--query",
-        required=True, 
-        choices = ["point"],
-        type = str,
-        default = None,
-        help = "Query type") 
-    parser.add_argument(
-        "--dim",
-        required=True, 
-        type = int,
-        choices = [ 2, 3, 4, 10],
-        default = None,
-        help = "Query dimension")
-    args = parser.parse_args()
+    args, configs = parse_config()
 
     # Load, preprocess and check data once before trained with all models
     x, y = get_traininig_data(
@@ -44,10 +24,6 @@ def main():
     )
     checkpoint_training_data(x, y)
     checkpoint_plot_training_data(x, y, args.dim)
-
-    # Load model configurations / architectures
-    with open(model_config_dir_registry[args.dim], "r") as file:
-        configs = yaml.safe_load(file)
 
     # Instantiate registry for storing results of these experiments 
     reg = CoreRegistry()
@@ -63,9 +39,13 @@ def main():
         query = args.query,  # Currently not used but ideally for point and ray queries
         dimension = args.dim)
     
-    print(reg.get('moe' + core_registration_keys['train_val_loss_key']))
-    
     ## Benchmarking
+    reg = accuracy_benchmark(
+        moe = moe,
+        x = x,
+        y = y,
+        configs = configs
+    )
     
     ## Result Collection
     # generate_model_output(

@@ -80,7 +80,11 @@ def moe_KL_BCE_loss(p, x, y):
     g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
     kl_loss = jnp.sum(g * jnp.log(g / (1 / activation.shape[1])))
 
-    return kl_loss + bce_loss
+    # Activation Entropy
+    query_entropy = -jnp.sum(activation * jnp.log(activation + 1e-8), axis=1)
+    ae_loss = jnp.mean(query_entropy)
+
+    return kl_loss + bce_loss + ae_loss * 4.0
 
 #------------------------------------------------------------------------------------
 

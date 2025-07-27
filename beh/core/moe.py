@@ -12,7 +12,7 @@ from beh.config_parser import *
 # Get topk value from config
 ## We can not pass topk as argument due to JIT errors, 
 ## given that topk value determines the shape of output.
-args, configs = parse_config()
+args, configs = parse_all()
 topk = batch_size = configs['moe']['topk']
 
 #------------------------------------------------------------------------------------
@@ -42,7 +42,7 @@ def moe_forward_gate(p, x):
 
 @jax.jit
 def moe_forward_gate_INF(p, x):
-    return moe_forward_expert(p, x)
+    return moe_forward_gate(p, x)
 
 #------------------------------------------------------------------------------------
 
@@ -102,6 +102,7 @@ def moe_loss(x_batches : list, y : jax.Array , moe : dict, func):
     yp = jnp.concatenate((yp, x_tail.flatten()))
 
     # MSE
+    yp_raw = yp.copy()
     yp = remap(
         yp, 
         jnp.min(yp),
@@ -110,4 +111,4 @@ def moe_loss(x_batches : list, y : jax.Array , moe : dict, func):
         1,)
     mse = jnp.mean((y - yp)**2)
 
-    return mse
+    return mse, yp, yp_raw

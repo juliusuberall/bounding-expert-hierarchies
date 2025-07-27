@@ -3,7 +3,7 @@ import yaml
 
 from beh.registry import *
 
-def parse_config():
+def parse_all():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(

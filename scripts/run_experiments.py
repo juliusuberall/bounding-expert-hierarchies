@@ -8,24 +8,26 @@ from beh.styler.wiring import *
 from beh.core.registry import *
 from beh.core.moe_benchmarking import *
 from beh.config_parser import *
+from beh.core.wiring import *
 
 def main():
 
     key = jax.random.PRNGKey(28)
 
     # Check that all registry paths and folder exists to catch errors before code runs
-    args, configs = parse_config()
-
-    # Load, preprocess and check data once before trained with all models
-    x, y = get_traininig_data(
-        data_name = args.data_name,
-        dimension = args.dim
-    )
-    checkpoint_training_data(x, y)
-    checkpoint_plot_training_data(x, y, args.dim)
+    args, configs = parse_all()
 
     # Instantiate registry for storing results of these experiments 
     reg = CoreRegistry()
+
+    # Load, preprocess and check data once before trained with all models
+    reg, x, y = get_traininig_data(
+        data_name = args.data_name,
+        dimension = args.dim,
+        reg = reg
+    )
+    checkpoint_training_data(x, y)
+    checkpoint_plot_training_data(x, y, args.dim)
 
     # MoE
     ## Training 
@@ -36,29 +38,30 @@ def main():
         reg = reg,
         configs = configs,
         query = args.query,  # Currently not used but ideally for point and ray queries
-        dimension = args.dim)
+        dimension = args.dim
+    )
     
     ## Benchmarking
-    reg = accuracy_benchmark(
+    #### Loop over all models and pass model name for sving and loading to correct result key
+    reg = get_benchmarks(
         moe = moe,
         x = x,
         y = y,
-        configs = configs
+        reg = reg,
+        configs = configs,
+        dimension = args.dim
     )
     
-    ## Result Collection
-    # generate_model_output(
-    #     model = moe,
-    #     x = x,
-    #     configs = configs,
-    #     dimension = args.dim)
-    
+    # Result Collection
+    format_export_results(
+        x = x,
+        y = y,
+        reg = reg,
+        configs = configs,
+        dimension = args.dim,
+    )
 
-
-    ## MLP
-
-
-    # Save results to file in the 'results' directory at the project root
+    # Save models
 
 
 if __name__ == '__main__':

@@ -14,7 +14,7 @@ def train_moe(
     y : jax.Array,
     reg : CoreRegistry,
     query : str,
-    configs,
+    configs : dict,
     dimension : int):
 
     # Extract model configurations
@@ -23,7 +23,6 @@ def train_moe(
     expert_hid_lay = configs['moe']['expert_hidden_layer']
 
     # Set training hyperparameters
-    epoch = 0
     epochs = configs['general']['epochs']
     batch_size = configs['general']['batch_size']
     learning_rate = configs['general']['learning_rate']
@@ -50,9 +49,9 @@ def train_moe(
         return p, opt_state, grads
 
     # Training loop
-    print(f"++++++++++++ Starting MoE training ++++++++++++")
+    print(f"\n+++++++++++++ Starting MoE training ++++++++++++++")
     val_loss_cache = [loss_logging_frequency]
-    for i in range(epochs):
+    for i in range(1, epochs + 1):
 
         # Used numpy for random sampling because we dont need random determinism
         # and numpy runs therefor much faster on CPU when debugging 
@@ -60,15 +59,13 @@ def train_moe(
         xB, yB = x[idx,...], y[idx,...]
         moe, opt_state, gradient = update(moe, opt_state, xB, yB)
         
-        if epoch % loss_logging_frequency == 0: 
-            val_loss = moe_loss(batches, y, moe, moe_forward_dense_INF)  
+        if i % loss_logging_frequency == 0: 
+            val_loss, _ , __  = moe_loss(batches, y, moe, moe_forward_dense_INF)  
             val_loss_cache.append(val_loss)          
-            print(f"Epoch {epoch}, Val-MSE-Loss: {val_loss}")
-            checkpoint_moe_export_plot_gradient(gradient, dimension, epoch)
-
-        epoch += 1
+            print(f"Epoch {i}, Val-MSE-Loss: {val_loss}")
+            checkpoint_moe_export_plot_gradient(gradient, dimension, i)
     
-    reg_key = 'moe' + core_registration_keys['train_val_loss_key']
+    reg_key = 'moe' + core_keys['train_val_loss_key']
     reg.add( reg_key, jnp.array(val_loss_cache))
     
     return moe, reg

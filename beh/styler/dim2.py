@@ -12,6 +12,10 @@ from beh.core.moe import *
 from beh.core.params import *
 
 def export_plot_training_data (x : jax.Array, y : jax.Array):
+    '''
+    2D
+    \nExport image of the alpha channel extracted as labels of the training data.
+    '''
     
     # Retrieve image width and height from data
     xdim = jnp.unique(x[...,0]).size
@@ -31,6 +35,15 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     pass
 
 def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : CoreRegistry, config : dict, dimensions : int):
+    '''
+    2D
+    \nCreate MoE internal state overview plot inlcuding:
+    \n- Expert decision boundaries
+    \n- Topk activtion map
+    \n- Dense & Sparse output
+    \n- TopK activation mean distribution
+    \n- MoE architecture details 
+    '''
 
     # Retrieve model specific key for results
     model_key = 'moe'

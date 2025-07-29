@@ -5,6 +5,7 @@ from beh.registry import *
 
 # Plot the gradient of a neural network training
 def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
+    '''Visualize the gradient during training and export as plot.'''
   
     # Create plot
     plt.title(f"Learning Signal {dimension}D MoE | Epoch {epoch}")

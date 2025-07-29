@@ -3,6 +3,11 @@ import matplotlib.pyplot as plt
 from beh.core.registry import *
 
 def preprocess_rgba (path:str, reg:CoreRegistry):
+    '''
+    2D 
+    \nLoads RGBA images, extracting the alpha channel as labels (y) and normalized pixel coordinates as data (x). 
+    \nSaves the image dimension to the core registry.
+    '''
 
     # Load image
     img = plt.imread(path)

@@ -3,7 +3,10 @@ from beh.styler.dim2 import *
 from beh.core.registry import *
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
-    # Produce a visual of the training data
+    '''
+    Validation visualization of training data.
+    \nDelegates to corresponding data dimensionality sub-routine.
+    '''
 
     if dimension == 2:
         export_plot_training_data(x, y)
@@ -18,6 +21,10 @@ def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int 
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
 
 def format_export_results(x : jax.Array, y : jax.Array, reg : CoreRegistry, configs : dict, dimension : int):
+    '''
+    Create result plots.
+    \nDelegates to corresponding data dimensionality sub-routine.
+    '''
     # Create results plots using data in CoreRegistry from benchmarking 
     # Export plots locally 
     

@@ -13,7 +13,7 @@ for object in "${objects[@]}"; do
     point="--data_name ${object} --query point --dim 2"
 
     # Execute python script with arguments
-    python3 scripts/run_experiments.py $point
+    python3 scripts/train_evaluate.py $point
 
 done
 

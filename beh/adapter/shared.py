@@ -2,6 +2,9 @@ import jax
 import jax.numpy as jnp
 
 def checkpoint_training_data(x : jax.Array, y : jax.Array):
+    '''
+    Prints a collection of relevant metrics about the training data such as datatype, range, number of samples etc.
+    '''
     # Checkpoint to catch numeric and type missmatches which are
     # difficult to debug on lower levels
     print("================================================== Training Data Checkpoint")

@@ -1,5 +1,4 @@
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
 
 from beh.core.registry import *
 from PIL import Image
@@ -17,7 +16,7 @@ def preprocess_rgba (path : str, reg : CoreRegistry, downsample : bool = True):
         img = img.resize((300, 300), resample=Image.BILINEAR) 
     img = jnp.array(img)
     assert img.shape[1] != 4, f"2D data is expected to have 4 channel but has {img.shape[1]}."
-    y = jnp.array(img[...,3].flatten(), dtype = jnp.float32)
+    y = jnp.array(img[...,3].flatten() / 255, dtype = jnp.float32)
     x = jnp.indices(img[...,3].shape).reshape(2,-1).T.astype(jnp.float32)
 
     # Normalize coordinates to range -1.0 to 1.0

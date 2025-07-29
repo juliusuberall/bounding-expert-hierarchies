@@ -15,4 +15,17 @@ def checkpoint_training_data(x : jax.Array, y : jax.Array):
     print(f'X[30] Sample: {x[30]}') 
     print(f'Y[30] Sample: {y[30]}')
     print("==================================================")
-    pass
+
+    # Catch wrong data formatting
+    if jnp.min(x) != -1.0:
+        raise ValueError(f"Training data X has not lower bound at -1.0")
+    elif jnp.max(x) != 1.0:
+        raise ValueError(f"Training data X has not upper bound at 1.0")
+    
+    elif jnp.min(y) != 0.0:
+        raise ValueError(f"Training data labels Y have not lower bound at 0.0")
+    elif jnp.max(y) != 1.0:
+        raise ValueError(f"Training data labels Y have not upper bound at 1.0")
+    
+    else:
+        pass

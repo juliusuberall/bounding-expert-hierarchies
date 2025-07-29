@@ -120,7 +120,7 @@ def export_moe( moe : dict) -> str:
     # Convert to NumPy and save parameters as dictionary of numpy arrays
     moe_gate = [np.array(l) for l in moe['gate']]
     moe_experts = [[np.array(l) for l in e] for e in moe['experts']]
-    dimensions = moe_gate[0].shape[0]
+    dimensions = moe_gate[0].shape[0] - 1 #To account for bias
 
     # Create timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # e.g. 20250716_142015

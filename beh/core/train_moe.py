@@ -32,9 +32,11 @@ def train_moe(
     batches = batch_data(x, batch_size)
     
     # Initalize MoE and optimizer
+    gate_arch = [dimension] + gate_hid_lay + [nex]
+    expert_arch = [dimension] + expert_hid_lay + [1]
     moe = init_moe(
-        [dimension] + gate_hid_lay + [nex],
-        [dimension] + expert_hid_lay + [1],
+        gate_arch,
+        expert_arch,
         nex,
         key
     )
@@ -49,7 +51,9 @@ def train_moe(
         return p, opt_state, grads
 
     # Training loop
-    print(f"\n+++++++++++++ Starting MoE training ++++++++++++++")
+    print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
+    print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch}")
+    print(f"+++++++++++++ Starting MoE training ++++++++++++++")
     val_loss_cache = [loss_logging_frequency]
     for i in range(1, epochs + 1):
 

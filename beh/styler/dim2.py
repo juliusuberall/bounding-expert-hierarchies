@@ -24,8 +24,7 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     # Create image using label data and export
     img = y.reshape((xdim,ydim))
     dimensions = 2
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = result_dir_registry[dimensions] + f"/{timestamp}_dim2_y.png"
+    path = result_dir_registry[dimensions] + f"/dim2_y.png"
     plt.imsave(
         path,
         img,

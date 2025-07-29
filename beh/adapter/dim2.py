@@ -1,8 +1,10 @@
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
-from beh.core.registry import *
 
-def preprocess_rgba (path:str, reg:CoreRegistry):
+from beh.core.registry import *
+from PIL import Image
+
+def preprocess_rgba (path : str, reg : CoreRegistry, downsample : bool = True):
     '''
     2D 
     \nLoads RGBA images, extracting the alpha channel as labels (y) and normalized pixel coordinates as data (x). 
@@ -10,7 +12,10 @@ def preprocess_rgba (path:str, reg:CoreRegistry):
     '''
 
     # Load image
-    img = plt.imread(path)
+    img = Image.open(path)
+    if downsample:
+        img = img.resize((300, 300), resample=Image.BILINEAR) 
+    img = jnp.array(img)
     assert img.shape[1] != 4, f"2D data is expected to have 4 channel but has {img.shape[1]}."
     y = jnp.array(img[...,3].flatten(), dtype = jnp.float32)
     x = jnp.indices(img[...,3].shape).reshape(2,-1).T.astype(jnp.float32)

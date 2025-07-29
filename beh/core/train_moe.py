@@ -45,7 +45,7 @@ def train_moe(
 
     @jax.jit
     def update(p, opt_state, xB, yB):
-        grads = jax.grad(moe_KL_BCE_loss)(p, xB, yB)
+        grads = jax.grad(moe_train_loss)(p, xB, yB)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads
@@ -64,7 +64,7 @@ def train_moe(
         moe, opt_state, gradient = update(moe, opt_state, xB, yB)
         
         if i % loss_logging_frequency == 0: 
-            val_loss, _ , __  = moe_loss(batches, y, moe, moe_forward_dense_INF)  
+            val_loss, _ , __  = moe_error(batches, y, moe, moe_forward_dense_INF)  
             val_loss_cache.append(val_loss)          
             print(f"Epoch {i}, Val-MSE-Loss: {val_loss}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)

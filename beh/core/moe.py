@@ -71,7 +71,7 @@ def moe_forward_sparse_INF(p, x):
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_KL_BCE_loss(p, x, y): 
+def moe_train_loss(p, x, y): 
     # Binary Cross-Entropy 
     yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
     bce_loss = jnp.mean(optax.sigmoid_binary_cross_entropy(yp, y))
@@ -81,7 +81,7 @@ def moe_KL_BCE_loss(p, x, y):
     g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
     kl_loss = jnp.sum(g * jnp.log(g / (1 / activation.shape[1])))
 
-    # Activation Entropy
+    # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + 1e-8), axis=1)
     ae_loss = jnp.mean(query_entropy)
 
@@ -89,7 +89,7 @@ def moe_KL_BCE_loss(p, x, y):
 
 #------------------------------------------------------------------------------------
 
-def moe_loss(x_batches : list, y : jax.Array , moe : dict, func):
+def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
     ## Trim tail of x that does not fit with batchsize
     ## Minibatching of shape [batch, minibatch, coordinate]
     ## -> Causes double nested vmapping

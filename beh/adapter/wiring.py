@@ -7,7 +7,8 @@ from beh.core.registry import *
 def get_traininig_data(
     data_name : str , 
     dimension : int ,
-    reg : CoreRegistry):
+    reg : CoreRegistry
+    ):
     '''
     Load and extract training data.
     \nDelegation based on dimensionalty to ensure correct data extraction procedure.

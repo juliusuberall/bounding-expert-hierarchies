@@ -14,10 +14,10 @@ def register_accuracy(
     ):
 
     # Dense MoE inference
-    dense_mse, dense_yp, dense_yp_raw = moe_loss(x_batches, y, moe, moe_forward_dense_INF)
+    dense_mse, dense_yp, dense_yp_raw = moe_error(x_batches, y, moe, moe_forward_dense_INF)
 
     # Sparse MoE inference
-    sparse_mse, sparse_yp, sparse_yp_raw = moe_loss(x_batches, y, moe, moe_forward_sparse_INF)
+    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF)
 
     # Save numerical results
     dkey = 'moe' + '_dense_'
@@ -55,12 +55,12 @@ def register_gating_confidence (
                     jax.vmap(lambda x: moe_forward_gate_INF(moe, x))(x)
                     )(x_batched)
     x_tail = jax.vmap(lambda x: moe_forward_gate_INF(moe,x))(x_batches[-1])
-    gate_activation = jnp.concatenate((gate_activation, jnp.expand_dims(x_tail, axis=0)))
+    gate_activation = jnp.concatenate((gate_activation.reshape((-1,x_tail.shape[-1])), x_tail))
 
     # Extract crucial activation metrics
     _ , idx = jax.lax.top_k(gate_activation, 1)
-    gate_sorted_activation = jnp.sort(gate_activation, axis=2)
-    confidence = jnp.mean(jnp.max(gate_activation, axis=2).flatten())
+    gate_sorted_activation = jnp.sort(gate_activation, axis=1)
+    confidence = jnp.mean(jnp.max(gate_activation, axis=1).flatten())
 
     
     # Save numerical results

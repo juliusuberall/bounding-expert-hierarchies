@@ -13,6 +13,10 @@ def get_benchmarks(
         configs : dict,
         dimension : int
     ):
+    '''
+    Run all benchmarks and compute all results with the model.
+    \nDelegates to corresponding data dimensionality sub-routine.
+    '''
 
     # Batch data
     batch_size = configs['general']['batch_size']
@@ -32,3 +36,17 @@ def get_benchmarks(
         pass
     else:
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
+
+def save_model (model) -> str:
+    '''
+    Export the parameters of a model.
+    \nReturns path to exported model file.
+    '''
+
+    # Not the cleanest way of delegating, but works for our case
+    if type(model) == dict:
+        return export_moe(model)
+    elif type(model) == list:
+        pass
+    else:
+        raise ValueError(f"Could not export the model. Unsupported model format.")

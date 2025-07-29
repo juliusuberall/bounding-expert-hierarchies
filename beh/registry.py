@@ -21,3 +21,11 @@ result_dir_registry = {
     4 : None, 
     10 : None, 
 }
+
+# Model directory managment 
+model_dir_registry = {
+    2 : "./results/2D/models", 
+    3 : None, 
+    4 : None, 
+    10 : None, 
+}

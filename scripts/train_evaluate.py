@@ -62,6 +62,9 @@ def main():
     )
 
     # Save models
+    save_model(
+        model = moe
+    )
 
 
 if __name__ == '__main__':

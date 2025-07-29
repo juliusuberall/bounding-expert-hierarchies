@@ -33,7 +33,7 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     print(f"2D training data plot saved at {path}")
     pass
 
-def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : CoreRegistry, config : dict, dimensions : int):
+def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : CoreRegistry, config : dict, dimensions : int, mask_experts : bool = True):
     '''
     2D
     \nCreate MoE internal state overview plot inlcuding:
@@ -76,7 +76,6 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
     e_decBoundaries = reg.get(model_key + core_keys['expert_boundary_key'])
     
     ############ We might want to outsource this in a central colour system
-
     # Extract colors for all experts
     expert_gradients = []
     viridis = mplt.cm.get_cmap('viridis')
@@ -87,12 +86,15 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
     ## Compute expert greys to avoid full white that is invisible
     expGreys = mplt.cm.get_cmap('Greys')(jnp.linspace(0,1,nex+1)[jnp.arange(nex)[::-1]])
     expGreys[-1,...] = [0.98, 0.98, 0.98,1.]
-
-    ############
-
-    # Print results
+    ## Custom gray to black gradient
     wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", ["whitesmoke", "black"])
 
+    # Mask expert decision boundaries
+    if mask_experts:
+        for i in range(nex):
+            e_decBoundaries[i] *= (top1_activation == i).flatten()
+
+    # Create plot 
     r, c = 4, 4
     fig, ax = plt.subplots(r,c, figsize=(15,18))
     ax[0,0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
@@ -101,7 +103,7 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
     ax[0,1].set_title(f"Dense Predicition MSE {rounded_dense_mse} with\n{round(float(jnp.min(dense_yp_NOTremapped)),2)} - {round(float(jnp.max(dense_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(dense_yp)),2)} - {round(float(jnp.max(dense_yp)),2)}", fontsize=9)
     ax[0,2].imshow(sparse_yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0,2].set_title(f"Sparse Prediction MSE {rounded_sparse_mse} with\n{round(float(jnp.min(sparse_yp_NOTremapped)),2)} - {round(float(jnp.max(sparse_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(sparse_yp)),2)} - {round(float(jnp.max(sparse_yp)),2)}", fontsize=9)
-    ax[0,3].imshow(top1_activation.reshape((img_dim_0,img_dim_1)))
+    ax[0,3].imshow(top1_activation.reshape((img_dim_0,img_dim_1)), vmin=0, vmax=nex-1)
     ax[0,3].set_title(f"Activation Map Top {topk} Expert", fontsize=9)
     ax[1,0].set_title(f"Expert 1", fontsize=9)
     ax[1,0].imshow(e_decBoundaries[0].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[0])
@@ -159,13 +161,14 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
 
     ax[3,0].set_visible(False)
 
-    fig.text(0.02, 0.021, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nImportance auxiliary loss for uniform gating.\nThe MoE is queried sparse with top {topk} experts.\n\nTop1 activation mean: {confidence}", fontsize=9)
+    fig.text(0.02, 0.021, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nLoss: BCE + KL + AE\n\nTop1 activation mean: {round(float(confidence),2)}", fontsize=9)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.suptitle(f'{model_key} Decision Boundary Overview\nLoss: BCE + KL + AE')
     
     # Export plot
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = result_dir_registry[dimensions] + f"/{timestamp}_dim2_moe_internal_.png"
+    timestamp = ""
+    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
+    path = result_dir_registry[dimensions] + f"/{timestamp}dim2_moe_internal_.png"
     plt.savefig(path)
     plt.close()
     print(f"\n2D MoE internal state plot saved at {path}")

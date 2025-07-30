@@ -106,7 +106,7 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Create plot 
     r, c = 4, 4
-    fig, ax = plt.subplots(r,c, figsize=(15,17),constrained_layout=True)
+    fig, ax = plt.subplots(r,c, figsize=(15,16),constrained_layout=True)
     ax[0,0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0,0].set_title("Original", fontsize=9)
     ax[0,1].imshow(dense_yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
@@ -143,7 +143,7 @@ def export_plot_2D_moe_internal_8_experts (
     ax[3,1].set_title(f"Sparse False Positives {round(float(sparse_fp),8)}", fontsize=9)
 
     # TopK activations
-    ax[3,2].set_title(f"Expert Activation all Points\nTopK sorting", fontsize=9)
+    ax[3,2].set_title(f" \nExpert Activation - TopK sorting", fontsize=9)
     for i in range(nex):
         eActi = gate_sorted_activation[...,nex-1-i].flatten()
         ax[3,2].plot(jnp.arange(eActi.size), eActi, color= expGreys[i])
@@ -153,7 +153,7 @@ def export_plot_2D_moe_internal_8_experts (
     ax[3,2].set_xlabel("Point")
     ax[3,2].set_ylabel("Probability")
 
-    ax[3,3].set_title(f"Activation Mean\nTopK sorted", fontsize=9)
+    ax[3,3].set_title(f"Activation Mean - TopK sorted", fontsize=9)
     ax[3,3].bar(jnp.arange(nex) + 1,
                 jnp.mean(gate_sorted_activation.reshape((-1, nex)).T, axis=1)[::-1],
                 color = expGreys
@@ -165,8 +165,8 @@ def export_plot_2D_moe_internal_8_experts (
     ax[3,3].set_ylabel("Probability")
 
 
-    fig.text(0.78, 0.03, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nLoss: BCE + KL + AE\n\nTop1 activation mean: {round(float(confidence),2)}", fontsize=9)
-    plt.tight_layout(rect=[0, 0.1, 1, 0.95])
+    fig.text(0.78, 0.01, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nLoss: BCE + KL + AE\n\nTop1 activation mean: {round(float(confidence),2)}", fontsize=9)
+    plt.tight_layout(rect=[0, 0.08, 1, 0.94])
     plt.suptitle(f'{model_key} Decision Boundary Overview\nLoss: BCE + KL + AE')
     
     # Export plot

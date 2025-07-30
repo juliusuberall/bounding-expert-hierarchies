@@ -33,7 +33,14 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     print(f"2D training data plot saved at {path}")
     pass
 
-def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : CoreRegistry, config : dict, dimensions : int, mask_experts : bool = True):
+def export_plot_2D_moe_internal_8_experts (
+    x : jax.Array,
+    y : jax.Array,
+    reg : CoreRegistry,
+    config : dict,
+    dimensions : int,
+    threshold : float,
+    mask_experts : bool = True,):
     '''
     2D
     \nCreate MoE internal state overview plot inlcuding:
@@ -70,6 +77,9 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
     rounded_dense_mse = round(float(reg.get(dkey + core_keys['accuracy_mse_key'])),4)
     rounded_sparse_mse = round(float(reg.get(skey + core_keys['accuracy_mse_key'])),4)
 
+    sparse_fn = reg.get(skey + core_keys['sparse_fn_key'])
+    sparse_fp = reg.get(skey + core_keys['sparse_fp_key'])
+
     top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
     gate_sorted_activation = reg.get(model_key + core_keys['gating_sorted_activation_key'])
     confidence = reg.get(model_key + core_keys['gating_confidence_key'])
@@ -96,7 +106,7 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
 
     # Create plot 
     r, c = 4, 4
-    fig, ax = plt.subplots(r,c, figsize=(15,18))
+    fig, ax = plt.subplots(r,c, figsize=(15,17),constrained_layout=True)
     ax[0,0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0,0].set_title("Original", fontsize=9)
     ax[0,1].imshow(dense_yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
@@ -126,20 +136,16 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
         for j in range(c):
             ax[i,j].axis('off')
 
-    ax[3,1].set_title(f"Expert Activation all Points\nTopK sorting", fontsize=9)
-    for i in range(nex):
-        eActi = gate_sorted_activation[...,nex-1-i].flatten()
-        ax[3,1].plot(jnp.arange(eActi.size), eActi, color= expGreys[i])
-    ax[3,1].axis('on')
-    ax[3,1].set_xticks([])  
-    ax[3,1].set_xticklabels([]) 
-    ax[3,1].set_xlabel("Point")
-    ax[3,1].set_ylabel("Probability")
+    # Conservativness
+    ax[3,0].imshow(((sparse_yp < threshold) * ( y > 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[3,0].set_title(f"Sparse False Negatives {round(float(sparse_fn),8)}", fontsize=9)
+    ax[3,1].imshow(((sparse_yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[3,1].set_title(f"Sparse False Positives {round(float(sparse_fp),8)}", fontsize=9)
 
-    ax[3,2].set_title(f"Expert Activation first 1000 Points\nTopK sorting", fontsize=9)
+    # TopK activations
+    ax[3,2].set_title(f"Expert Activation all Points\nTopK sorting", fontsize=9)
     for i in range(nex):
         eActi = gate_sorted_activation[...,nex-1-i].flatten()
-        eActi = eActi[0:1000]
         ax[3,2].plot(jnp.arange(eActi.size), eActi, color= expGreys[i])
     ax[3,2].axis('on')
     ax[3,2].set_xticks([])  
@@ -159,10 +165,8 @@ def export_plot_2D_moe_internal_8_experts (x : jax.Array, y : jax.Array, reg : C
     ax[3,3].set_ylabel("Probability")
 
 
-    ax[3,0].set_visible(False)
-
-    fig.text(0.02, 0.021, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nLoss: BCE + KL + AE\n\nTop1 activation mean: {round(float(confidence),2)}", fontsize=9)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    fig.text(0.78, 0.03, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nLoss: BCE + KL + AE\n\nTop1 activation mean: {round(float(confidence),2)}", fontsize=9)
+    plt.tight_layout(rect=[0, 0.1, 1, 0.95])
     plt.suptitle(f'{model_key} Decision Boundary Overview\nLoss: BCE + KL + AE')
     
     # Export plot

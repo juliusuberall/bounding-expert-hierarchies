@@ -10,19 +10,26 @@ def register_accuracy(
         moe : dict,
         x_batches : list,
         y : jax.Array,
-        reg : CoreRegistry
+        reg : CoreRegistry,
+        threshold : float,
     ):
+    '''
+    Computes and registers the accuracy with the provided training data batches.
+    \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in %.
+    '''
 
     # Dense MoE inference
     dense_mse, dense_yp, dense_yp_raw = moe_error(x_batches, y, moe, moe_forward_dense_INF)
 
     # Sparse MoE inference
     sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF)
+    sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
     dkey = 'moe' + '_dense_'
     skey = 'moe' + '_sparse_'
-
+    
+    ## Dense
     reg.add(dkey + core_keys['accuracy_mse_key'],
             jnp.array(dense_mse))
     reg.add(dkey + core_keys['y_prediciton_key'],
@@ -30,17 +37,32 @@ def register_accuracy(
     reg.add(dkey + core_keys['y_prediciton_RAW_key'],
         jnp.array(dense_yp_raw))
     
+    ## Sparse
     reg.add(skey + core_keys['accuracy_mse_key'],
             jnp.array(sparse_mse))
     reg.add(skey + core_keys['y_prediciton_key'],
         jnp.array(sparse_yp))
     reg.add(skey + core_keys['y_prediciton_RAW_key'],
         jnp.array(sparse_yp_raw))
+    reg.add(skey + core_keys['sparse_fn_key'],
+        jnp.array(sparse_fn))
+    reg.add(skey + core_keys['sparse_fp_key'],
+        jnp.array(sparse_fp))
 
-    print(f"\nDense Prediction MSE: {round(float(dense_mse),4)}")
-    print(f"Sparse Prediction MSE: {round(float(sparse_mse),4)}")
+    print(f"\nDense MSE: {round(float(dense_mse),4)}")
+    print(f"Sparse MSE: {round(float(sparse_mse),4)}")
+    print(f"Sparse FN: {float(sparse_fn)}")
+    print(f"Sparse FP: {float(sparse_fp)}")
 
     return reg
+
+def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
+    '''
+    Measure conservativness of predictions and labels with False-Negative and False-Positive rate.
+    '''
+    fp_rate = jnp.sum((yp > threshold) * ( y == 0)) / y.size
+    fn_rate = jnp.sum((yp < threshold) * ( y > 0)) / y.size
+    return fn_rate, fp_rate
 
 def register_gating_confidence (       
         moe : dict,

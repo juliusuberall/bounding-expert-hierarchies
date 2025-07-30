@@ -25,11 +25,11 @@ def format_export_results(x : jax.Array, y : jax.Array, reg : CoreRegistry, conf
     Create result plots.
     \nDelegates to corresponding data dimensionality sub-routine.
     '''
-    # Create results plots using data in CoreRegistry from benchmarking 
-    # Export plots locally 
+    # Get general config
+    threshold = configs['general']['boundary_threshold']
     
     if dimension == 2:
-        export_plot_2D_moe_internal_8_experts(x, y, reg, configs, dimension)
+        export_plot_2D_moe_internal_8_experts(x, y, reg, configs, dimension, threshold)
         pass
     elif dimension == 3:
         pass

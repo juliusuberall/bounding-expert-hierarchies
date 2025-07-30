@@ -18,12 +18,15 @@ def get_benchmarks(
     \nDelegates to corresponding data dimensionality sub-routine.
     '''
 
-    # Batch data
+    # Get general config
     batch_size = configs['general']['batch_size']
+    threshold = configs['general']['boundary_threshold']
+
+    # Batch data
     x_batches = batch_data(x, batch_size)
 
     if dimension == 2:
-        reg = register_accuracy(moe, x_batches, y, reg)
+        reg = register_accuracy(moe, x_batches, y, reg, threshold)
         reg = register_gating_confidence(moe, x_batches, reg)
         reg = register_all_expert_boundaries(moe, x_batches, reg)
         return reg

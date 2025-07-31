@@ -27,4 +27,6 @@ core_keys = {
     'train_val_loss_key' : '_training_validation_loss', # Stores training validation loss based on logging frequency in config
     'train_confidence_key' : '_training_confidence', # Gating confidence logged throughout training
     'train_epoch_key' : '_training_epoch', # Epoch timestamp for logged training metric following training logging frequency from config
+    'train_fn_key' : '_training_fn', # False negative rate training cache
+    'train_fp_key' : '_training_fp', # False negative rate training cache
 }

@@ -43,11 +43,16 @@ def export_plot_training_metrics (
     # Get training metrics from registry
     loss = reg.get(model_key + core_keys['train_val_loss_key'])
     confidence = reg.get(model_key + core_keys['train_confidence_key'])
+    fn = reg.get(model_key + core_keys['train_fn_key'])
+    fp = reg.get(model_key + core_keys['train_fp_key'])
     epochs = reg.get(model_key + core_keys['train_epoch_key'])
 
     # Create plot 
+    plt.title(f'{model_key} training')
     plt.plot(epochs, loss, label='Loss')
-    plt.plot(epochs, confidence, label='Confidence')
+    plt.plot(epochs, confidence, label='Gate Confidence')
+    plt.plot(epochs, fn, label='False Negatives')
+    plt.plot(epochs, fp, label='False Positives')
     plt.legend()
 
     # Export plot

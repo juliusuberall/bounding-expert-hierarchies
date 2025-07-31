@@ -28,6 +28,7 @@ def train_moe(
     epochs = configs['general']['epochs']
     batch_size = configs['general']['batch_size']
     learning_rate = configs['general']['learning_rate']
+    threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
 
     # Create validation loss batches
@@ -56,7 +57,7 @@ def train_moe(
     print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch}")
     print(f"+++++++++++++ Starting MoE training ++++++++++++++")
-    val_loss_cache, confidence_cache, epoch_cache = [], [], []
+    val_loss_cache, fn_cache, fp_cache, confidence_cache, epoch_cache = [], [], [], [], []
     for i in range(1, epochs + 1):
 
         # Using numpy for random sampling because we dont need random
@@ -67,20 +68,32 @@ def train_moe(
         
         if i % loss_logging_frequency == 0: 
             # Error
-            val_loss, _ , __  = moe_error(x_batches, y, moe, moe_forward_dense_INF)  
+            ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
+            val_loss, yp , __  = moe_error(x_batches, y, moe, moe_forward_dense_INF)  
             val_loss_cache.append(val_loss) 
+
+            # False-Negatives and False-Positives 
+            fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
+            fn_cache.append(fn) 
+            fp_cache.append(fp) 
 
             # Confidence
             confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches, reg=reg)
             confidence_cache.append(confidence)
 
             epoch_cache.append(i)     
-            print(f"Epoch {i}, Val-MSE-Loss: {val_loss}, Confidence: {confidence}")
+            print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
     
     # Register training metrics
     reg_key = 'moe' + core_keys['train_val_loss_key']
     reg.add( reg_key, jnp.array(val_loss_cache))
+
+    reg_key = 'moe' + core_keys['train_fn_key']
+    reg.add( reg_key, jnp.array(fn_cache))
+
+    reg_key = 'moe' + core_keys['train_fp_key']
+    reg.add( reg_key, jnp.array(fp_cache))
 
     reg_key = 'moe' + core_keys['train_confidence_key']
     reg.add( reg_key, jnp.array(confidence_cache))

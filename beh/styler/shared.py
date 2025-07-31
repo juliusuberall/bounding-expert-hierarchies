@@ -1,7 +1,9 @@
 import jax
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
 from beh.registry import *
+from beh.core.registry import *
 
 # Plot the gradient of a neural network training
 def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
@@ -26,3 +28,31 @@ def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
     plt.savefig(path)
     plt.close()
     pass
+
+def export_plot_training_metrics (
+    reg : CoreRegistry,
+    dimension : int):
+    '''
+    Create a training metrics plot, showing the trend throughout training inlcuding:
+    \n- Loss
+    '''
+
+    # Retrieve model specific key for results
+    model_key = 'moe'
+
+    # Get training metrics from registry
+    loss = reg.get(model_key + core_keys['train_val_loss_key'])
+    confidence = reg.get(model_key + core_keys['train_confidence_key'])
+    epochs = reg.get(model_key + core_keys['train_epoch_key'])
+
+    # Create plot 
+    plt.plot(epochs, loss, label='Loss')
+    plt.plot(epochs, confidence, label='Confidence')
+    plt.legend()
+
+    # Export plot
+    timestamp = ""
+    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
+    path = result_dir_registry[dimension] + f"/{timestamp}training.png"
+    plt.savefig(path)
+    plt.close()

@@ -1,4 +1,6 @@
 import jax
+
+from beh.styler.shared import *
 from beh.styler.dim2 import *
 from beh.core.registry import *
 
@@ -28,6 +30,9 @@ def format_export_results(x : jax.Array, y : jax.Array, reg : CoreRegistry, conf
     # Get general config
     threshold = configs['general']['boundary_threshold']
     
+    # Result plots for all dimensions
+    export_plot_training_metrics(reg=reg,dimension=dimension)
+
     if dimension == 2:
         export_plot_2D_moe_internal_8_experts(x, y, reg, configs, dimension, threshold)
         pass

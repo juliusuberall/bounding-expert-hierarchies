@@ -24,7 +24,7 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     # Create image using label data and export
     img = y.reshape((xdim,ydim))
     dimensions = 2
-    path = result_dir_registry[dimensions] + f"/dim2_y.png"
+    path = result_dir_registry[dimensions] + f"/y.png"
     plt.imsave(
         path,
         img,
@@ -106,7 +106,7 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Create plot 
     r, c = 4, 4
-    fig, ax = plt.subplots(r,c, figsize=(15,16),constrained_layout=True)
+    fig, ax = plt.subplots(r,c, figsize=(15,16))
     ax[0,0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0,0].set_title("Original", fontsize=9)
     ax[0,1].imshow(dense_yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
@@ -172,9 +172,8 @@ def export_plot_2D_moe_internal_8_experts (
     # Export plot
     timestamp = ""
     #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
-    path = result_dir_registry[dimensions] + f"/{timestamp}dim2_moe_internal_.png"
+    path = result_dir_registry[dimensions] + f"/{timestamp}moe_internal.png"
     plt.savefig(path)
     plt.close()
-    print(f"\n2D MoE internal state plot saved at {path}")
 
     pass

@@ -5,8 +5,10 @@ import optax
 
 from beh.core.moe import *
 from beh.core.params import *
-from beh.styler.shared import *
 from beh.core.registry import *
+from beh.core.moe_benchmarking import *
+
+from beh.styler.shared import *
 
 def train_moe(
     key : jax.Array,
@@ -54,22 +56,36 @@ def train_moe(
     print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch}")
     print(f"+++++++++++++ Starting MoE training ++++++++++++++")
-    val_loss_cache = [loss_logging_frequency]
+    val_loss_cache, confidence_cache, epoch_cache = [], [], []
     for i in range(1, epochs + 1):
 
-        # Used numpy for random sampling because we dont need random determinism
-        # and numpy runs therefor much faster on CPU when debugging 
+        # Using numpy for random sampling because we dont need random
+        # determinism and numpy runs therefor much faster than jax
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=False)
         xB, yB = x[idx,...], y[idx,...]
         moe, opt_state, gradient = update(moe, opt_state, xB, yB)
         
         if i % loss_logging_frequency == 0: 
+            # Error
             val_loss, _ , __  = moe_error(x_batches, y, moe, moe_forward_dense_INF)  
-            val_loss_cache.append(val_loss)          
-            print(f"Epoch {i}, Val-MSE-Loss: {val_loss}")
+            val_loss_cache.append(val_loss) 
+
+            # Confidence
+            confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches, reg=reg)
+            confidence_cache.append(confidence)
+
+            epoch_cache.append(i)     
+            print(f"Epoch {i}, Val-MSE-Loss: {val_loss}, Confidence: {confidence}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
     
+    # Register training metrics
     reg_key = 'moe' + core_keys['train_val_loss_key']
     reg.add( reg_key, jnp.array(val_loss_cache))
+
+    reg_key = 'moe' + core_keys['train_confidence_key']
+    reg.add( reg_key, jnp.array(confidence_cache))
+
+    reg_key = 'moe' + core_keys['train_epoch_key']
+    reg.add( reg_key, jnp.array(epoch_cache))
     
     return moe, reg

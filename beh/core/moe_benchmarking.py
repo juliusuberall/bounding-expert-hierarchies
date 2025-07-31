@@ -64,11 +64,17 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
     fn_rate = jnp.sum((yp < threshold) * ( y > 0)) / y.size
     return fn_rate, fp_rate
 
-def register_gating_confidence (       
+def gating_confidence (       
         moe : dict,
         x_batches : list,
         reg : CoreRegistry
     ):
+    '''
+    Computes MoE gating confidence metrics including:
+    \n- Mean confidence 
+    \n- Sorted gate activation
+    \n- Topk
+    '''
     # Compute mean for probability of top1 expert
     ## If gating probability not near 1.0 the MoE 
     ## relies on dense predicition
@@ -84,6 +90,15 @@ def register_gating_confidence (
     gate_sorted_activation = jnp.sort(gate_activation, axis=1)
     confidence = jnp.mean(jnp.max(gate_activation, axis=1).flatten())
 
+    return confidence, gate_sorted_activation, idx
+
+def register_gating_confidence (       
+        moe : dict,
+        x_batches : list,
+        reg : CoreRegistry
+    ):
+
+    confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches,reg=reg)
     
     # Save numerical results
     reg.add( 'moe' + core_keys['gating_confidence_key'],

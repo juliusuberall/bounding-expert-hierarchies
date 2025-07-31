@@ -3,6 +3,7 @@ import yaml
 import jax
 
 from beh.core.train_moe import train_moe
+from beh.core.train_mlp import train_mlp
 from beh.adapter.wiring import *
 from beh.styler.wiring import *
 from beh.core.registry import *
@@ -28,6 +29,18 @@ def main():
     )
     checkpoint_training_data(x, y)
     checkpoint_plot_training_data(x, y, args.dim)
+
+    # MLP
+    ## Training
+    mlp, reg = train_mlp(
+        key = key,
+        x = x,
+        y = y,
+        reg = reg,
+        configs = configs,
+        query = args.query,  # Currently not used but ideally for point and ray queries
+        dimension = args.dim
+    )
 
     # MoE
     ## Training 

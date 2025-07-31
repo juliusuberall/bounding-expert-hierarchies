@@ -5,6 +5,7 @@ import optax
 from beh.core.shared import *
 from beh.core.moe import *
 from beh.core.registry import *
+from beh.core.benchmarking import *
 
 def register_accuracy(
         moe : dict,
@@ -55,14 +56,6 @@ def register_accuracy(
     print(f"Sparse FP: {float(sparse_fp)}")
 
     return reg
-
-def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
-    '''
-    Measure conservativness of predictions and labels with False-Negative and False-Positive rate.
-    '''
-    fp_rate = jnp.sum((yp > threshold) * ( y == 0)) / y.size
-    fn_rate = jnp.sum((yp < threshold) * ( y > 0)) / y.size
-    return fn_rate, fp_rate
 
 def gating_confidence (       
         moe : dict,

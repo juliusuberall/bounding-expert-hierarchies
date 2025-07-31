@@ -7,7 +7,7 @@ from beh.core.registry import *
 
 # Plot the gradient of a neural network training
 def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
-    '''Visualize the gradient during training and export as plot.'''
+    '''Visualize the MoE gradient during training and export as plot.'''
   
     # Create plot
     plt.title(f"Learning Signal {dimension}D MoE | Epoch {epoch}")
@@ -19,6 +19,28 @@ def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
         plt.plot(l.flatten(), linewidth=0.5)
         v, i = jax.lax.top_k(l.flatten(), 1)
         plt.scatter(i, v, label='EL')
+    plt.xlabel('Weights')
+    plt.ylabel('Signal Strength')
+    plt.legend()
+
+    # Export
+    path = result_dir_registry[dimension] + f"/training_gradient.png"
+    plt.savefig(path)
+    plt.close()
+    pass
+
+def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
+    '''Visualize the MLP gradient during training and export as plot.'''
+  
+    # Create plot
+    plt.title(f"Learning Signal {dimension}D MLP | Epoch {epoch}")
+    i = 0
+    for l in gradient:
+        l_flat = l[0] + l[1]
+        plt.plot(l_flat, linewidth=0.5) # Needs to be cleaned if MLP also uses bias trick
+        v, i = jax.lax.top_k(l_flat, 1)
+        plt.scatter(i, v, label=f'L{i}')
+        i += 1
     plt.xlabel('Weights')
     plt.ylabel('Signal Strength')
     plt.legend()

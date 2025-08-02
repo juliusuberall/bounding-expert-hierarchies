@@ -12,6 +12,7 @@ from beh.core.benchmarking import *
 from beh.styler.shared import *
 
 def train_mlp(
+    model_key : str,
     key : jax.Array,
     x : jax.Array,
     y : jax.Array,
@@ -52,7 +53,7 @@ def train_mlp(
     # Training loop
     print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
     print(f"MLP: {mlp_arch}")
-    print(f"+++++++++++++ Starting MLP training ++++++++++++++")
+    print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, epoch_cache = [], [], [], []
     for i in range(1, epochs + 1):
 
@@ -78,7 +79,7 @@ def train_mlp(
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
     
     # Register training metrics
-    model_key = 'mlp'
+    model_key = f'{model_key}_{dimension}'
     reg_key = model_key + core_keys['train_val_loss_key']
     reg.add( reg_key, jnp.array(val_loss_cache))
 

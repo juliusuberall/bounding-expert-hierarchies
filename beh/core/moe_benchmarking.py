@@ -8,6 +8,8 @@ from beh.core.registry import *
 from beh.core.benchmarking import *
 
 def register_accuracy(
+        model_key : str,
+        dimension : int,
         moe : dict,
         x_batches : list,
         y : jax.Array,
@@ -27,8 +29,8 @@ def register_accuracy(
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
-    dkey = 'moe' + '_dense_'
-    skey = 'moe' + '_sparse_'
+    dkey = f'{model_key}_{dimension}_dense'
+    skey = f'{model_key}_{dimension}_sparse'
     
     ## Dense
     reg.add(dkey + core_keys['accuracy_mse_key'],
@@ -57,7 +59,7 @@ def register_accuracy(
 
     return reg
 
-def gating_confidence (       
+def gating_confidence (     
         moe : dict,
         x_batches : list,
         reg : CoreRegistry
@@ -85,7 +87,9 @@ def gating_confidence (
 
     return confidence, gate_sorted_activation, idx
 
-def register_gating_confidence (       
+def register_gating_confidence ( 
+        model_key : str,
+        dimension : int,        
         moe : dict,
         x_batches : list,
         reg : CoreRegistry
@@ -94,17 +98,21 @@ def register_gating_confidence (
     confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches,reg=reg)
     
     # Save numerical results
-    reg.add( 'moe' + core_keys['gating_confidence_key'],
+    model_key = f'{model_key}_{dimension}'
+
+    reg.add( model_key + core_keys['gating_confidence_key'],
             confidence)
-    reg.add( 'moe' + core_keys['gating_sorted_activation_key'],
+    reg.add( model_key + core_keys['gating_sorted_activation_key'],
             gate_sorted_activation)
-    reg.add( 'moe' + core_keys['gate_top1_activation_key'],
+    reg.add( model_key + core_keys['gate_top1_activation_key'],
             idx)
 
-    print(f"\nMoE Confidence: {round(float(confidence),4)}")
+    print(f"\nGate Confidence: {round(float(confidence),4)}")
     return reg
 
 def register_all_expert_boundaries(
+        model_key : str,
+        dimension : int,  
         moe : dict,
         x_batches : list,
         reg : CoreRegistry
@@ -125,7 +133,8 @@ def register_all_expert_boundaries(
         e_decBoundaries.append(jnp.concatenate((iyp, x_tail.flatten())))
     
     # Save numerical results
-    reg.add( 'moe' + core_keys['expert_boundary_key'],
+    model_key = f'{model_key}_{dimension}'
+    reg.add( model_key + core_keys['expert_boundary_key'],
             e_decBoundaries)
     
     return reg

@@ -22,25 +22,48 @@ def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int 
     else:
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
 
-def format_export_results(x : jax.Array, y : jax.Array, reg : CoreRegistry, configs : dict, dimension : int):
+def format_export_results(
+    model_key : str,
+    x : jax.Array, 
+    y : jax.Array, 
+    reg : CoreRegistry, 
+    configs : dict,
+    dimension : int):
     '''
     Create result plots.
     \nDelegates to corresponding data dimensionality sub-routine.
     '''
     # Get general config
     threshold = configs['general']['boundary_threshold']
+    model_type = configs[model_key]['type']
     
-    # Result plots for all dimensions
-    export_plot_training_metrics(reg=reg,dimension=dimension)
+    # Result plots relevant for all dimensions and models
+    export_plot_training_metrics(model_key, reg, configs, dimension)
 
-    if dimension == 2:
-        export_plot_2D_moe_internal_8_experts(x, y, reg, configs, dimension, threshold)
-        pass
-    elif dimension == 3:
-        pass
-    elif dimension == 4:
-        pass
-    elif dimension == 10:
-        pass
+    # Create model internal state overview
+    if model_type == 'moe':
+        if dimension == 2:
+            export_plot_2D_moe_internal_8_experts(model_key, x, y, reg, configs, dimension, threshold)
+        elif dimension == 3:
+            pass
+        elif dimension == 4:
+            pass
+        elif dimension == 10:
+            pass
+        else:
+            raise ValueError(f"Unsupported data dimensionality: {dimension}")
+    
+    elif model_type == 'mlp':
+        if dimension == 2:
+            pass
+        elif dimension == 3:
+            pass
+        elif dimension == 4:
+            pass
+        elif dimension == 10:
+            pass
+        else:
+            raise ValueError(f"Unsupported data dimensionality: {dimension}")
+
     else:
-        raise ValueError(f"Unsupported data dimensionality: {dimension}")
+        raise ValueError(f"Unsupported model type: {model_type}")

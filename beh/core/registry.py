@@ -7,7 +7,7 @@ class CoreRegistry:
         if name in self.registry.keys():
             return self.registry[name]
         else:
-            raise ValueError("metric {} not registered".format(name))
+            raise ValueError(f"Metric {name} not registered")
 
     def add(self, name : str, value):
         self.registry[name] = value

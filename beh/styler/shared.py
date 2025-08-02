@@ -52,19 +52,21 @@ def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
     pass
 
 def export_plot_training_metrics (
+    model_key : str,
     reg : CoreRegistry,
+    configs : dict,
     dimension : int):
     '''
     Create a training metrics plot, showing the trend throughout training inlcuding:
     \n- Loss
     '''
 
-    # Retrieve model specific key for results
-    model_key = 'moe'
+    # Retrieve model specific key for results and type
+    model_type = configs[model_key]['type']
+    model_key = f'{model_key}_{dimension}'
 
     # Get training metrics from registry
     loss = reg.get(model_key + core_keys['train_val_loss_key'])
-    confidence = reg.get(model_key + core_keys['train_confidence_key'])
     fn = reg.get(model_key + core_keys['train_fn_key'])
     fp = reg.get(model_key + core_keys['train_fp_key'])
     epochs = reg.get(model_key + core_keys['train_epoch_key'])
@@ -72,14 +74,18 @@ def export_plot_training_metrics (
     # Create plot 
     plt.title(f'{model_key} training')
     plt.plot(epochs, loss, label='Loss')
-    plt.plot(epochs, confidence, label='Gate Confidence')
     plt.plot(epochs, fn, label='False Negatives')
     plt.plot(epochs, fp, label='False Positives')
-    plt.legend()
+
+    # Get MoE additional training metrics 
+    if model_type == 'moe':
+        confidence = reg.get(model_key + core_keys['train_confidence_key'])
+        plt.plot(epochs, confidence, label='Gate Confidence')
 
     # Export plot
     timestamp = ""
     #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
-    path = result_dir_registry[dimension] + f"/{timestamp}training.png"
+    path = result_dir_registry[dimension] + f"/{timestamp}_{model_key}_{dimension}D_training.png"
+    plt.legend()
     plt.savefig(path)
     plt.close()

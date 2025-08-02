@@ -2,8 +2,6 @@ import argparse
 import yaml
 import jax
 
-from beh.core.train_moe import train_moe
-from beh.core.train_mlp import train_mlp
 from beh.adapter.wiring import *
 from beh.styler.wiring import *
 from beh.core.registry import *
@@ -30,54 +28,50 @@ def main():
     checkpoint_training_data(x, y)
     checkpoint_plot_training_data(x, y, args.dim)
 
-    # MLP
-    ## Training
-    mlp, reg = train_mlp(
-        key = key,
-        x = x,
-        y = y,
-        reg = reg,
-        configs = configs,
-        query = args.query,  # Currently not used but ideally for point and ray queries
-        dimension = args.dim
-    )
+    # Loop over all configured models
+    for i in configs.items():
 
-    # MoE
-    ## Training 
-    moe, reg = train_moe(
-        key = key,
-        x = x,
-        y = y,
-        reg = reg,
-        configs = configs,
-        query = args.query,  # Currently not used but ideally for point and ray queries
-        dimension = args.dim
-    )
+        model_key = i[0]
+        if model_key == 'general': continue
+        
+        model, reg = train_model(
+            model_key = model_key,
+            key = key,
+            x = x,
+            y = y,
+            reg = reg,
+            configs = configs,
+            query = args.query,  # Currently not used but ideally for point and ray queries
+            dimension = args.dim
+        )
     
-    ## Benchmarking
-    #### Loop over all models and pass model name for sving and loading to correct result key
-    reg = get_benchmarks(
-        moe = moe,
-        x = x,
-        y = y,
-        reg = reg,
-        configs = configs,
-        dimension = args.dim
-    )
+        #### Loop over all models and pass model name for sving and loading to correct result key
+        reg = get_benchmarks(
+            model_key = model_key,
+            model = model,
+            x = x,
+            y = y,
+            reg = reg,
+            configs = configs,
+            dimension = args.dim
+        )
     
-    # Result Collection
-    format_export_results(
-        x = x,
-        y = y,
-        reg = reg,
-        configs = configs,
-        dimension = args.dim,
-    )
+        # Result Collection
+        format_export_results(
+            model_key = model_key,
+            x = x,
+            y = y,
+            reg = reg,
+            configs = configs,
+            dimension = args.dim,
+        )
 
-    # Save models
-    save_model(
-        model = moe
-    )
+        # Save models
+        save_model(
+            model_key = model_key,
+            configs = configs,
+            model = model
+        )
 
 
 if __name__ == '__main__':

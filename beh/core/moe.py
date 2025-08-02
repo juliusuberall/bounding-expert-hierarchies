@@ -118,17 +118,17 @@ def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
 
 #------------------------------------------------------------------------------------
 
-def export_moe( moe : dict) -> str:
+def export_moe( moe : dict, model_key : str) -> str:
     # Convert to NumPy and save parameters as dictionary of numpy arrays
     moe_gate = [np.array(l) for l in moe['gate']]
     moe_experts = [[np.array(l) for l in e] for e in moe['experts']]
-    dimensions = moe_gate[0].shape[0] - 1 #To account for bias
+    dimension = moe_gate[0].shape[0] - 1 #To account for bias
 
     # Create timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # e.g. 20250716_142015
 
     # Save layers as list of numpy arrays under gate or expert keyword.
-    path = model_dir_registry[dimensions] + "/" + timestamp + f"_{dimensions}D_MoE.npz"
+    path = model_dir_registry[dimension] + "/" + timestamp + f"_{model_key}_{dimension}D_MoE.npz"
     np.savez(
         path,
         gate = np.array(moe_gate, dtype=object),

@@ -3,16 +3,56 @@ from beh.adapter.shared import *
 from beh.registry import *
 from beh.core.registry import *
 from beh.core.moe_benchmarking import *
+from beh.core.train_moe import train_moe
+from beh.core.train_mlp import train_mlp
+
+def train_model(
+    model_key : str,
+    key : jax.Array,
+    x : jax.Array,
+    y : jax.Array,
+    reg : CoreRegistry,
+    query : str,
+    configs : dict,
+    dimension : int):
+
+    # Get general config
+    model_type = configs[model_key]['type']
+
+    if model_type == 'moe':
+        return train_moe(
+            model_key = model_key,
+            key = key,
+            x = x,
+            y = y,
+            reg = reg,
+            configs = configs,
+            query = args.query,
+            dimension = args.dim
+        )
+    elif model_type == 'mlp':
+        return train_mlp(
+            model_key = model_key,
+            key = key,
+            x = x,
+            y = y,
+            reg = reg,
+            configs = configs,
+            query = args.query,
+            dimension = args.dim
+        )
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
 
 # An orchestration function that loads the correct data 
 def get_benchmarks(
-        moe : dict,
-        x : jax.Array,
-        y : jax.Array,
-        reg : CoreRegistry,
-        configs : dict,
-        dimension : int
-    ):
+    model_key : str,
+    model ,
+    x : jax.Array,
+    y : jax.Array,
+    reg : CoreRegistry,
+    configs : dict,
+    dimension : int) -> CoreRegistry :
     '''
     Run all benchmarks and compute all results with the model.
     \nDelegates to corresponding data dimensionality sub-routine.
@@ -25,31 +65,36 @@ def get_benchmarks(
     # Batch data
     x_batches = batch_data(x, batch_size)
 
-    if dimension == 2:
-        reg = register_accuracy(moe, x_batches, y, reg, threshold)
-        reg = register_gating_confidence(moe, x_batches, reg)
-        reg = register_all_expert_boundaries(moe, x_batches, reg)
+    # Get general config
+    model_type = configs[model_key]['type']
+
+    if model_type == 'moe':
+        reg = register_accuracy(model_key, dimension, model, x_batches, y, reg, threshold)
+        reg = register_gating_confidence(model_key, dimension, model, x_batches, reg)
+        reg = register_all_expert_boundaries(model_key, dimension, model, x_batches, reg)
         return reg
     
-    elif dimension == 3:
-        pass
-    elif dimension == 4:
-        pass
-    elif dimension == 10:
-        pass
+    elif model_type == 'mlp':
+        return reg
     else:
-        raise ValueError(f"Unsupported data dimensionality: {dimension}")
+        raise ValueError(f"Unsupported model type: {model_type}")
 
-def save_model (model) -> str:
+def save_model (
+    model_key : str,
+    configs : dict,
+    model) -> str:
     '''
     Export the parameters of a model.
     \nReturns path to exported model file.
     '''
 
+    # Get general config
+    model_type = configs[model_key]['type']
+
     # Not the cleanest way of delegating, but works for our case
-    if type(model) == dict:
-        return export_moe(model)
-    elif type(model) == list:
+    if model_type == 'moe':
+        return export_moe(model, model_key)
+    elif model_type == 'mlp':
         pass
     else:
         raise ValueError(f"Could not export the model. Unsupported model format.")

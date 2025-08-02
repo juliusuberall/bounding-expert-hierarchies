@@ -23,8 +23,8 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
 
     # Create image using label data and export
     img = y.reshape((xdim,ydim))
-    dimensions = 2
-    path = result_dir_registry[dimensions] + f"/y.png"
+    dimension = 2
+    path = result_dir_registry[dimension] + f"/y.png"
     plt.imsave(
         path,
         img,
@@ -34,11 +34,12 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     pass
 
 def export_plot_2D_moe_internal_8_experts (
+    model_key : str,
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
     config : dict,
-    dimensions : int,
+    dimension : int,
     threshold : float,
     mask_experts : bool = True,):
     '''
@@ -52,9 +53,8 @@ def export_plot_2D_moe_internal_8_experts (
     '''
 
     # Retrieve model specific key for results
-    model_key = 'moe'
-    dkey = model_key + '_dense_'
-    skey = model_key + '_sparse_'
+    dkey = f'{model_key}_{dimension}_dense'
+    skey = f'{model_key}_{dimension}_sparse'
 
     # Dimension
     dim = 2
@@ -68,6 +68,7 @@ def export_plot_2D_moe_internal_8_experts (
     moe_expert_arch = [dim] + configs[model_key]['expert_hidden_layer'] + [1]
 
     # Get results from registry
+    model_key = f'{model_key}_{dimension}'
     dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])
     sparse_yp_NOTremapped = reg.get(skey + core_keys['y_prediciton_RAW_key'])
 
@@ -172,7 +173,7 @@ def export_plot_2D_moe_internal_8_experts (
     # Export plot
     timestamp = ""
     #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
-    path = result_dir_registry[dimensions] + f"/{timestamp}moe_internal.png"
+    path = result_dir_registry[dimension] + f"/{timestamp}moe_internal.png"
     plt.savefig(path)
     plt.close()
 

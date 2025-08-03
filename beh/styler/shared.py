@@ -99,6 +99,54 @@ def export_plot_training_metrics (
     plt.savefig(path)
     plt.close()
 
+def export_plot_speed_accuracy_comparison (
+    reg : CoreRegistry,
+    configs : dict,
+    dimension : int):
+    '''
+    Create a speed accuray plot of all configured models.
+    '''
+
+    # Get general configs
+    batch_size = configs['general']['batch_size']
+
+    # Plot each model with its inference speed and accuracy
+    for i in configs.items():
+        model_key = i[0]
+        if model_key == 'general': continue
+        model_type = configs[model_key]['type']
+
+        if model_type == 'moe':
+            dkey = f'{model_key}_dense'
+            skey = f'{model_key}_sparse'
+
+            sparse_speed = reg.get(model_key + core_keys['sparse_inf_speed_key'])
+            sparse_accury = reg.get(skey + core_keys['accuracy_mse_key'])
+            plt.scatter(sparse_speed, sparse_accury, label=model_key + ' S')
+
+            dense_speed = reg.get(model_key + core_keys['dense_inf_speed_key'])
+            dense_accury = reg.get(dkey + core_keys['accuracy_mse_key'])
+            plt.scatter(dense_speed, dense_accury, label=model_key + ' D')
+
+        elif model_type == 'mlp':
+            speed = reg.get(model_key + core_keys['inf_speed_key'])
+            accury = reg.get(model_key + core_keys['accuracy_mse_key'])
+            plt.scatter(speed, accury, label=model_key)
+
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
+
+    # General plot 
+    plt.title(f'{dimension}D Model Comparison')
+    plt.legend()
+    plt.ylabel('MSE')
+    plt.xlabel('Min. Inference Speed (µs)')
+
+    # Export plot
+    path = result_dir_registry[dimension] + f"/{dimension}D_models_comparison.png"
+    plt.savefig(path)
+    plt.close()
+
 def create_model_details_string (
     model_type : str,
     model_key : str,

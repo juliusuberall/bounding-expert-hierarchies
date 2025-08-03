@@ -72,6 +72,8 @@ def main():
             model = model
         )
 
+    # Speed-accurracy comparison plot
+    export_plot_speed_accuracy_comparison(reg, configs, args.dim)
 
 if __name__ == '__main__':
     main()

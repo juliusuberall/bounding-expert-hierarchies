@@ -55,7 +55,6 @@ def main():
             y = y,
             reg = reg,
             configs = configs,
-            dimension = args.dim
         )
     
         format_export_results(

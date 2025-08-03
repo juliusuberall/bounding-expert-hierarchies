@@ -1,6 +1,5 @@
 import jax
 import jax.numpy as jnp
-import optax
 
 from beh.core.shared import *
 from beh.core.moe import *
@@ -74,7 +73,7 @@ def register_inference_speed (
     iterations = 100
     batch_repitions = 10
     
-    dense_speed = moe_min_inference_speed(
+    dense_speed = min_inference_speed(
         x_batches,
         moe,
         moe_forward_dense_INF,
@@ -82,7 +81,7 @@ def register_inference_speed (
         batch_repitions,
         configs)
     
-    sparse_speed = moe_min_inference_speed(
+    sparse_speed = min_inference_speed(
         x_batches,
         moe,
         moe_forward_sparse_INF,

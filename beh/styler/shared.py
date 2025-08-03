@@ -125,11 +125,12 @@ def create_model_details_string (
 
         # Get results
         confidence = reg.get(model_key + core_keys['gating_confidence_key'])
+        total_p = reg.get(model_key + core_keys['total_parameters_key'])
 
         # Create string
         a = f"MoE with {nex} Experts: {moe_expert_arch}"
         b = f"\nGate: {moe_gate_arch}"
-        c = f"\nTotal Parameters:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}"
+        c = f"\nTotal Parameters:{total_p}"
         d = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
         e = f"\nLoss: BCE + KL + AE"
         f = f"\n\nTop1 activation mean: {round(float(confidence),2)}"
@@ -139,9 +140,12 @@ def create_model_details_string (
         # Get model configurations
         mlp_arch = [dimension] + configs[model_key]['hidden_layer'] + [1]
 
+        # Get results
+        total_p = reg.get(model_key + core_keys['total_parameters_key'])
+
         # Create string
         a = f"MLP: {mlp_arch}"
-        b = f"\nTotal Parameters:{count_parameter(mlp_arch)}"
+        b = f"\nTotal Parameters:{total_p}"
         c = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
         d = f"\nLoss: BCE"
 

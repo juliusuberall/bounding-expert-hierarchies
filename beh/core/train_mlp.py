@@ -43,6 +43,11 @@ def train_mlp(
     opt = optax.adam(learning_rate)
     opt_state = opt.init(mlp)
 
+    # Count total parameter and store
+    total_p = count_parameter(mlp_arch)
+    reg.add( model_key + core_keys['total_parameters_key'],
+            total_p)
+
     @jax.jit
     def update(p, opt_state, xB, yB):
         grads = jax.grad(mlp_bce_loss)(p, xB, yB)
@@ -52,7 +57,7 @@ def train_mlp(
 
     # Training loop
     print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
-    print(f"MLP: {mlp_arch}")
+    print(f"MLP: {mlp_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, epoch_cache = [], [], [], []
     for i in range(1, epochs + 1):

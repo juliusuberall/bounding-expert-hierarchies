@@ -1,8 +1,13 @@
+import beh.core.moe_benchmarking as moe_B
+import beh.core.mlp_benchmarking as mlp_B
+
+from beh.core.moe import export_moe
+from beh.core.shared import batch_data
+
 from beh.adapter.dim2 import *
 from beh.adapter.shared import *
 from beh.registry import *
 from beh.core.registry import *
-from beh.core.moe_benchmarking import *
 from beh.core.train_moe import train_moe
 from beh.core.train_mlp import train_mlp
 
@@ -27,8 +32,8 @@ def train_model(
             y = y,
             reg = reg,
             configs = configs,
-            query = args.query,
-            dimension = args.dim
+            query = query,
+            dimension = dimension
         )
     elif model_type == 'mlp':
         return train_mlp(
@@ -38,8 +43,8 @@ def train_model(
             y = y,
             reg = reg,
             configs = configs,
-            query = args.query,
-            dimension = args.dim
+            query = query,
+            dimension = dimension
         )
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
@@ -51,8 +56,7 @@ def get_benchmarks(
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    configs : dict,
-    dimension : int) -> CoreRegistry :
+    configs : dict) -> CoreRegistry :
     '''
     Run all benchmarks and compute all results with the model.
     \nDelegates to corresponding data dimensionality sub-routine.
@@ -69,13 +73,15 @@ def get_benchmarks(
     model_type = configs[model_key]['type']
 
     if model_type == 'moe':
-        reg = register_accuracy(model_key, model, x_batches, y, reg, threshold)
-        reg = register_gating_confidence(model_key, model, x_batches, reg)
-        reg = register_all_expert_boundaries(model_key, model, x_batches, reg)
-        reg = register_inference_speed(model_key, model, x_batches, reg, configs)
+        reg = moe_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
+        reg = moe_B.register_gating_confidence(model_key, model, x_batches, reg)
+        reg = moe_B.register_all_expert_boundaries(model_key, model, x_batches, reg)
+        reg = moe_B.register_inference_speed(model_key, model, x_batches, reg, configs)
         return reg
     
     elif model_type == 'mlp':
+        reg = mlp_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
+        reg = mlp_B.register_inference_speed(model_key, model, x_batches, reg, configs)
         return reg
     else:
         raise ValueError(f"Unsupported model type: {model_type}")

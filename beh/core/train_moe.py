@@ -47,6 +47,11 @@ def train_moe(
     opt = optax.adam(learning_rate)
     opt_state = opt.init(moe)
 
+    # Count total parameter and store
+    total_p = count_parameter(expert_arch) * nex + count_parameter(gate_arch)
+    reg.add( model_key + core_keys['total_parameters_key'],
+            total_p)
+
     @jax.jit
     def update(p, opt_state, xB, yB):
         grads = jax.grad(moe_train_loss)(p, xB, yB)
@@ -56,7 +61,7 @@ def train_moe(
 
     # Training loop
     print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
-    print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch}")
+    print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, confidence_cache, epoch_cache = [], [], [], [], []
     for i in range(1, epochs + 1):

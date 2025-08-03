@@ -14,7 +14,7 @@ from beh.config_parser import *
 ## We can not pass topk as argument due to JIT errors, 
 ## given that topk value determines the shape of output.
 args, configs = parse_all()
-topk = batch_size = configs['moe']['topk']
+topk = configs['general']['topk']
 
 #------------------------------------------------------------------------------------
 
@@ -128,7 +128,7 @@ def export_moe( moe : dict, model_key : str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # e.g. 20250716_142015
 
     # Save layers as list of numpy arrays under gate or expert keyword.
-    path = model_dir_registry[dimension] + "/" + timestamp + f"_{model_key}_{dimension}D_MoE.npz"
+    path = model_dir_registry[dimension] + "/" + timestamp + f"_{model_key}.npz"
     np.savez(
         path,
         gate = np.array(moe_gate, dtype=object),

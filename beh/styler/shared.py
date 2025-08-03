@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 from beh.registry import *
 from beh.core.registry import *
+from beh.core.params import count_parameter
 
 # Plot the gradient of a neural network training
 def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
@@ -53,17 +54,19 @@ def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
 
 def export_plot_training_metrics (
     model_key : str,
+    model_detail_str : str,
     reg : CoreRegistry,
     configs : dict,
     dimension : int):
     '''
     Create a training metrics plot, showing the trend throughout training inlcuding:
     \n- Loss
+    \n- False-Negative Rate
+    \n- False-Positive Rate
     '''
 
     # Retrieve model specific key for results and type
     model_type = configs[model_key]['type']
-    model_key = f'{model_key}_{dimension}'
 
     # Get training metrics from registry
     loss = reg.get(model_key + core_keys['train_val_loss_key'])
@@ -72,20 +75,77 @@ def export_plot_training_metrics (
     epochs = reg.get(model_key + core_keys['train_epoch_key'])
 
     # Create plot 
-    plt.title(f'{model_key} training')
-    plt.plot(epochs, loss, label='Loss')
-    plt.plot(epochs, fn, label='False Negatives')
-    plt.plot(epochs, fp, label='False Positives')
+    fig, ax = plt.subplots(1,1, figsize=(5,5))
+    fig.suptitle(f'{model_key.split('_')[0]} {dimension}D training')
+    ax.plot(epochs, loss, label='Loss')
+    ax.plot(epochs, fn, label='False Negatives')
+    ax.plot(epochs, fp, label='False Positives')
+    ax.set_ylim(0.0, 1.0)
+    fig.text(0.0, 0.005, model_detail_str, fontsize=9)
 
     # Get MoE additional training metrics 
     if model_type == 'moe':
         confidence = reg.get(model_key + core_keys['train_confidence_key'])
-        plt.plot(epochs, confidence, label='Gate Confidence')
+        ax.plot(epochs, confidence, label='Gate Confidence')
+    elif model_type == 'mlp':
+        pass
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")
 
     # Export plot
-    timestamp = ""
-    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
-    path = result_dir_registry[dimension] + f"/{timestamp}_{model_key}_{dimension}D_training.png"
+    path = result_dir_registry[dimension] + f"/{model_key}_{dimension}D_training.png"
     plt.legend()
+    plt.tight_layout(rect=[0, 0.25, 1, 0.99])
     plt.savefig(path)
     plt.close()
+
+def create_model_details_string (
+    model_type : str,
+    model_key : str,
+    reg : CoreRegistry,
+    configs : dict,
+    dimension : int) -> str :
+    '''
+    Create a a string that captures important model details such as:
+    \n- Architecture
+    \n- Epochs
+    \n- Batchsize
+    \n- Parameter count
+    \n- Loss function
+    '''
+    # Get model configurations
+    epochs = configs['general']['epochs']
+    batch_size = configs['general']['batch_size']
+
+    if model_type == 'moe':
+        # Get model configurations
+        nex = configs[model_key]['nex']
+        moe_gate_arch = [dimension] + configs[model_key]['gate_hidden_layer'] + [nex]
+        moe_expert_arch = [dimension] + configs[model_key]['expert_hidden_layer'] + [1]
+
+        # Get results
+        confidence = reg.get(model_key + core_keys['gating_confidence_key'])
+
+        # Create string
+        a = f"MoE with {nex} Experts: {moe_expert_arch}"
+        b = f"\nGate: {moe_gate_arch}"
+        c = f"\nTotal Parameters:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}"
+        d = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
+        e = f"\nLoss: BCE + KL + AE"
+        f = f"\n\nTop1 activation mean: {round(float(confidence),2)}"
+        return a + b + c + d + e + f
+    
+    elif model_type == 'mlp':
+        # Get model configurations
+        mlp_arch = [dimension] + configs[model_key]['hidden_layer'] + [1]
+
+        # Create string
+        a = f"MLP: {mlp_arch}"
+        b = f"\nTotal Parameters:{count_parameter(mlp_arch)}"
+        c = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
+        d = f"\nLoss: BCE"
+
+        return a + b + c + d
+
+    else:
+        raise ValueError(f"Unsupported model type: {model_type}")

@@ -21,9 +21,9 @@ def train_moe(
     dimension : int):
 
     # Extract model configurations
-    nex = configs['moe']['nex']
-    gate_hid_lay = configs['moe']['gate_hidden_layer']
-    expert_hid_lay = configs['moe']['expert_hidden_layer']
+    nex = configs[model_key]['nex']
+    gate_hid_lay = configs[model_key]['gate_hidden_layer']
+    expert_hid_lay = configs[model_key]['expert_hidden_layer']
 
     # Set training hyperparameters
     epochs = configs['general']['epochs']
@@ -87,7 +87,6 @@ def train_moe(
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
     
     # Register training metrics
-    model_key = f'{model_key}_{dimension}'
     reg_key = model_key + core_keys['train_val_loss_key']
     reg.add( reg_key, jnp.array(val_loss_cache))
 

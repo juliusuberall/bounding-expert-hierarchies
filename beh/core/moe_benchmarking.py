@@ -29,8 +29,8 @@ def register_accuracy(
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
-    dkey = f'{model_key}_{dimension}_dense'
-    skey = f'{model_key}_{dimension}_sparse'
+    dkey = f'{model_key}_dense'
+    skey = f'{model_key}_sparse'
     
     ## Dense
     reg.add(dkey + core_keys['accuracy_mse_key'],
@@ -98,8 +98,6 @@ def register_gating_confidence (
     confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches,reg=reg)
     
     # Save numerical results
-    model_key = f'{model_key}_{dimension}'
-
     reg.add( model_key + core_keys['gating_confidence_key'],
             confidence)
     reg.add( model_key + core_keys['gating_sorted_activation_key'],
@@ -133,7 +131,6 @@ def register_all_expert_boundaries(
         e_decBoundaries.append(jnp.concatenate((iyp, x_tail.flatten())))
     
     # Save numerical results
-    model_key = f'{model_key}_{dimension}'
     reg.add( model_key + core_keys['expert_boundary_key'],
             e_decBoundaries)
     

@@ -22,7 +22,7 @@ def train_mlp(
     dimension : int):
 
     # Extract model configurations
-    hid_lay = configs['mlp']['hidden_layer']
+    hid_lay = configs[model_key]['hidden_layer']
 
     # Set training hyperparameters
     epochs = configs['general']['epochs']
@@ -79,7 +79,6 @@ def train_mlp(
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
     
     # Register training metrics
-    model_key = f'{model_key}_{dimension}'
     reg_key = model_key + core_keys['train_val_loss_key']
     reg.add( reg_key, jnp.array(val_loss_cache))
 

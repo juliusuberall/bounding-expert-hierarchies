@@ -4,12 +4,19 @@ general:
   learning_rate: 0.01
   loss_logging_frequency: 100 # Each N epoch we print and save the loss
   boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 
-mlp:
+  topk : 1 # TopK experts to query sparse MoE with. We use this for all MoEs and use this staticly when loading beh.core.moe module 
+
+mlp01:
   type: 'mlp'
-  hidden_layer: [4,4,4]
-moe:
+  hidden_layer: [32,32,32]
+
+moe01:
   type: 'moe'
   nex : 8 # Number of Experts
-  topk : 1
   expert_hidden_layer: [16,16]
   gate_hidden_layer: []
+moe02:
+  type: 'moe'
+  nex : 8 # Number of Experts
+  expert_hidden_layer: [16,16,16]
+  gate_hidden_layer: [16]

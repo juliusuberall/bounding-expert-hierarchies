@@ -3,8 +3,6 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import matplotlib as mplt
 
-from datetime import datetime
-
 from beh.registry import *
 from beh.styler.registry import *
 from beh.core.registry import *
@@ -41,7 +39,8 @@ def export_plot_2D_moe_internal_8_experts (
     config : dict,
     dimension : int,
     threshold : float,
-    mask_experts : bool = True,):
+    model_detail_str : str,
+    mask_experts : bool = True):
     '''
     2D
     \nCreate MoE internal state overview plot inlcuding:
@@ -53,8 +52,8 @@ def export_plot_2D_moe_internal_8_experts (
     '''
 
     # Retrieve model specific key for results
-    dkey = f'{model_key}_{dimension}_dense'
-    skey = f'{model_key}_{dimension}_sparse'
+    dkey = f'{model_key}_dense'
+    skey = f'{model_key}_sparse'
 
     # Dimension
     dim = 2
@@ -62,13 +61,9 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Get model configuration
     nex = configs[model_key]['nex']
-    epochs = configs['general']['epochs']
-    batch_size = configs['general']['batch_size']
-    moe_gate_arch = [dim] + configs[model_key]['gate_hidden_layer'] + [nex]
-    moe_expert_arch = [dim] + configs[model_key]['expert_hidden_layer'] + [1]
+    topk = configs['general']['topk']
 
     # Get results from registry
-    model_key = f'{model_key}_{dimension}'
     dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])
     sparse_yp_NOTremapped = reg.get(skey + core_keys['y_prediciton_RAW_key'])
 
@@ -83,7 +78,6 @@ def export_plot_2D_moe_internal_8_experts (
 
     top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
     gate_sorted_activation = reg.get(model_key + core_keys['gating_sorted_activation_key'])
-    confidence = reg.get(model_key + core_keys['gating_confidence_key'])
     e_decBoundaries = reg.get(model_key + core_keys['expert_boundary_key'])
     
     ############ We might want to outsource this in a central colour system
@@ -166,14 +160,12 @@ def export_plot_2D_moe_internal_8_experts (
     ax[3,3].set_ylabel("Probability")
 
 
-    fig.text(0.78, 0.01, f"MoE with {nex} Experts: {moe_expert_arch} \nGate: {moe_gate_arch}\nTotal Parameters MoE:{count_parameter(moe_expert_arch) * nex + count_parameter(moe_gate_arch)}\nEpochs: {epochs}, Batchsize: {batch_size}\nLoss: BCE + KL + AE\n\nTop1 activation mean: {round(float(confidence),2)}", fontsize=9)
+    fig.text(0.78, 0.01, model_detail_str, fontsize=9)
     plt.tight_layout(rect=[0, 0.08, 1, 0.94])
     plt.suptitle(f'{model_key} Decision Boundary Overview\nLoss: BCE + KL + AE')
     
     # Export plot
-    timestamp = ""
-    #timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + "/"
-    path = result_dir_registry[dimension] + f"/{timestamp}moe_internal.png"
+    path = result_dir_registry[dimension] + f"/{model_key}_2D_internal.png"
     plt.savefig(path)
     plt.close()
 

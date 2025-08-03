@@ -9,7 +9,6 @@ from beh.core.benchmarking import *
 
 def register_accuracy(
         model_key : str,
-        dimension : int,
         moe : dict,
         x_batches : list,
         y : jax.Array,
@@ -59,10 +58,52 @@ def register_accuracy(
 
     return reg
 
-def gating_confidence (     
+def register_inference_speed (     
+        model_key : str,     
         moe : dict,
         x_batches : list,
-        reg : CoreRegistry
+        reg : CoreRegistry,
+        configs : dict ):
+    '''
+    Registers the measured minimum inference speed over N iterations.
+    \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
+    '''
+    print(f"\nMin. Inference Speed MoE:")
+
+    # Measure inference for dense and sparse MoE
+    iterations = 100
+    batch_repitions = 10
+    
+    dense_speed = moe_min_inference_speed(
+        x_batches,
+        moe,
+        moe_forward_dense_INF,
+        iterations,
+        batch_repitions,
+        configs)
+    
+    sparse_speed = moe_min_inference_speed(
+        x_batches,
+        moe,
+        moe_forward_sparse_INF,
+        iterations,
+        batch_repitions,
+        configs)
+    
+    # Save numerical results
+    reg.add( model_key + core_keys['dense_inf_speed_key'],
+            dense_speed)
+    reg.add( model_key + core_keys['sparse_inf_speed_key'],
+            sparse_speed)
+
+    print(f"Dense: {round(float(dense_speed),4)}µs")
+    print(f"Sparse: {round(float(sparse_speed),4)}µs")
+
+    return reg
+
+def gating_confidence (     
+        moe : dict,
+        x_batches : list
     ):
     '''
     Computes MoE gating confidence metrics including:
@@ -88,14 +129,13 @@ def gating_confidence (
     return confidence, gate_sorted_activation, idx
 
 def register_gating_confidence ( 
-        model_key : str,
-        dimension : int,        
+        model_key : str,     
         moe : dict,
         x_batches : list,
         reg : CoreRegistry
     ):
 
-    confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches,reg=reg)
+    confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches)
     
     # Save numerical results
     reg.add( model_key + core_keys['gating_confidence_key'],
@@ -110,7 +150,6 @@ def register_gating_confidence (
 
 def register_all_expert_boundaries(
         model_key : str,
-        dimension : int,  
         moe : dict,
         x_batches : list,
         reg : CoreRegistry

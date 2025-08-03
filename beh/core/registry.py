@@ -14,6 +14,8 @@ class CoreRegistry:
 
 # Data directory managment
 core_keys = {
+    'sparse_inf_speed_key' : '_sparse_inf_speed', # Sparse inference speed
+    'dense_inf_speed_key' : '_dense_inf_speed', # Sparse inference speed
     'sparse_fn_key' : '_sparse_fn', # False Negative rate in %
     'sparse_fp_key' : '_sparse_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark

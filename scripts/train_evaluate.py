@@ -29,10 +29,13 @@ def main():
     checkpoint_plot_training_data(x, y, args.dim)
 
     # Loop over all configured models
+    ## Train, Benchmark, Save model
     for i in configs.items():
-
+        
+        # Get model name
         model_key = i[0]
         if model_key == 'general': continue
+        print(f"\n================================================== {model_key}")
         
         model, reg = train_model(
             model_key = model_key,
@@ -45,7 +48,6 @@ def main():
             dimension = args.dim
         )
     
-        #### Loop over all models and pass model name for sving and loading to correct result key
         reg = get_benchmarks(
             model_key = model_key,
             model = model,
@@ -56,7 +58,6 @@ def main():
             dimension = args.dim
         )
     
-        # Result Collection
         format_export_results(
             model_key = model_key,
             x = x,
@@ -66,7 +67,6 @@ def main():
             dimension = args.dim,
         )
 
-        # Save models
         save_model(
             model_key = model_key,
             configs = configs,

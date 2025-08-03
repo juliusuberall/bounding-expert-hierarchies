@@ -79,7 +79,7 @@ def train_moe(
             fp_cache.append(fp) 
 
             # Confidence
-            confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches, reg=reg)
+            confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches)
             confidence_cache.append(confidence)
 
             epoch_cache.append(i)     

@@ -69,9 +69,10 @@ def get_benchmarks(
     model_type = configs[model_key]['type']
 
     if model_type == 'moe':
-        reg = register_accuracy(model_key, dimension, model, x_batches, y, reg, threshold)
-        reg = register_gating_confidence(model_key, dimension, model, x_batches, reg)
-        reg = register_all_expert_boundaries(model_key, dimension, model, x_batches, reg)
+        reg = register_accuracy(model_key, model, x_batches, y, reg, threshold)
+        reg = register_gating_confidence(model_key, model, x_batches, reg)
+        reg = register_all_expert_boundaries(model_key, model, x_batches, reg)
+        reg = register_inference_speed(model_key, model, x_batches, reg, configs)
         return reg
     
     elif model_type == 'mlp':

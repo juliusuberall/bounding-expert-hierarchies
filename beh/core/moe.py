@@ -20,7 +20,7 @@ topk = configs['general']['topk']
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_expert(p, x, idx):
+def moe_forward_expert(p : dict, x : jax.Array, idx):
     for e in p['experts'][:-1]:
         # We use the bias trick for all MoE implementation
         x = jnp.append(x, 1)
@@ -29,13 +29,13 @@ def moe_forward_expert(p, x, idx):
     return jax.nn.tanh(jnp.dot(x, p['experts'][-1][idx]) *0.5) *3.0
 
 @jax.jit
-def moe_forward_expert_INF(p, x, idx):
+def moe_forward_expert_INF(p : dict, x : jax.Array, idx):
     return jax.nn.sigmoid(moe_forward_expert(p,x,idx))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_gate(p, x):
+def moe_forward_gate(p : dict, x : jax.Array):
     for l in p['gate'][:-1]:
         x = jnp.append(x, 1)
         x = jax.nn.relu(jnp.dot(x, l))
@@ -43,36 +43,36 @@ def moe_forward_gate(p, x):
     return jax.nn.softmax(jnp.dot(x, p['gate'][-1]))
 
 @jax.jit
-def moe_forward_gate_INF(p, x):
+def moe_forward_gate_INF(p : dict, x : jax.Array):
     return moe_forward_gate(p, x)
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_dense(p, x):
+def moe_forward_dense(p : dict, x : jax.Array):
     activation = moe_forward_gate(p, x)
     x = jax.vmap(lambda idx: moe_forward_expert(p, x, idx))(jnp.arange(activation.shape[0]))
     return jnp.sum(x * jnp.expand_dims(activation, axis=-1))
 
 @jax.jit
-def moe_forward_dense_INF(p, x):
+def moe_forward_dense_INF(p : dict, x : jax.Array):
     return jax.nn.sigmoid(moe_forward_dense(p, x))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse(p, x):
+def moe_forward_sparse(p : dict, x : jax.Array):
   _ , idx = jax.lax.top_k(moe_forward_gate(p, x), topk)
   return moe_forward_expert(p, x, idx)
 
 @jax.jit
-def moe_forward_sparse_INF(p, x):
+def moe_forward_sparse_INF(p : dict, x : jax.Array):
     return jax.nn.sigmoid(moe_forward_sparse(p, x))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_train_loss(p, x, y):
+def moe_train_loss(p : dict, x : jax.Array, y : jax.Array):
     epsilon = 1e-8
 
     # Binary Cross-Entropy 
@@ -88,7 +88,7 @@ def moe_train_loss(p, x, y):
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
     ae_loss = jnp.mean(query_entropy)
 
-    return kl_loss + bce_loss + ae_loss * 4.0
+    return kl_loss + bce_loss + ae_loss * 3.0
 
 #------------------------------------------------------------------------------------
 

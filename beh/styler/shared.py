@@ -117,30 +117,49 @@ def export_plot_speed_accuracy_comparison (
         model_type = configs[model_key]['type']
 
         if model_type == 'moe':
+
+            # Get model config details 
+            nex = configs[model_key]['nex']
+            gate_hid_lay = configs[model_key]['gate_hidden_layer']
+            expert_hid_lay = configs[model_key]['expert_hidden_layer']
+            gate_arch = [dimension] + gate_hid_lay + [nex]
+            expert_arch = [dimension] + expert_hid_lay + [1]
+            total_p = count_parameter(expert_arch) * nex + count_parameter(gate_arch)
+            active_p = count_parameter(expert_arch) + count_parameter(gate_arch)
+
+            # Get sparse and dense results
             dkey = f'{model_key}_dense'
             skey = f'{model_key}_sparse'
-
             sparse_speed = reg.get(model_key + core_keys['sparse_inf_speed_key'])
             sparse_accury = reg.get(skey + core_keys['accuracy_mse_key'])
-            plt.scatter(sparse_speed, sparse_accury, label=model_key + ' S')
-
             dense_speed = reg.get(model_key + core_keys['dense_inf_speed_key'])
             dense_accury = reg.get(dkey + core_keys['accuracy_mse_key'])
-            plt.scatter(dense_speed, dense_accury, label=model_key + ' D')
+
+            # Plot
+            plt.plot([sparse_speed, dense_speed],[sparse_accury, dense_accury], linestyle = '--', label= f"{model_key} | ●-D | ■-S | Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Active/Total P: {active_p}/{total_p}", zorder=1)
+            plt.scatter(sparse_speed, sparse_accury, color='black', marker='s', zorder=2)
+            plt.scatter(dense_speed, dense_accury, color='black', marker='o', zorder=2)
 
         elif model_type == 'mlp':
+            # Get model config details
+            hid_lay = configs[model_key]['hidden_layer']
+            mlp_arch = [dimension] + hid_lay + [1]
+            total_p = count_parameter(mlp_arch)
+
+            # Get results and plot
             speed = reg.get(model_key + core_keys['inf_speed_key'])
             accury = reg.get(model_key + core_keys['accuracy_mse_key'])
-            plt.scatter(speed, accury, label=model_key)
+            plt.scatter(speed, accury, label=f"{model_key}: {mlp_arch} | Active/Total P: {total_p}")
 
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
 
     # General plot 
-    plt.title(f'{dimension}D Model Comparison')
-    plt.legend()
+    plt.title(f'{dimension}D Model Comparison\non {jax.devices()[0].device_kind}')
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25), fontsize=8)
     plt.ylabel('MSE')
-    plt.xlabel('Min. Inference Speed (µs)')
+    plt.xlabel(f'Min. Inference Speed (µs) per batch ({batch_size})')
+    plt.tight_layout()
 
     # Export plot
     path = result_dir_registry[dimension] + f"/{dimension}D_models_comparison.png"

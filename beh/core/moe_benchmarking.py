@@ -62,7 +62,8 @@ def register_inference_speed (
         moe : dict,
         x_batches : list,
         reg : CoreRegistry,
-        configs : dict ):
+        configs : dict,
+        dimension : int ) -> CoreRegistry:
     '''
     Registers the measured minimum inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
@@ -79,7 +80,8 @@ def register_inference_speed (
         moe_forward_dense_INF,
         iterations,
         batch_repitions,
-        configs)
+        configs,
+        dimension)
     
     sparse_speed = min_inference_speed(
         x_batches,
@@ -87,7 +89,8 @@ def register_inference_speed (
         moe_forward_sparse_INF,
         iterations,
         batch_repitions,
-        configs)
+        configs,
+        dimension)
     
     # Save numerical results
     reg.add( model_key + core_keys['dense_inf_speed_key'],

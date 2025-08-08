@@ -56,7 +56,8 @@ def get_benchmarks(
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    configs : dict) -> CoreRegistry :
+    configs : dict,
+    dimension : int) -> CoreRegistry :
     '''
     Run all benchmarks and compute all results with the model.
     \nDelegates to corresponding data dimensionality sub-routine.
@@ -76,12 +77,12 @@ def get_benchmarks(
         reg = moe_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
         reg = moe_B.register_gating_confidence(model_key, model, x_batches, reg)
         reg = moe_B.register_all_expert_boundaries(model_key, model, x_batches, reg)
-        reg = moe_B.register_inference_speed(model_key, model, x_batches, reg, configs)
+        reg = moe_B.register_inference_speed(model_key, model, x_batches, reg, configs, dimension)
         return reg
     
     elif model_type == 'mlp':
         reg = mlp_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
-        reg = mlp_B.register_inference_speed(model_key, model, x_batches, reg, configs)
+        reg = mlp_B.register_inference_speed(model_key, model, x_batches, reg, configs, dimension)
         return reg
     else:
         raise ValueError(f"Unsupported model type: {model_type}")

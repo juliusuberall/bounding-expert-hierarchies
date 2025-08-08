@@ -32,7 +32,7 @@ def parse_train():
     args = parser.parse_args()
 
     # Load model configurations / architectures
-    with open(model_config_dir_registry[args.dim], "r") as file:
+    with open(model_config_registry[args.dim], "r") as file:
         configs = yaml.safe_load(file)
 
     return args, configs

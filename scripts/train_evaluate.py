@@ -1,4 +1,5 @@
 import jax
+import beh.registry
 
 from beh.adapter.wiring import *
 from beh.styler.wiring import *
@@ -6,13 +7,14 @@ from beh.core.registry import *
 from beh.core.moe_benchmarking import *
 from beh.config_parser import *
 from beh.core.wiring import *
+from beh.shared import setup_dirs
 
 def main():
 
     key = jax.random.PRNGKey(28)
-
-    # Check that all registry paths and folder exists to catch errors before code runs
+    setup_dirs(beh.registry)
     args, configs = parse_train()
+    print(f"\n███████████████████████{args.dim}D█████████████████████████")
 
     # Instantiate registry for storing results of these experiments 
     reg = CoreRegistry()
@@ -53,6 +55,7 @@ def main():
             y = y,
             reg = reg,
             configs = configs,
+            dimension = args.dim
         )
     
         format_export_results(

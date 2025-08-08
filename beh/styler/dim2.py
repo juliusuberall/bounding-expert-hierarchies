@@ -57,7 +57,7 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Dimension
     dim = 2
-    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_resolution_key'])
+    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
 
     # Get model configuration
     nex = configs[model_key]['nex']

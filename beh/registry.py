@@ -7,7 +7,7 @@ data_dir_registry = {
 }
 
 # Model configs path managment
-model_config_dir_registry = {
+model_config_registry = {
     2 : "./configs/models-2D.yaml", 
     3 : "./configs/models-3D.yaml", 
     4 : "./configs/models-4D.yaml", 

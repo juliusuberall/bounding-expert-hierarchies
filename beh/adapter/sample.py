@@ -1,5 +1,7 @@
 import numpy as np
+import jax.numpy as jnp
 
+from beh.core.registry import *
 from beh.registry import *
 
 def checkpoint_samples(x, y, size):
@@ -17,15 +19,36 @@ def checkpoint_samples(x, y, size):
     print(f'Y[30] Sample: {y[30]}')
     print("==================================================")
 
-def save_samples(args, x, y, size):
+def save_samples(args, x, y, size, bounds):
     '''
     Saves the samples as .npz file with keywords x, y and size.
     '''
-    path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.res}res_{args.strategy}_samples.npz"
+    K_samples = int(x.shape[0] / 1000)
+    path = data_dir_registry[args.dim] + f"/{args.data_name}_{K_samples}K_{args.strategy}_samples.npz"
     np.savez(
         path,
         x = x,
         y = y,
-        size = size
+        size = size,
+        bounds = bounds
     )
     return path
+
+def load_samples(path : str, reg : CoreRegistry,):
+    # Load moe .npz file 
+    loaded = np.load(path)
+    
+    # Unpack file
+    x = jnp.array(loaded['x'])
+    y = jnp.array(loaded['y'])
+    size = jnp.array(loaded['size'])
+    bounds = jnp.array(loaded['bounds'])
+
+    # Normalize coordinates to range -1.0 to 1.0
+    x = (x - bounds[0]) / size
+    x = x * 2 - 1 
+
+    # Store sample size per dimension 
+    reg.add(core_keys['data_size_key'], size)
+
+    return reg, x ,y

@@ -25,6 +25,6 @@ def preprocess_rgba (path : str, reg : CoreRegistry, downsample : bool = True):
     x = x * 2 - 1 
 
     # Store image resolution
-    reg.add(core_keys['data_resolution_key'], img.shape)
+    reg.add(core_keys['data_size_key'], img.shape)
 
     return reg, x, y

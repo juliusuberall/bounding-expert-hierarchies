@@ -21,13 +21,14 @@ def sample_obj_random (args):
         mesh.bounds[1,0] - mesh.bounds[0,0],
         mesh.bounds[1,1] - mesh.bounds[0,1],
         mesh.bounds[1,2] - mesh.bounds[0,2]))
+    bounds = mesh.bounds
 
     # Sample
     n_samples = args.res**3
-    x = np.random.uniform(size=(n_samples ,3)) * size
+    x = np.random.uniform(size=(n_samples ,3)) * size + bounds[0]
     y = mesh.contains(x).astype(np.float32)
 
-    return x, y, size
+    return x, y, size, bounds
 
 def sample_obj_grid (args):
     '''
@@ -46,6 +47,7 @@ def sample_obj_grid (args):
         mesh.bounds[1,0] - mesh.bounds[0,0],
         mesh.bounds[1,1] - mesh.bounds[0,1],
         mesh.bounds[1,2] - mesh.bounds[0,2]))
+    bounds = mesh.bounds
 
     # Sample
     res = args.res
@@ -53,7 +55,7 @@ def sample_obj_grid (args):
     X, Y, Z = np.meshgrid(lin, lin, lin, indexing='ij')
     points = np.stack([X, Y, Z], axis=-1)
     x = points.reshape(-1, 3) 
-    x_absolut = x * size + mesh.bounds[0] # Translate with lowest corner to correct place in space
+    x_absolut = x * size + bounds[0] # Translate with lowest corner to correct place in space
     y = mesh.contains(x_absolut).astype(np.float32)
 
-    return x, y, size
+    return x, y, size, bounds

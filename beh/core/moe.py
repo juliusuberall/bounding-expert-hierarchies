@@ -142,4 +142,3 @@ def load_moe( path : str) -> dict:
     moe['gate'] = [jnp.array(l) for l in loaded['gate']]
 
     return moe
-

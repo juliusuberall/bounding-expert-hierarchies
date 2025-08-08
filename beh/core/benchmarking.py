@@ -14,20 +14,21 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
 #------------------------------------------------------------------------------------
 
 def min_inference_speed(
-        x_batches : jax.Array,
+        x_batches : list,
         moe : dict, 
         func, 
         iterations : int,
         iteration_size : int,
-        configs : dict):
+        configs : dict,
+        dimension : int):
     '''
     Measures the minimum inference speed of a MoE for N batched queries, averaged over M iterations.
     \nRandomly creates batches from the data provided to this function.
     '''
-    # Generla batch size is defined for all models of same dimensionalty 
+    # General batch size is defined for all models of same dimensionalty 
     batch_size = configs['general']['batch_size']
 
-    x = jnp.array(x_batches[:-1]).reshape((-1,2))
+    x = jnp.stack(x_batches[:-1]).reshape((-1,dimension))
     min_speed = []
     for i in range(iterations):
         speed = []

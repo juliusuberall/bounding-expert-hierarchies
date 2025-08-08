@@ -4,6 +4,8 @@ from beh.adapter.shared import *
 from beh.registry import *
 from beh.core.registry import *
 
+from beh.adapter.sample import load_samples
+
 def get_traininig_data(
     data_name : str , 
     dimension : int ,
@@ -17,8 +19,7 @@ def get_traininig_data(
     if dimension == 2:
         return preprocess_rgba(data_dir_registry[dimension] + f"/{data_name}.png", reg)
     elif dimension == 3:
-        # Load samples from npz
-        return preprocess_rgba(data_dir_registry[dimension] + f"/{data_name}.png", reg)
+        return load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
     elif dimension == 4:
         pass
     elif dimension == 10:

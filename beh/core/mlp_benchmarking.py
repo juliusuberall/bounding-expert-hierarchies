@@ -41,7 +41,8 @@ def register_inference_speed (
         mlp : list,
         x_batches : list,
         reg : CoreRegistry,
-        configs : dict ):
+        configs : dict,
+        dimension : int) -> CoreRegistry:
     '''
     Registers the measured minimum inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
@@ -58,7 +59,8 @@ def register_inference_speed (
         mlp_fastforward_INF,
         iterations,
         batch_repitions,
-        configs)
+        configs,
+        dimension)
     
     # Save numerical results
     reg.add( model_key + core_keys['inf_speed_key'],

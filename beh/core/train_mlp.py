@@ -64,7 +64,7 @@ def train_mlp(
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
-        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=False)
+        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace true makes this much faster
         xB, yB = x[idx,...], y[idx,...]
         mlp, opt_state, gradient = update(mlp, opt_state, xB, yB)
         

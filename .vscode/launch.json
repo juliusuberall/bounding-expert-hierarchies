@@ -24,7 +24,7 @@
             "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "money",
+                "--data_name", "bunny_64K_random_samples",
                 "--query", "point",
                 "--dim", "3",
             ],
@@ -33,14 +33,29 @@
             }
         },
         {
-            "name": "Sample",
+            "name": "4D Train & Evaluate",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/scripts/sample.py",
+            "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "bunny",
-                "--dim", "3",
+                "--data_name", "fluid_9M_samples",
+                "--query", "point",
+                "--dim", "4",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Pre-Process",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/preprocess.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--data_name", "fluid",
+                "--dim", "4",
                 "--res", "40",
                 "--strategy", "random"
             ],

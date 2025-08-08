@@ -1,3 +1,4 @@
+import jax.numpy as jnp
 import numpy as np
 import trimesh as tm
 
@@ -34,7 +35,7 @@ def sample_obj_grid (args):
     '''
     3D 
     \nLoads OBj mesh and samples the mesh within its bounding box in a grid. Creates labels (y) and 3D coordinates (x). 
-    \nSaves the mesh dimension to the core registry.
+    \nSaves the mesh dimension and bounds to the core registry.
     '''
     # Load OBJ mesh
     path = data_dir_registry[args.dim] + f"/{args.data_name}.obj"
@@ -59,3 +60,25 @@ def sample_obj_grid (args):
     y = mesh.contains(x_absolut).astype(np.float32)
 
     return x, y, size, bounds
+
+def load_samples(path : str, reg : CoreRegistry,):
+    '''
+    Load samples from a .npz formatted file with the expected content.
+    '''
+    # Load moe .npz file 
+    loaded = np.load(path)
+    
+    # Unpack file
+    x = jnp.array(loaded['x'])
+    y = jnp.array(loaded['y'])
+    size = jnp.array(loaded['size'])
+    bounds = jnp.array(loaded['bounds'])
+
+    # Normalize coordinates to range -1.0 to 1.0
+    x = (x - bounds[0]) / size
+    x = x * 2 - 1 
+
+    # Store sample size per dimension 
+    reg.add(core_keys['data_size_key'], size)
+
+    return reg, x ,y

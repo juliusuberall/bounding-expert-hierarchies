@@ -1,0 +1,16 @@
+general:
+  batch_size: 2048
+  epochs: 200
+  learning_rate: 0.01
+  loss_logging_frequency: 100 # Each N epoch we print and save the loss
+  boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 
+
+mlp01:
+  type: 'mlp'
+  hidden_layer: [35,35,35]
+
+moe01:
+  type: 'moe'
+  nex : 8 # Number of Experts
+  expert_hidden_layer: [16,16]
+  gate_hidden_layer: []

@@ -3,15 +3,46 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run Experiments",
+            "name": "2D Train & Evaluate",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/scripts/run_experiments.py",
+            "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "dolphin",
+                "--data_name", "money",
                 "--query", "point",
                 "--dim", "2",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "3D Train & Evaluate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/train_evaluate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--data_name", "money",
+                "--query", "point",
+                "--dim", "3",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Sample",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/sample.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--data_name", "bunny",
+                "--dim", "3",
+                "--res", "40",
+                "--strategy", "random"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"

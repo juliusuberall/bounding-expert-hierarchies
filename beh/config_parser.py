@@ -3,7 +3,10 @@ import yaml
 
 from beh.registry import *
 
-def parse_all():
+def parse_train():
+    '''
+    Retrieve command line arguments and model configuration yaml for invoking model training and evaluation.
+    '''
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -33,3 +36,38 @@ def parse_all():
         configs = yaml.safe_load(file)
 
     return args, configs
+
+def parse_sample():
+    '''
+    Retrieve command line arguments for invoking data sampling.
+    '''
+    # Parse command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--data_name',
+        required=True, 
+        type = str,
+        default = None,
+        help ='Name of data to sample')
+    parser.add_argument(
+        "--dim",
+        required=True, 
+        type = int,
+        choices = [ 2, 3, 4, 10],
+        default = None,
+        help = "Query dimension")
+    parser.add_argument(
+        "--res",
+        required=True, 
+        type = int,
+        default = None,
+        help = "Dimension Resolution")
+    parser.add_argument(
+        "--strategy",
+        required=True, 
+        type = str,
+        choices = [ 'random', 'grid'],
+        default = None,
+        help = "Sampling Strategy")
+    
+    return parser.parse_args()

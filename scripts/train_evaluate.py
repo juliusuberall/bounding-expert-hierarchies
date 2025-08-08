@@ -1,5 +1,3 @@
-import argparse
-import yaml
 import jax
 
 from beh.adapter.wiring import *
@@ -14,7 +12,7 @@ def main():
     key = jax.random.PRNGKey(28)
 
     # Check that all registry paths and folder exists to catch errors before code runs
-    args, configs = parse_all()
+    args, configs = parse_train()
 
     # Instantiate registry for storing results of these experiments 
     reg = CoreRegistry()

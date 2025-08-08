@@ -6,7 +6,7 @@ data_dir_registry = {
     10 : "./data/4D_plus", 
 }
 
-# Model config path managment
+# Model configs path managment
 model_config_dir_registry = {
     2 : "./configs/models-2D.yaml", 
     3 : "./configs/models-3D.yaml", 

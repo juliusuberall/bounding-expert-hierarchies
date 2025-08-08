@@ -118,7 +118,7 @@ def export_plot_speed_accuracy_comparison (
 
         if model_type == 'moe':
 
-            # Get model config details 
+            # Get model configs details 
             nex = configs[model_key]['nex']
             gate_hid_lay = configs[model_key]['gate_hidden_layer']
             expert_hid_lay = configs[model_key]['expert_hidden_layer']
@@ -141,7 +141,7 @@ def export_plot_speed_accuracy_comparison (
             plt.scatter(dense_speed, dense_accury, color='black', marker='o', zorder=2)
 
         elif model_type == 'mlp':
-            # Get model config details
+            # Get model configs details
             hid_lay = configs[model_key]['hidden_layer']
             mlp_arch = [dimension] + hid_lay + [1]
             total_p = count_parameter(mlp_arch)

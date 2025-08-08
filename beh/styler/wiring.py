@@ -33,7 +33,7 @@ def format_export_results(
     Create result plots.
     \nDelegates to corresponding data dimensionality sub-routine.
     '''
-    # Get general config
+    # Get general configs
     threshold = configs['general']['boundary_threshold']
     model_type = configs[model_key]['type']
 

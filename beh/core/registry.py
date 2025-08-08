@@ -28,9 +28,9 @@ core_keys = {
     'data_resolution_key' : 'data_res', # Stores data resolution, capturing width and height, depth etc.
     'gating_confidence_key' : '_gate_confidence', # The sparsity of the MoE gate
     'gating_sorted_activation_key' : '_gate_sorted_activation', # The gate activation probabilities sorted from max to min
-    'train_val_loss_key' : '_training_validation_loss', # Stores training validation loss based on logging frequency in config
+    'train_val_loss_key' : '_training_validation_loss', # Stores training validation loss based on logging frequency in configs
     'train_confidence_key' : '_training_confidence', # Gating confidence logged throughout training
-    'train_epoch_key' : '_training_epoch', # Epoch timestamp for logged training metric following training logging frequency from config
+    'train_epoch_key' : '_training_epoch', # Epoch timestamp for logged training metric following training logging frequency from configs
     'train_fn_key' : '_training_fn', # False negative rate training cache
     'train_fp_key' : '_training_fp', # False negative rate training cache
 }

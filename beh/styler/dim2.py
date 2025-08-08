@@ -36,7 +36,7 @@ def export_plot_2D_moe_internal_8_experts (
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    config : dict,
+    configs : dict,
     dimension : int,
     threshold : float,
     model_detail_str : str,
@@ -61,7 +61,7 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Get model configuration
     nex = configs[model_key]['nex']
-    topk = configs['general']['topk']
+    topk = 1
 
     # Get results from registry
     dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])

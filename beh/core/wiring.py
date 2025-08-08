@@ -21,7 +21,7 @@ def train_model(
     configs : dict,
     dimension : int):
 
-    # Get general config
+    # Get general configs
     model_type = configs[model_key]['type']
 
     if model_type == 'moe':
@@ -62,14 +62,14 @@ def get_benchmarks(
     \nDelegates to corresponding data dimensionality sub-routine.
     '''
 
-    # Get general config
+    # Get general configs
     batch_size = configs['general']['batch_size']
     threshold = configs['general']['boundary_threshold']
 
     # Batch data
     x_batches = batch_data(x, batch_size)
 
-    # Get general config
+    # Get general configs
     model_type = configs[model_key]['type']
 
     if model_type == 'moe':
@@ -95,7 +95,7 @@ def save_model (
     \nReturns path to exported model file.
     '''
 
-    # Get general config
+    # Get general configs
     model_type = configs[model_key]['type']
 
     # Not the cleanest way of delegating, but works for our case

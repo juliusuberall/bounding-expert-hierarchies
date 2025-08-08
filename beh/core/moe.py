@@ -11,12 +11,6 @@ from beh.core.shared import *
 from beh.registry import *
 from beh.config_parser import *
 
-# Get topk value from config
-## We can not pass topk as argument due to JIT errors, 
-## given that topk value determines the shape of output.
-args, configs = parse_all()
-topk = configs['general']['topk']
-
 #------------------------------------------------------------------------------------
 
 @jax.jit
@@ -26,7 +20,7 @@ def moe_forward_expert(p : dict, x : jax.Array, idx):
         x = jnp.append(x, 1)
         x = jax.nn.tanh(jnp.dot(x, e[idx]))
     x = jnp.append(x, 1)
-    return jax.nn.tanh(jnp.dot(x, p['experts'][-1][idx]) *0.5) *3.0
+    return jax.nn.tanh(jnp.dot(x, p['experts'][-1][idx]) * 0.5) * 3.0
 
 @jax.jit
 def moe_forward_expert_INF(p : dict, x : jax.Array, idx):
@@ -62,7 +56,7 @@ def moe_forward_dense_INF(p : dict, x : jax.Array):
 
 @jax.jit
 def moe_forward_sparse(p : dict, x : jax.Array):
-  _ , idx = jax.lax.top_k(moe_forward_gate(p, x), topk)
+  _ , idx = jax.lax.top_k(moe_forward_gate(p, x), 1)
   return moe_forward_expert(p, x, idx)
 
 @jax.jit
@@ -82,7 +76,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array):
     # KL-divergence of the expert activation distribution against uniform distribution 
     activation = (jax.vmap(lambda x: moe_forward_gate(p, x))(x)) * jnp.expand_dims(y,axis=1)
     g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
-    kl_loss = jnp.sum(g * jnp.log(g / (1 / activation.shape[1])))
+    kl_loss = jnp.sum(g * jnp.log(g / (1 / activation.shape[1]) + epsilon))
 
     # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
@@ -129,7 +123,7 @@ def export_moe( moe : dict, model_key : str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # e.g. 20250716_142015
 
     # Save layers as list of numpy arrays under gate or expert keyword.
-    path = model_dir_registry[dimension] + "/" + timestamp + f"_{model_key}.npz"
+    path = result_model_dir_registry[dimension] + "/" + timestamp + f"_{model_key}.npz"
     np.savez(
         path,
         gate = np.array(moe_gate, dtype=object),

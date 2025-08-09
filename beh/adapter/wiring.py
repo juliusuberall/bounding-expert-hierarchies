@@ -6,6 +6,7 @@ from beh.core.registry import *
 
 import beh.adapter.dim3 as dim3
 import beh.adapter.dim4 as dim4
+import beh.adapter.dim4plus as dim4plus
 
 def get_traininig_data(
     data_name : str , 
@@ -23,8 +24,8 @@ def get_traininig_data(
         return dim3.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
     elif dimension == 4:
         return dim4.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
-    elif dimension == 10:
-        pass
+    elif dimension == 9:
+        return dim4plus.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
     else:
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
     
@@ -38,11 +39,9 @@ def pre_process(dimension : int , args):
             return sample_obj_grid(args)
         else:
             return sample_obj_random(args)
-        
     elif dimension == 4:
         return dim4.preprocess_4D(args)
-
-    elif dimension == 10:
-        pass
+    elif dimension == 9:
+        return dim4plus.preprocess_4Dplus(args)
     else:
         raise ValueError(f"Unsupported data dimensionality: {dimension}")

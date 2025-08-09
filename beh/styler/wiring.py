@@ -17,7 +17,7 @@ def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int 
         pass
     elif dimension == 4:
         pass
-    elif dimension == 10:
+    elif dimension == 9:
         pass
     else:
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
@@ -51,7 +51,7 @@ def format_export_results(
             pass
         elif dimension == 4:
             pass
-        elif dimension == 10:
+        elif dimension == 9:
             pass
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")
@@ -63,7 +63,7 @@ def format_export_results(
             pass
         elif dimension == 4:
             pass
-        elif dimension == 10:
+        elif dimension == 9:
             pass
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")

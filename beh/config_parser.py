@@ -26,7 +26,7 @@ def parse_train():
         "--dim",
         required=True, 
         type = int,
-        choices = [ 2, 3, 4, 10],
+        choices = [ 2, 3, 4, 9],
         default = None,
         help = "Query dimension")
     args = parser.parse_args()
@@ -53,18 +53,18 @@ def parse_sample():
         "--dim",
         required=True, 
         type = int,
-        choices = [ 2, 3, 4, 10],
+        choices = [ 2, 3, 4, 9],
         default = None,
         help = "Query dimension")
     parser.add_argument(
         "--res",
-        required=True, 
+        required=False, 
         type = int,
         default = None,
         help = "Dimension Resolution")
     parser.add_argument(
         "--strategy",
-        required=True, 
+        required=False, 
         type = str,
         choices = [ 'random', 'grid'],
         default = None,

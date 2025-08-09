@@ -63,6 +63,7 @@ def sample_obj_grid (args):
 
 def load_samples(path : str, reg : CoreRegistry,):
     '''
+    3D
     Load samples from a .npz formatted file with the expected content.
     '''
     # Load moe .npz file 

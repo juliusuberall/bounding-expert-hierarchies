@@ -48,14 +48,29 @@
             }
         },
         {
+            "name": "4D plus Train & Evaluate",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/scripts/train_evaluate.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--data_name", "robot_ur10_800K_samples",
+                "--query", "point",
+                "--dim", "9",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
             "name": "Pre-Process",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/scripts/preprocess.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "fluid",
-                "--dim", "4",
+                "--data_name", "robot_ur10",
+                "--dim", "9",
                 "--res", "40",
                 "--strategy", "random"
             ],

@@ -76,7 +76,7 @@ def export_plot_training_metrics (
 
     # Create plot 
     fig, ax = plt.subplots(1,1, figsize=(5,5))
-    fig.suptitle(f'{model_key.split('_')[0]} {dimension}D training')
+    fig.suptitle(f"{model_key.split('_')[0]} {dimension}D training")
     ax.plot(epochs, loss, label='Loss')
     ax.plot(epochs, fn, label='False Negatives')
     ax.plot(epochs, fp, label='False Positives')

@@ -48,8 +48,31 @@ pip install -r requirements.txt
 
 &nbsp;<br>
 This section will focus on running the implemented experiments from the project. It introduces the experiment and implementation flow used in this repository and may help for setting up custom studies. 
+
+##### Local terminal
 ```
 Execute some shell script triggering all python code and producing numerical and visual results
+```
+
+##### VS Code
+Use the pre-defined launch profiles to run the experiments and debug any arising issues.
+
+##### Google Collab
+Clone the repo using google collab and change the directory to the repo folder.
+```
+%cd drive/MyDrive/03_multi_bound/00_collabs/repo
+```
+Install all dependecies and setup the environment. Most of the packages should be available through collab and already installed. There might be version conflicts for JAX and all jupyter related packages.
+```
+!pip install -r requirements_collab.txt
+```
+Set the python path to the repo such that we can import the custom beh python package from the repo to run the exeperiments.
+```
+%env PYTHONPATH=/content/drive/MyDrive/03_multi_bound/00_collabs/repo
+```
+Trigger the train and evaluation experiment pipeline with the respective arguments, selecting data and query to fit.
+```
+!python scripts/train_evaluate.py --data_name dwarfumbrella --query point --dim 2
 ```
 </details>
 

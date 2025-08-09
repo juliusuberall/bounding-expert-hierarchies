@@ -49,15 +49,15 @@ pip install -r requirements.txt
 &nbsp;<br>
 This section will focus on running the implemented experiments from the project. It introduces the experiment and implementation flow used in this repository and may help for setting up custom studies. 
 
-##### Local terminal
+### Local terminal
 ```
 Execute some shell script triggering all python code and producing numerical and visual results
 ```
 
-##### VS Code
+### VS Code
 Use the pre-defined launch profiles to run the experiments and debug any arising issues.
 
-##### Google Collab
+### Google Collab
 Clone the repo using google collab and change the directory to the repo folder.
 ```
 %cd drive/MyDrive/03_multi_bound/00_collabs/repo

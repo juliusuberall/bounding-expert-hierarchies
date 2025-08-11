@@ -93,9 +93,11 @@ def register_inference_speed (
         dimension)
     
     # Save numerical results
-    reg.add( model_key + core_keys['dense_inf_speed_key'],
+    dkey = f'{model_key}_dense'
+    skey = f'{model_key}_sparse'
+    reg.add( dkey + core_keys['inf_speed_key'],
             dense_speed)
-    reg.add( model_key + core_keys['sparse_inf_speed_key'],
+    reg.add( skey + core_keys['inf_speed_key'],
             sparse_speed)
 
     print(f"Dense: {round(float(dense_speed),4)}µs")

@@ -130,9 +130,9 @@ def export_plot_speed_accuracy_comparison (
             # Get sparse and dense results
             dkey = f'{model_key}_dense'
             skey = f'{model_key}_sparse'
-            sparse_speed = reg.get(model_key + core_keys['sparse_inf_speed_key'])
+            sparse_speed = reg.get(skey + core_keys['inf_speed_key'])
             sparse_accury = reg.get(skey + core_keys['accuracy_mse_key'])
-            dense_speed = reg.get(model_key + core_keys['dense_inf_speed_key'])
+            dense_speed = reg.get(dkey + core_keys['inf_speed_key'])
             dense_accury = reg.get(dkey + core_keys['accuracy_mse_key'])
 
             # Plot

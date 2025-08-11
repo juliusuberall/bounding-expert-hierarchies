@@ -16,8 +16,6 @@ class CoreRegistry:
 core_keys = {
     'total_parameters_key' : '_t_para', # Total parameters
     'inf_speed_key' : '_inf_speed', # MLP inference speed
-    'sparse_inf_speed_key' : '_sparse_inf_speed', # Sparse inference speed
-    'dense_inf_speed_key' : '_dense_inf_speed', # Dense inference speed
     'fn_key' : '_sparse_fn', # False Negative rate in %
     'fp_key' : '_sparse_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark

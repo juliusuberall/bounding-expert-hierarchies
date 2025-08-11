@@ -45,9 +45,9 @@ def register_accuracy(
         jnp.array(sparse_yp))
     reg.add(skey + core_keys['y_prediciton_RAW_key'],
         jnp.array(sparse_yp_raw))
-    reg.add(skey + core_keys['sparse_fn_key'],
+    reg.add(skey + core_keys['fn_key'],
         jnp.array(sparse_fn))
-    reg.add(skey + core_keys['sparse_fp_key'],
+    reg.add(skey + core_keys['fp_key'],
         jnp.array(sparse_fp))
 
     print(f"\nDense MSE: {round(float(dense_mse),4)}")

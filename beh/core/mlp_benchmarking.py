@@ -28,6 +28,10 @@ def register_accuracy(
             jnp.array(mse))
     reg.add(model_key + core_keys['y_prediciton_key'],
         jnp.array(yp))
+    reg.add(model_key + core_keys['fn_key'],
+        jnp.array(fn))
+    reg.add(model_key + core_keys['fp_key'],
+        jnp.array(fp))
 
 
     print(f"\nMSE: {round(float(mse),4)}")

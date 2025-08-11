@@ -8,6 +8,7 @@ from beh.core.moe_benchmarking import *
 from beh.config_parser import *
 from beh.core.wiring import *
 from beh.shared import setup_dirs
+from beh.styler.shared import export_plot_speed_accuracy_comparison
 
 def main():
 

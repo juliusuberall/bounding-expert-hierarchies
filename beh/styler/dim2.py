@@ -8,6 +8,7 @@ from beh.styler.registry import *
 from beh.core.registry import *
 from beh.core.moe import *
 from beh.core.params import *
+from beh.styler.colors import *
 
 def export_plot_training_data (x : jax.Array, y : jax.Array):
     '''
@@ -33,7 +34,6 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
 
 def export_plot_2D_moe_internal_8_experts (
     model_key : str,
-    x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
     configs : dict,
@@ -56,7 +56,6 @@ def export_plot_2D_moe_internal_8_experts (
     skey = f'{model_key}_sparse'
 
     # Dimension
-    dim = 2
     img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
 
     # Get model configuration
@@ -73,8 +72,8 @@ def export_plot_2D_moe_internal_8_experts (
     rounded_dense_mse = round(float(reg.get(dkey + core_keys['accuracy_mse_key'])),4)
     rounded_sparse_mse = round(float(reg.get(skey + core_keys['accuracy_mse_key'])),4)
 
-    sparse_fn = reg.get(skey + core_keys['sparse_fn_key'])
-    sparse_fp = reg.get(skey + core_keys['sparse_fp_key'])
+    sparse_fn = reg.get(skey + core_keys['fn_key'])
+    sparse_fp = reg.get(skey + core_keys['fp_key'])
 
     top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
     gate_sorted_activation = reg.get(model_key + core_keys['gating_sorted_activation_key'])
@@ -89,10 +88,7 @@ def export_plot_2D_moe_internal_8_experts (
             mplt.colors.LinearSegmentedColormap.from_list("mono_custom", ["whitesmoke", viridis(i) ])
         )
     ## Compute expert greys to avoid full white that is invisible
-    expGreys = mplt.cm.get_cmap('Greys')(jnp.linspace(0,1,nex+1)[jnp.arange(nex)[::-1]])
-    expGreys[-1,...] = [0.98, 0.98, 0.98,1.]
-    ## Custom gray to black gradient
-    wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", ["whitesmoke", "black"])
+    expGreys = wb_gradient(jnp.linspace(0,1,nex+1)[jnp.arange(nex)[::-1]])
 
     # Mask expert decision boundaries
     if mask_experts:
@@ -170,3 +166,52 @@ def export_plot_2D_moe_internal_8_experts (
     plt.close()
 
     pass
+
+def export_plot_2D_mlp_internal (
+    model_key : str,
+    y : jax.Array,
+    reg : CoreRegistry,
+    dimension : int,
+    threshold : float,
+    model_detail_str : str):
+    '''
+    2D
+    \nCreate MLP internal state overview plot inlcuding:
+    \n- Decision boundaries
+    \n- MLP architecture details 
+    '''
+
+    # Dimension
+    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
+    
+    # Get results from registry
+    yp = reg.get(model_key + core_keys['y_prediciton_key'])
+    rounded_mse = round(float(reg.get(model_key + core_keys['accuracy_mse_key'])),4)
+    fn = reg.get(model_key + core_keys['fn_key'])
+    fp = reg.get(model_key + core_keys['fp_key'])
+    
+    # Create plot 
+    r, c = 1, 4
+    fig, ax = plt.subplots(r,c, figsize=(16,5.5))
+    ax[0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[0].set_title("Original", fontsize=9)
+    ax[1].imshow(yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[1].set_title(f"Dense Predicition MSE {rounded_mse}", fontsize=9)
+    
+    # Conservativness
+    ax[2].imshow(((yp < threshold) * ( y > 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[2].set_title(f"False Negatives {round(float(fn),8)}", fontsize=9)
+    ax[3].imshow(((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[3].set_title(f"False Positives {round(float(fp),8)}", fontsize=9)
+
+    for i in range(c):
+        ax[i].axis('off')
+
+    fig.text(0.75, 0.01, model_detail_str, fontsize=9)
+    plt.tight_layout(rect=[0, 0.05, 1, 0.94])
+    plt.suptitle(f'{model_key} Decision Boundary Overview\nLoss: BCE')
+    
+    # Export plot
+    path = result_dir_registry[dimension] + f"/{model_key}_2D_internal.png"
+    plt.savefig(path)
+    plt.close()

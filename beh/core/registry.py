@@ -18,8 +18,8 @@ core_keys = {
     'inf_speed_key' : '_inf_speed', # MLP inference speed
     'sparse_inf_speed_key' : '_sparse_inf_speed', # Sparse inference speed
     'dense_inf_speed_key' : '_dense_inf_speed', # Dense inference speed
-    'sparse_fn_key' : '_sparse_fn', # False Negative rate in %
-    'sparse_fp_key' : '_sparse_fp', # False Positive rate in %
+    'fn_key' : '_sparse_fn', # False Negative rate in %
+    'fp_key' : '_sparse_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark
     'expert_boundary_key' : '_expert_boundary', # The individual full decision boundaries for all experts
     'gate_top1_activation_key' : '_top1_activation', # Map of top1 activation indicies of experts

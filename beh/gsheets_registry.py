@@ -73,11 +73,11 @@ def gsheet_log_results(dimension : int, reg : CoreRegistry, configs, data_name :
 
     # First model in config is baseline speed
     baseline_key = list(configs)[1]
-    baselin_speed = reg.get(baseline_key + core_keys['inf_speed_key']) / 1000 # Divide to convert microseconds to miliseconds
+    baselin_speed = reg.get(baseline_key + core_keys['inf_speed_key'])
 
     def append_metrics(model_key, metrics):
         # Inference Speed
-        speed = reg.get(model_key + core_keys['inf_speed_key']) / 1000 # Divide to convert microseconds to miliseconds
+        speed = reg.get(model_key + core_keys['inf_speed_key'])
         metrics[time_1_key].append(speed)
         metrics[time_2_key].append(speed / baselin_speed)
 

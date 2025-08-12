@@ -105,8 +105,8 @@ def register_inference_speed (
     reg.add( skey + core_keys['inf_speed_key'],
             sparse_speed)
 
-    print(f"Dense: {round(float(dense_speed),4)}µs")
-    print(f"Sparse: {round(float(sparse_speed),4)}µs")
+    print(f"Dense: {round(float(dense_speed),4)}ms")
+    print(f"Sparse: {round(float(sparse_speed),4)}ms")
 
     return reg
 

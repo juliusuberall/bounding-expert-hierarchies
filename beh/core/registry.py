@@ -16,7 +16,7 @@ class CoreRegistry:
 core_keys = {
     'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
-    'inf_speed_key' : '_inf_speed', # Inference speed in microseconds
+    'inf_speed_key' : '_inf_speed', # Inference speed in miliseconds
     'fn_key' : '_fn', # False Negative rate in %
     'fp_key' : '_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark

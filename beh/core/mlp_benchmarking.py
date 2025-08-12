@@ -70,6 +70,6 @@ def register_inference_speed (
     reg.add( model_key + core_keys['inf_speed_key'],
             speed)
 
-    print(f"{round(float(speed),4)}µs")
+    print(f"{round(float(speed),4)}ms")
 
     return reg

@@ -191,8 +191,9 @@ def create_model_details_string (
         moe_expert_arch = [dimension] + configs[model_key]['expert_hidden_layer'] + [1]
 
         # Get results
+        dkey = f'{model_key}_dense'
         confidence = reg.get(model_key + core_keys['gating_confidence_key'])
-        total_p = reg.get(model_key + core_keys['total_parameters_key'])
+        total_p = reg.get(dkey + core_keys['total_parameters_key'])
 
         # Create string
         a = f"MoE with {nex} Experts: {moe_expert_arch}"

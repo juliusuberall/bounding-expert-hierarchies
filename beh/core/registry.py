@@ -14,10 +14,11 @@ class CoreRegistry:
 
 # Data directory managment
 core_keys = {
-    'total_parameters_key' : '_t_para', # Total parameters
-    'inf_speed_key' : '_inf_speed', # MLP inference speed
-    'fn_key' : '_sparse_fn', # False Negative rate in %
-    'fp_key' : '_sparse_fp', # False Positive rate in %
+    'total_parameters_key' : '_tot_para', # Total parameters
+    'active_parameters_key' : '_act_para', # Total parameters
+    'inf_speed_key' : '_inf_speed', # Inference speed in microseconds
+    'fn_key' : '_fn', # False Negative rate in %
+    'fp_key' : '_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark
     'expert_boundary_key' : '_expert_boundary', # The individual full decision boundaries for all experts
     'gate_top1_activation_key' : '_top1_activation', # Map of top1 activation indicies of experts

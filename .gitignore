@@ -1,6 +1,7 @@
 # Folder to ignore
 /data
 /results
+/keys
 
 # Ignore macOS DS_Store
 **/.DS_Store

@@ -21,6 +21,7 @@ def register_accuracy(
 
     # Dense MoE inference
     dense_mse, dense_yp, dense_yp_raw = moe_error(x_batches, y, moe, moe_forward_dense_INF)
+    dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
     sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF)
@@ -37,6 +38,11 @@ def register_accuracy(
         jnp.array(dense_yp))
     reg.add(dkey + core_keys['y_prediciton_RAW_key'],
         jnp.array(dense_yp_raw))
+    reg.add(dkey + core_keys['fn_key'],
+        jnp.array(dense_fn))
+    reg.add(dkey + core_keys['fp_key'],
+        jnp.array(dense_fp))
+
     
     ## Sparse
     reg.add(skey + core_keys['accuracy_mse_key'],
@@ -50,10 +56,9 @@ def register_accuracy(
     reg.add(skey + core_keys['fp_key'],
         jnp.array(sparse_fp))
 
-    print(f"\nDense MSE: {round(float(dense_mse),4)}")
-    print(f"Sparse MSE: {round(float(sparse_mse),4)}")
-    print(f"Sparse FN: {float(sparse_fn)}")
-    print(f"Sparse FP: {float(sparse_fp)}")
+    print(f"\nMSE Dense: {dense_mse:05f} | Sparse: {sparse_mse:05f}")
+    print(f"FN  Dense: {dense_fn:05f} | Sparse: {sparse_fn:05f}")
+    print(f"FP  Dense: {dense_fp:05f} | Sparse: {sparse_fp:05f}")
 
     return reg
 

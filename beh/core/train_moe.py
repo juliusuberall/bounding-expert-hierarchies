@@ -47,10 +47,21 @@ def train_moe(
     opt = optax.adam(learning_rate)
     opt_state = opt.init(moe)
 
-    # Count total parameter and store
+    # Count total and active parameter and store
+    ## Dense MoE
+    dkey = f'{model_key}_dense'
     total_p = count_parameter(expert_arch) * nex + count_parameter(gate_arch)
-    reg.add( model_key + core_keys['total_parameters_key'],
+    reg.add( dkey + core_keys['total_parameters_key'],
             total_p)
+    reg.add( dkey + core_keys['active_parameters_key'],
+            total_p)
+    ## Sparse MoE
+    skey = f'{model_key}_sparse'
+    active_p = count_parameter(expert_arch) + count_parameter(gate_arch)
+    reg.add( skey + core_keys['total_parameters_key'],
+            total_p)
+    reg.add( skey + core_keys['active_parameters_key'],
+            active_p)
 
     @jax.jit
     def update(p, opt_state, xB, yB):

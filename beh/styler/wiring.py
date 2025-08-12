@@ -46,7 +46,8 @@ def format_export_results(
     # Create model internal state overview
     if model_type == 'moe':
         if dimension == 2:
-            export_plot_2D_moe_internal_8_experts(model_key, y, reg, configs, dimension, threshold, model_detail_str)
+            if configs[model_key]['nex'] == 8:
+                export_plot_2D_moe_internal_8_experts(model_key, y, reg, configs, dimension, threshold, model_detail_str)
         elif dimension == 3:
             pass
         elif dimension == 4:

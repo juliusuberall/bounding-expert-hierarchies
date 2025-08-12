@@ -9,6 +9,7 @@ from beh.config_parser import *
 from beh.core.wiring import *
 from beh.shared import setup_dirs
 from beh.styler.shared import export_plot_speed_accuracy_comparison
+from beh.gsheets_registry import gsheet_log_results
 
 def main():
 
@@ -74,8 +75,11 @@ def main():
             model = model
         )
 
-    # Speed-accurracy comparison plot
+    # Result comparison
     export_plot_speed_accuracy_comparison(reg, configs, args.dim)
+
+    # Google sheet sync results
+    gsheet_log_results(args.dim,  reg, configs, args.data_name)
 
 if __name__ == '__main__':
     main()

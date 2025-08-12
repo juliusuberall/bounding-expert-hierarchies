@@ -15,7 +15,7 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
 
 def min_inference_speed(
         x_batches : list,
-        moe : dict, 
+        model, 
         func, 
         iterations : int,
         iteration_size : int,
@@ -37,7 +37,7 @@ def min_inference_speed(
 
             # Measure inference
             start = time.perf_counter()
-            jax.vmap(lambda x: func(moe, x))(xj).block_until_ready()
+            jax.vmap(lambda x: func(model, x))(xj).block_until_ready()
             end = time.perf_counter()
 
             speed.append((end - start) * 1e6)  # convert to microseconds

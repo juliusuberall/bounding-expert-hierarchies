@@ -3,6 +3,7 @@ import jax
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
 from beh.styler.dim2 import export_plot_2D_moe_internal_8_experts, export_plot_training_data, export_plot_2D_mlp_internal
+from beh.gsheets_registry import gsheet_log_results
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
     '''
@@ -28,7 +29,8 @@ def format_export_results(
     y : jax.Array, 
     reg : CoreRegistry, 
     configs : dict,
-    dimension : int):
+    dimension : int,
+    data_name : str):
     '''
     Create result plots.
     \nDelegates to corresponding data dimensionality sub-routine.
@@ -71,3 +73,6 @@ def format_export_results(
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
+    
+    # Google sheet sync results
+    gsheet_log_results(model_key, dimension,  reg, configs, data_name)

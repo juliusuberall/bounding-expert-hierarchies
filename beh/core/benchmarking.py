@@ -11,8 +11,6 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
     fn_rate = jnp.sum((yp < threshold) * ( y > 0)) / y.size
     return fn_rate, fp_rate
 
-#------------------------------------------------------------------------------------
-
 def min_inference_speed(
         x_batches : list,
         model, 

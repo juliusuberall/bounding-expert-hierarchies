@@ -56,9 +56,10 @@ def register_accuracy(
     reg.add(skey + core_keys['fp_key'],
         jnp.array(sparse_fp))
 
-    print(f"\nMSE Dense: {dense_mse:05f} | Sparse: {sparse_mse:05f}")
-    print(f"FN  Dense: {dense_fn:05f} | Sparse: {sparse_fn:05f}")
-    print(f"FP  Dense: {dense_fp:05f} | Sparse: {sparse_fp:05f}")
+    print(f"\n      |      MSE   |    FN    |    FP   ")
+    print(f"------|-------------------------------")
+    print(f"Dense | {dense_mse:05f} | {dense_fn:05f} | {dense_fp:05f}")
+    print(f"Sparse| {sparse_mse:05f} | {sparse_fn:05f} | {sparse_fp:05f}")
 
     return reg
 

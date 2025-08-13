@@ -62,6 +62,7 @@ def train_mlp(
     print(f"MLP: {mlp_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, epoch_cache = [], [], [], []
+    model_cache = None
     for i in range(1, epochs + 1):
 
         # Using numpy for random sampling because we dont need random
@@ -81,6 +82,11 @@ def train_mlp(
             fn_cache.append(fn) 
             fp_cache.append(fp) 
 
+            # Cache best model
+            if i == loss_logging_frequency or val_loss < model_cache[0]:
+                model_cache = [val_loss, mlp]
+
+            # Print epoch stats
             epoch_cache.append(i)     
             print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
@@ -97,5 +103,8 @@ def train_mlp(
 
     reg_key = model_key + core_keys['train_epoch_key']
     reg.add( reg_key, jnp.array(epoch_cache))
+
+    # Get best moe from cache
+    mlp = model_cache[1]
     
     return mlp, reg

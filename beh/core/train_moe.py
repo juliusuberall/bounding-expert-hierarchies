@@ -75,6 +75,7 @@ def train_moe(
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, confidence_cache, epoch_cache = [], [], [], [], []
+    model_cache = None
     for i in range(1, epochs + 1):
 
         # Using numpy for random sampling because we dont need random
@@ -98,6 +99,11 @@ def train_moe(
             confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches)
             confidence_cache.append(confidence)
 
+            # Cache best model
+            if i == loss_logging_frequency or val_loss < model_cache[0]:
+                model_cache = [val_loss, moe]
+
+            # Print epoch stats
             epoch_cache.append(i)     
             print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
@@ -117,5 +123,8 @@ def train_moe(
 
     reg_key = model_key + core_keys['train_epoch_key']
     reg.add( reg_key, jnp.array(epoch_cache))
+
+    # Get best moe from cache
+    moe = model_cache[1]
     
     return moe, reg

@@ -7,6 +7,7 @@ from beh.core.moe import *
 from beh.core.params import *
 from beh.core.registry import *
 from beh.core.moe_benchmarking import *
+from beh.core.loss import moe_train_loss
 
 from beh.styler.shared import *
 
@@ -64,8 +65,8 @@ def train_moe(
             active_p)
 
     @jax.jit
-    def update(p, opt_state, xB, yB):
-        grads = jax.grad(moe_train_loss)(p, xB, yB)
+    def update(p, opt_state, xB, yB, self_balance):
+        grads = jax.grad(moe_train_loss)(p, xB, yB, self_balance)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads
@@ -75,14 +76,18 @@ def train_moe(
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, confidence_cache, epoch_cache = [], [], [], [], []
-    model_cache = None
+    ## Initalize self balancing factor for BCE
+    self_balance = jnp.array(0.0)
+    self_balance_steps = 1 / epochs
+    
     for i in range(1, epochs + 1):
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace true makes this much faster
         xB, yB = x[idx,...], y[idx,...]
-        moe, opt_state, gradient = update(moe, opt_state, xB, yB)
+        moe, opt_state, gradient = update(moe, opt_state, xB, yB, self_balance)
+        self_balance += self_balance_steps
         
         if i % loss_logging_frequency == 0: 
             # Error
@@ -98,10 +103,6 @@ def train_moe(
             # Confidence
             confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches)
             confidence_cache.append(confidence)
-
-            # Cache best model
-            if i == loss_logging_frequency or val_loss < model_cache[0]:
-                model_cache = [val_loss, moe]
 
             # Print epoch stats
             epoch_cache.append(i)     
@@ -123,8 +124,5 @@ def train_moe(
 
     reg_key = model_key + core_keys['train_epoch_key']
     reg.add( reg_key, jnp.array(epoch_cache))
-
-    # Get best moe from cache
-    moe = model_cache[1]
     
     return moe, reg

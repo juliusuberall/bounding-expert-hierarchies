@@ -65,27 +65,6 @@ def moe_forward_sparse_INF(p : dict, x : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-@jax.jit
-def moe_train_loss(p : dict, x : jax.Array, y : jax.Array):
-    epsilon = 1e-8
-
-    # Binary Cross-Entropy 
-    yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
-    bce_loss = jnp.mean(optax.sigmoid_binary_cross_entropy(yp, y))
-
-    # KL-divergence of the expert activation distribution against uniform distribution 
-    activation = (jax.vmap(lambda x: moe_forward_gate(p, x))(x)) * jnp.expand_dims(y,axis=1)
-    g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
-    kl_loss = jnp.sum(g * jnp.log(g / (1 / activation.shape[1]) + epsilon))
-
-    # Gate Activation Entropy
-    query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
-    ae_loss = jnp.mean(query_entropy)
-
-    return kl_loss + bce_loss + ae_loss * 3.0
-
-#------------------------------------------------------------------------------------
-
 def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
     ## Trim tail of x that does not fit with batchsize
     ## Minibatching of shape [batch, minibatch, coordinate]

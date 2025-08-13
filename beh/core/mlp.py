@@ -27,14 +27,6 @@ def mlp_forward_INF(p : list , x : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-@jax.jit
-def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array):
-    preds = mlp_forward(p, x)
-    loss = optax.sigmoid_binary_cross_entropy(preds, y)
-    return jnp.mean(loss)
-
-#------------------------------------------------------------------------------------
-
 def mlp_error(x_batches : list, y : jax.Array, p : list):
     
     ## Trim tail of x that does not fit with batchsize

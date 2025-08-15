@@ -18,17 +18,13 @@ def min_inference_speed(
         x : jax.Array,
         model, 
         func, 
+        batch_size : int,
         reps : int,
         query_size : int,
-        configs : dict,
         dimension : int):
     '''
     Measures the inference speed of a MoE for N queries, averaged over M iterations.
     '''
-
-    # General batch size is defined for all models of same dimensionalty 
-    batch_size = configs['general']['batch_size']
-
     # Create queries
     x = jax.device_put(x).block_until_ready()
     idx = np.random.choice(np.arange(x.shape[0]), query_size, replace=True) # Replace true makes this much faster

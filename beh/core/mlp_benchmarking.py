@@ -45,8 +45,8 @@ def register_inference_speed (
         mlp : list,
         x : jax.Array,
         reg : CoreRegistry,
-        configs : dict,
         dimension : int,
+        batch_size : int,
         infB_reps : int,
         infB_qsize : int ) -> CoreRegistry:
     '''
@@ -60,9 +60,9 @@ def register_inference_speed (
         x,
         mlp,
         mlp_forward_INF,
+        batch_size,
         infB_reps,
         infB_qsize,
-        configs,
         dimension)
     
     # Save numerical results

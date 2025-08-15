@@ -46,7 +46,6 @@ def register_inference_speed (
         x : jax.Array,
         reg : CoreRegistry,
         dimension : int,
-        batch_size : int,
         infB_reps : int,
         infB_qsize : int ) -> CoreRegistry:
     '''
@@ -56,19 +55,21 @@ def register_inference_speed (
     print(f"\nMin. Inference Speed MLP:")
 
     # Measure inference for dense and sparse MoE
-    speed = min_inference_speed(
+    speed, optimal_batch_size = inference_speed(
         x,
         mlp,
         mlp_forward_INF,
-        batch_size,
         infB_reps,
         infB_qsize,
-        dimension)
+        dimension,
+        model_key)
     
     # Save numerical results
     reg.add( model_key + core_keys['inf_speed_key'],
             speed)
+    reg.add( model_key + core_keys['optimal_batch_size_key'],
+        optimal_batch_size)
 
-    print(f"{round(float(speed),4)}ms")
+    print(f"\nInf. Speed => {round(float(speed),4)}ms")
 
     return reg

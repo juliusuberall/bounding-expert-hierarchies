@@ -11,7 +11,7 @@ import beh.adapter.dim4plus as dim4plus
 def get_traininig_data(
     data_name : str , 
     dimension : int ,
-    reg : CoreRegistry
+    reg : CoreRegistry = CoreRegistry()
     ):
     '''
     Load and extract training data.

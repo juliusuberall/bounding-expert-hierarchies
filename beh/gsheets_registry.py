@@ -93,7 +93,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         float(reg.get(m_key + core_keys['total_parameters_key'])),
         float(reg.get(m_key + core_keys['active_parameters_key'])),
         configs['general']['epochs'],
-        configs['general']['batch_size'],
+        int(reg.get(m_key + core_keys['optimal_batch_size_key'])),
         float(reg.get(m_key + core_keys['inf_speed_key'])),
         float(reg.get(m_key + core_keys['fp_key'])),
         float(reg.get(m_key + core_keys['fn_key']))
@@ -116,7 +116,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             float(reg.get(m_key + core_keys['total_parameters_key'])),
             float(reg.get(m_key + core_keys['active_parameters_key'])),
             configs['general']['epochs'],
-            configs['general']['batch_size'],
+            int(reg.get(m_key + core_keys['optimal_batch_size_key'])),
             float(reg.get(m_key + core_keys['inf_speed_key'])),
             float(reg.get(m_key + core_keys['fp_key'])),
             float(reg.get(m_key + core_keys['fn_key']))

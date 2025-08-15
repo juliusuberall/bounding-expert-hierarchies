@@ -69,7 +69,6 @@ def register_inference_speed (
         x : jax.Array,
         reg : CoreRegistry,
         dimension : int,
-        batch_size : int,
         infB_reps : int,
         infB_qsize : int ) -> CoreRegistry:
     '''
@@ -79,34 +78,39 @@ def register_inference_speed (
     print(f"\nMin. Inference Speed MoE:")
 
     # Measure inference for dense and sparse MoE   
-    dense_speed = min_inference_speed(
+    dense_speed, dense_optimal_batch_size = inference_speed(
         x,
         moe,
         moe_forward_dense_INF,
-        batch_size,
         infB_reps,
         infB_qsize,
-        dimension)
+        dimension,
+        model_key)
     
-    sparse_speed = min_inference_speed(
+    sparse_speed, sparse_optimal_batch_size = inference_speed(
         x,
         moe,
         moe_forward_sparse_INF,
-        batch_size,
         infB_reps,
         infB_qsize,
-        dimension)
+        dimension,
+        model_key)
     
     # Save numerical results
     dkey = f'{model_key}_dense'
     skey = f'{model_key}_sparse'
     reg.add( dkey + core_keys['inf_speed_key'],
             dense_speed)
+    reg.add( dkey + core_keys['optimal_batch_size_key'],
+        dense_optimal_batch_size)
+    
     reg.add( skey + core_keys['inf_speed_key'],
             sparse_speed)
+    reg.add( skey + core_keys['optimal_batch_size_key'],
+        sparse_optimal_batch_size)
 
-    print(f"Dense: {round(float(dense_speed),4)}ms")
-    print(f"Sparse: {round(float(sparse_speed),4)}ms")
+    print(f"\nDense Inf. Speed => {round(float(dense_speed),4)}ms")
+    print(f"Sparse Inf. Speed => {round(float(sparse_speed),4)}ms")
 
     return reg
 

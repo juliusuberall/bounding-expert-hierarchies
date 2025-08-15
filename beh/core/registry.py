@@ -32,4 +32,5 @@ core_keys = {
     'train_epoch_key' : '_training_epoch', # Epoch timestamp for logged training metric following training logging frequency from configs
     'train_fn_key' : '_training_fn', # False negative rate training cache
     'train_fp_key' : '_training_fp', # False negative rate training cache
+    'optimal_batch_size_key' : 'inf_batch_size_key', # The determined batchsize on a the specific device for max inference speed
 }

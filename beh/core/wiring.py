@@ -79,12 +79,12 @@ def get_benchmarks(
         reg = moe_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
         reg = moe_B.register_gating_confidence(model_key, model, x_batches, reg)
         reg = moe_B.register_all_expert_boundaries(model_key, model, x_batches, reg)
-        reg = moe_B.register_inference_speed(model_key, model, x, reg, dimension, batch_size, infB_reps, infB_qsize)
+        reg = moe_B.register_inference_speed(model_key, model, x, reg, dimension, infB_reps, infB_qsize)
         return reg
     
     elif model_type == 'mlp':
         reg = mlp_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
-        reg = mlp_B.register_inference_speed(model_key, model, x, reg, dimension, batch_size, infB_reps, infB_qsize)
+        reg = mlp_B.register_inference_speed(model_key, model, x, reg, dimension, infB_reps, infB_qsize)
         return reg
     else:
         raise ValueError(f"Unsupported model type: {model_type}")

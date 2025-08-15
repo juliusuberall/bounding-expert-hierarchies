@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import time
+import timeit
 
 def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
     '''
@@ -11,49 +12,55 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
     fn_rate = jnp.sum((yp < threshold) * ( y > 0)) / y.size
     return fn_rate, fp_rate
 
+#------------------------------------------------------------------------------------
+
 def min_inference_speed(
-        x_batches : list,
+        x : jax.Array,
         model, 
         func, 
-        iterations : int,
-        iteration_size : int,
+        reps : int,
+        query_size : int,
         configs : dict,
         dimension : int):
     '''
-    Measures the minimum inference speed of a MoE for N batched queries, averaged over M iterations.
-    \nRandomly creates batches from the data provided to this function.
+    Measures the inference speed of a MoE for N queries, averaged over M iterations.
     '''
+
     # General batch size is defined for all models of same dimensionalty 
     batch_size = configs['general']['batch_size']
 
-    # General setup
-    x = jnp.stack(x_batches[:-1]).reshape((-1,dimension))
-    min_speed = []
+    # Create queries
+    x = jax.device_put(x).block_until_ready()
+    idx = np.random.choice(np.arange(x.shape[0]), query_size, replace=True) # Replace true makes this much faster
+    x = x[idx,...]
+    full_batch_iter = query_size // batch_size
 
-    # Warm-up to ensure JAX JIT compilation, GPU caches
-    warm_it = 100
-    for i in range(warm_it):
-        xj = x[np.random.choice(x.shape[0], batch_size)]
-        jax.vmap(lambda x: func(model, x))(xj).block_until_ready()
-        end = '\n' if i == (iterations - 1) else '\r'
-        print(f'{i+1}/{warm_it} WARM-UP iterations of batch size {batch_size} -> {func.__name__}()', end = end, flush = True)
+    @jax.jit
+    def batch_INF(i, val):
+        start = i * batch_size
+        x_slice = jax.lax.dynamic_slice(x, (start, 0), (batch_size, dimension))
+        y = jax.vmap(lambda x: func(model, x))(x_slice)
+        return val + jnp.sum(y)
 
-    for i in range(iterations):
-        speed = []
-        for j in range(iteration_size):
-            xj = x[np.random.choice(x.shape[0], batch_size)]
+    @jax.jit
+    def fori():
+        return jax.lax.fori_loop(1, full_batch_iter, batch_INF, 0.0)
 
-            # Measure inference
-            start = time.perf_counter()
-            jax.vmap(lambda x: func(model, x))(xj).block_until_ready()
-            end = time.perf_counter()
-
-            speed.append((end - start) * 1e6) # Convert nano to miliseconds
-        min_speed.append(np.min(speed))
-        end = '\n' if i == (iterations - 1) else '\r'
-        print(f'{i+1}/{iterations} iterations with {iteration_size} repeated queries of batch size {batch_size} -> {func.__name__}()', end = end, flush = True)
+    # Warm-up and JIT compile
+    _ = fori().block_until_ready()
     
-    # Averages the minimum measures from all iterations
-    min_speed = jnp.mean(jnp.array(min_speed))
+    speed = []
+    for i in range(reps):
+        # Measure speed and convert nano to miliseconds
+        start = time.perf_counter_ns()
+        _ = fori().block_until_ready()
+        end = time.perf_counter_ns()
+        speed.append((end - start) * 1e-6)
 
-    return min_speed
+        end = '\n' if i == (reps - 1) else '\r'
+        print(f'{i+1}/{reps} iterations with {query_size} queries batched as {batch_size} -> {func.__name__}()', end = end, flush = True)
+    
+    # Averages the speed measures from all iterations
+    speed = jnp.mean(jnp.array(speed))
+
+    return speed

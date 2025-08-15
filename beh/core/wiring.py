@@ -66,6 +66,8 @@ def get_benchmarks(
     # Get general configs
     batch_size = configs['general']['batch_size']
     threshold = configs['general']['boundary_threshold']
+    infB_qsize = configs['general']['inf_bench_query_size']
+    infB_reps = configs['general']['inf_bench_repitions']    
 
     # Batch data
     x_batches = batch_data(x, batch_size)
@@ -77,12 +79,12 @@ def get_benchmarks(
         reg = moe_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
         reg = moe_B.register_gating_confidence(model_key, model, x_batches, reg)
         reg = moe_B.register_all_expert_boundaries(model_key, model, x_batches, reg)
-        reg = moe_B.register_inference_speed(model_key, model, x_batches, reg, configs, dimension)
+        reg = moe_B.register_inference_speed(model_key, model, x, reg, configs, dimension, infB_reps, infB_qsize)
         return reg
     
     elif model_type == 'mlp':
         reg = mlp_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
-        reg = mlp_B.register_inference_speed(model_key, model, x_batches, reg, configs, dimension)
+        reg = mlp_B.register_inference_speed(model_key, model, x, reg, configs, dimension, infB_reps, infB_qsize)
         return reg
     else:
         raise ValueError(f"Unsupported model type: {model_type}")

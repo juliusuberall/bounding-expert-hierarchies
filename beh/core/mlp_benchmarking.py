@@ -43,10 +43,12 @@ def register_accuracy(
 def register_inference_speed (     
         model_key : str,     
         mlp : list,
-        x_batches : list,
+        x : jax.Array,
         reg : CoreRegistry,
         configs : dict,
-        dimension : int) -> CoreRegistry:
+        dimension : int,
+        infB_reps : int,
+        infB_qsize : int ) -> CoreRegistry:
     '''
     Registers the measured minimum inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
@@ -54,15 +56,12 @@ def register_inference_speed (
     print(f"\nMin. Inference Speed MLP:")
 
     # Measure inference for dense and sparse MoE
-    iterations = 100
-    batch_repitions = 10
-    
     speed = min_inference_speed(
-        x_batches,
+        x,
         mlp,
-        mlp_fastforward_INF,
-        iterations,
-        batch_repitions,
+        mlp_forward_INF,
+        infB_reps,
+        infB_qsize,
         configs,
         dimension)
     

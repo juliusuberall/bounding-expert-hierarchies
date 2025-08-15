@@ -22,12 +22,16 @@ def init_layer(layer_dims, key):
         p.append((W, b))
     return p
 
+#------------------------------------------------------------------------------------
+
 def count_parameter(layer):
     """Count single networks parameter. Expects parameters to use bias trick"""
     p = 0
     for i in range(1, len(layer)):
         p += layer[i] * layer[i-1] + layer[i]
     return p
+
+#------------------------------------------------------------------------------------
 
 def init_moe(g_arch, e_arch, n_experts, key):
     """

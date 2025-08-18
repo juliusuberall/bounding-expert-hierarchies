@@ -94,7 +94,8 @@ def register_inference_speed (
         infB_reps,
         infB_qsize,
         dimension,
-        model_key)
+        model_key,
+        sparse = True)
     
     # Save numerical results
     dkey = f'{model_key}_dense'

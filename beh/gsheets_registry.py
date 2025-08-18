@@ -25,6 +25,7 @@ def gsheet_log_row(
     epochs,
     batch_size,
     time_absolut,
+    timing_setup,
     fp,
     fn,):
     '''
@@ -44,6 +45,7 @@ def gsheet_log_row(
         epochs,
         batch_size,
         time_absolut,
+        timing_setup,
         fp,
         fn,
         "FALSE",  # Set approve flag initially to false to avoid push to overleaf
@@ -95,6 +97,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         configs['general']['epochs'],
         int(reg.get(m_key + core_keys['optimal_batch_size_key'])),
         float(reg.get(m_key + core_keys['inf_speed_key'])),
+        f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
         float(reg.get(m_key + core_keys['fp_key'])),
         float(reg.get(m_key + core_keys['fn_key']))
     )
@@ -118,6 +121,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             configs['general']['epochs'],
             int(reg.get(m_key + core_keys['optimal_batch_size_key'])),
             float(reg.get(m_key + core_keys['inf_speed_key'])),
+            f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
             float(reg.get(m_key + core_keys['fp_key'])),
             float(reg.get(m_key + core_keys['fn_key']))
         )

@@ -23,12 +23,27 @@ def self_balancing_sigmoid_binary_cross_entropy(logits : jax.Array, labels : jax
     log_p = jax.nn.log_sigmoid(logits)
     log_not_p = jax.nn.log_sigmoid(-logits)
 
-    # Positive sample coverage used for self balancing
-    a = jnp.clip(jnp.sum(log_p * labels), -5, 0)
-    n_weight = jnp.exp(a)
-    n_weight += (1 - n_weight) * (1 - self_balance)
+    # Computing individual sample factors for weighted average of BCE.
+    ## Clip to ensure when boundary gets tight and confident we 
+    ## avoid loss explosions for some False-Negatives.
+    ## If confident False Positve we just remove it fully from 
+    ## loss to have no impact as we dont care about False-Positives
+    ## and diminish their BCE contribution anyway.
+    exp_fn = jnp.clip(jnp.exp(-labels * log_p), 1, 10) 
+    exp_fp = jnp.exp((1.0 - labels) * log_not_p)
+    exp_bce = exp_fn + exp_fp
 
-    return -labels * log_p - (1.0 - labels) * log_not_p * n_weight
+    # Asymmetric BCE diswaying ALL negatives linearly as training progresses.
+    # We avoid factoring out all negatives to avoid major optimization shift
+    # and resulting unstable training.
+    bce = -labels * log_p - (1.0 - labels) * log_not_p * (1.01 - self_balance)
+    
+    # Increasing the FN focus and decreasing FP focus individually based on model 
+    # confidence for FN and FP linearly as training progresses.
+    # Creates better results as without doing this in parallel
+    bce =  bce * (exp_bce**self_balance)
+
+    return jnp.mean(bce)
 
 #------------------------------------------------------------------------------------
 
@@ -38,7 +53,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, self_balance : jax.Ar
 
     # Binary Cross-Entropy 
     yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
-    bce_loss = jnp.mean(self_balancing_sigmoid_binary_cross_entropy(yp, y, self_balance))
+    bce_loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, self_balance)
 
     # KL-divergence of the expert activation distribution against uniform distribution 
     activation = (jax.vmap(lambda x: moe_forward_gate(p, x))(x)) * jnp.expand_dims(y,axis=1)
@@ -58,5 +73,5 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, self_balance : jax.Ar
 @jax.jit
 def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array, self_balance : jax.Array):
     yp = jax.vmap(lambda x: mlp_forward(p,x))(x).flatten() # Flatten to ensure correct shapes for BCE
-    loss = jnp.mean(self_balancing_sigmoid_binary_cross_entropy(yp, y, self_balance))
+    loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, self_balance)
     return loss

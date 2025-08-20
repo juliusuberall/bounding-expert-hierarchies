@@ -14,6 +14,7 @@ class CoreRegistry:
 
 # Data directory managment
 core_keys = {
+    'training_time' : '_train_time', # Training time in s
     'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
     'inf_speed_key' : '_inf_speed', # Inference speed in miliseconds

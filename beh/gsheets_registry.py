@@ -27,7 +27,8 @@ def gsheet_log_row(
     time_absolut,
     timing_setup,
     fp,
-    fn,):
+    fn,
+    train_time):
     '''
     Log a row of results in google sheets using google sheets api.
     '''
@@ -48,6 +49,7 @@ def gsheet_log_row(
         timing_setup,
         fp,
         fn,
+        train_time,
         "FALSE",  # Set approve flag initially to false to avoid push to overleaf
         time.strftime("%Y-%m-%d %H:%M:%S") # Timestamp
     ]
@@ -99,7 +101,8 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         float(reg.get(m_key + core_keys['inf_speed_key'])),
         f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
         float(reg.get(m_key + core_keys['fp_key'])),
-        float(reg.get(m_key + core_keys['fn_key']))
+        float(reg.get(m_key + core_keys['fn_key'])),
+        reg.get(m_key + core_keys['training_time'])
     )
 
     ## Ensure we append all sparse MoE results after all other to 
@@ -123,5 +126,6 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             float(reg.get(m_key + core_keys['inf_speed_key'])),
             f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
             float(reg.get(m_key + core_keys['fp_key'])),
-            float(reg.get(m_key + core_keys['fn_key']))
+            float(reg.get(m_key + core_keys['fn_key'])),
+            reg.get(m_key + core_keys['training_time'])
         )

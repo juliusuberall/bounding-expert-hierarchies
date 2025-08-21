@@ -102,7 +102,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
         float(reg.get(m_key + core_keys['fp_key'])),
         float(reg.get(m_key + core_keys['fn_key'])),
-        float(reg.get(m_key + core_keys['training_time']))
+        float(reg.get(model_key + core_keys['training_time']))
     )
 
     ## Ensure we append all sparse MoE results after all other to 
@@ -127,5 +127,5 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
             float(reg.get(m_key + core_keys['fp_key'])),
             float(reg.get(m_key + core_keys['fn_key'])),
-            float(reg.get(m_key + core_keys['training_time']))
+            float(reg.get(model_key + core_keys['training_time']))
         )

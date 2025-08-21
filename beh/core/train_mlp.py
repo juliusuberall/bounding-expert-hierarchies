@@ -31,6 +31,7 @@ def train_mlp(
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
+    fp_slope_thresh = configs['general']['fp_slope_stop']
 
     # Create validation loss batches
     x_batches = batch_data(x, batch_size)
@@ -67,8 +68,15 @@ def train_mlp(
     self_balance = jnp.array(0.0)
     self_balance_steps = 1 / epochs
 
+    i = 1
+    fn = jnp.array(1.0)
+    fp_slope = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
-    for i in range(1, epochs + 1):
+    # Dont stop training until:
+    # -> epochs over 
+    # -> FN == 0
+    # -> FP plateaus
+    while i <= epochs or fn != 0.0 or fp_slope > fp_slope_thresh :
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
@@ -88,10 +96,18 @@ def train_mlp(
             fn_cache.append(fn) 
             fp_cache.append(fp) 
 
+            # Compute False-Positive slope
+            fp_slope = fp - jnp.mean(jnp.array(fp_cache[-5:]))
+
             # Print epoch stats
             epoch_cache.append(i)     
             print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
+        
+        i += 1
+        # Change to finer logging frequence to exit as soon as possible
+        if i == epochs: loss_logging_frequency = 5
+
     
     # Register training metrics
     reg_key = model_key + core_keys['training_time']

@@ -131,14 +131,14 @@ def export_plot_speed_accuracy_comparison (
             dkey = f'{model_key}_dense'
             skey = f'{model_key}_sparse'
             sparse_speed = reg.get(skey + core_keys['inf_speed_key'])
-            sparse_accury = reg.get(skey + core_keys['accuracy_mse_key'])
+            sparse_fp = reg.get(skey + core_keys['fp_key'])
             dense_speed = reg.get(dkey + core_keys['inf_speed_key'])
-            dense_accury = reg.get(dkey + core_keys['accuracy_mse_key'])
+            dense_fp = reg.get(dkey + core_keys['fp_key'])
 
             # Plot
-            plt.plot([sparse_speed, dense_speed],[sparse_accury, dense_accury], linestyle = '--', label= f"{model_key} | ●-D | ■-S | Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Active/Total P: {active_p}/{total_p}", zorder=1)
-            plt.scatter(sparse_speed, sparse_accury, color='black', marker='s', zorder=2)
-            plt.scatter(dense_speed, dense_accury, color='black', marker='o', zorder=2)
+            plt.plot([sparse_speed, dense_speed],[sparse_fp, dense_fp], linestyle = '--', label= f"{model_key} | ●-D | ■-S | Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Active/Total P: {active_p}/{total_p}", zorder=1)
+            plt.scatter(sparse_speed, sparse_fp, color='black', marker='s', zorder=2)
+            plt.scatter(dense_speed, dense_fp, color='black', marker='o', zorder=2)
 
         elif model_type == 'mlp':
             # Get model configs details
@@ -148,8 +148,8 @@ def export_plot_speed_accuracy_comparison (
 
             # Get results and plot
             speed = reg.get(model_key + core_keys['inf_speed_key'])
-            accury = reg.get(model_key + core_keys['accuracy_mse_key'])
-            plt.scatter(speed, accury, label=f"{model_key}: {mlp_arch} | Active/Total P: {total_p}")
+            fp = reg.get(model_key + core_keys['fp_key'])
+            plt.scatter(speed, fp, label=f"{model_key}: {mlp_arch} | Active/Total P: {total_p}")
 
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
@@ -157,7 +157,7 @@ def export_plot_speed_accuracy_comparison (
     # General plot 
     plt.title(f'{dimension}D Model Comparison\non {jax.devices()[0].device_kind}')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25), fontsize=8)
-    plt.ylabel('MSE')
+    plt.ylabel('False-Positive Rate')
     plt.xlabel(f'Min. Inference Speed (ms) per batch ({batch_size})')
     plt.tight_layout()
 

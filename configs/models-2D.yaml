@@ -1,32 +1,39 @@
 general:
-  batch_size: 2048
-  epochs: 100
-  learning_rate: 0.01
+  batch_size: 2048 # Training
+  epochs: 10000 # Training
+  learning_rate: 0.01 # Training
   loss_logging_frequency: 100 # Each N epoch we print and save the loss
   boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 
+  inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
+  inf_bench_repitions: 20 # Number of repitions to average speed benchmark 
+  fp_slope_stop: 0.01 # Training stop criteria - If difference to last 5 FP rates is smaller than can stop
 
-mlp01:
+mlp:
   type: 'mlp'
-  hidden_layer: [4,4,4]
-mlp02:
-  type: 'mlp'
-  hidden_layer: [16,16,16]
-mlp03:
-  type: 'mlp'
-  hidden_layer: [128,128,128]
+  hidden_layer: [32,32,32]
 
-moe01:
+moe1:
   type: 'moe'
-  nex : 2 # Number of Experts
-  expert_hidden_layer: [4,4]
+  nex : 1
+  expert_hidden_layer: [32,32,32]
   gate_hidden_layer: []
-moe02:
+moe2:
+  type: 'moe'
+  nex : 2
+  expert_hidden_layer: [32,32,32]
+  gate_hidden_layer: []
+moe4:
+  type: 'moe'
+  nex : 4
+  expert_hidden_layer: [32,32,32]
+  gate_hidden_layer: []
+moe8:
   type: 'moe'
   nex : 8
-  expert_hidden_layer: [8,8]
+  expert_hidden_layer: [32,32,32]
   gate_hidden_layer: []
-moe03:
+moe16:
   type: 'moe'
-  nex : 64
-  expert_hidden_layer: [16,16]
+  nex : 16
+  expert_hidden_layer: [32,32,32]
   gate_hidden_layer: []

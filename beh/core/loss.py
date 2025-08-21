@@ -49,6 +49,12 @@ def self_balancing_sigmoid_binary_cross_entropy(logits : jax.Array, labels : jax
 
 @jax.jit
 def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, self_balance : jax.Array):
+    '''
+    Deafult MoE loss. Combines
+    \n- BCE -> Conservativness and bounding
+    \n- KL gating -> Uniform expert usage
+    \n- Gating Entropy -> Sparse expert usage while training dense
+    '''
     epsilon = 1e-8
 
     # Binary Cross-Entropy 
@@ -67,6 +73,15 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, self_balance : jax.Ar
     ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss), 0, 1)
 
     return kl_loss + bce_loss + ae_loss
+
+#------------------------------------------------------------------------------------
+
+@jax.jit
+def moe_train_loss_1_expert(p : dict, x : jax.Array, y : jax.Array, self_balance : jax.Array):
+    '''Intended for benchmark MoE with only 1 expert. Will only use BCE, since gate needs no specific loss.'''
+    yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
+    bce_loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, self_balance)
+    return bce_loss
 
 #------------------------------------------------------------------------------------
 

@@ -67,15 +67,15 @@ def train_moe(
     
     if nex == 1:
         @jax.jit
-        def update(p, opt_state, xB, yB, self_balance):
-            grads = jax.grad(moe_train_loss_1_expert)(p, xB, yB, self_balance)
+        def update(p, opt_state, xB, yB, negative_class_weight):
+            grads = jax.grad(moe_train_loss_1_expert)(p, xB, yB, negative_class_weight)
             updates, opt_state = opt.update(grads, opt_state)
             p = optax.apply_updates(p, updates)
             return p, opt_state, grads
     else:
         @jax.jit
-        def update(p, opt_state, xB, yB, self_balance):
-            grads = jax.grad(moe_train_loss)(p, xB, yB, self_balance)
+        def update(p, opt_state, xB, yB, negative_class_weight):
+            grads = jax.grad(moe_train_loss)(p, xB, yB, negative_class_weight)
             updates, opt_state = opt.update(grads, opt_state)
             p = optax.apply_updates(p, updates)
             return p, opt_state, grads
@@ -86,8 +86,7 @@ def train_moe(
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, confidence_cache, epoch_cache = [], [], [], [], []
     ## Initalize self balancing factor for BCE
-    self_balance = jnp.array(0.0)
-    self_balance_steps = 1 / epochs
+    negative_class_weight = jnp.array(1.0)
     
     i = 1
     fn = jnp.array(1.0)
@@ -103,8 +102,7 @@ def train_moe(
         # determinism and numpy runs therefor much faster than jax
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace true makes this much faster
         xB, yB = x[idx,...], y[idx,...]
-        moe, opt_state, gradient = update(moe, opt_state, xB, yB, self_balance)
-        self_balance += self_balance_steps
+        moe, opt_state, gradient = update(moe, opt_state, xB, yB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 
             # Error
@@ -128,6 +126,8 @@ def train_moe(
             epoch_cache.append(i)     
             print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
+
+        if i % 1200 == 0: negative_class_weight *= 2
         
         i += 1
         # Change to finer logging frequence to exit as soon as possible

@@ -53,8 +53,8 @@ def train_mlp(
             total_p)
 
     @jax.jit
-    def update(p, opt_state, xB, yB, self_balance):
-        grads = jax.grad(mlp_bce_loss)(p, xB, yB, self_balance)
+    def update(p, opt_state, xB, yB, negative_class_weight):
+        grads = jax.grad(mlp_bce_loss)(p, xB, yB, negative_class_weight)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads
@@ -65,8 +65,7 @@ def train_mlp(
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, epoch_cache = [], [], [], []
     ## Initalize self balancing factor for BCE
-    self_balance = jnp.array(0.0)
-    self_balance_steps = 1 / epochs
+    negative_class_weight = jnp.array(1.0)
 
     i = 1
     fn = jnp.array(1.0)
@@ -82,8 +81,7 @@ def train_mlp(
         # determinism and numpy runs therefor much faster than jax
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace true makes this much faster
         xB, yB = x[idx,...], y[idx,...]
-        mlp, opt_state, gradient = update(mlp, opt_state, xB, yB, self_balance)
-        self_balance += self_balance_steps
+        mlp, opt_state, gradient = update(mlp, opt_state, xB, yB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 
             # Error
@@ -103,6 +101,8 @@ def train_mlp(
             epoch_cache.append(i)     
             print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
+        
+        if i % 1000 == 0: negative_class_weight *= 2
         
         i += 1
         # Change to finer logging frequence to exit as soon as possible

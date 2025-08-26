@@ -21,7 +21,7 @@ def self_balancing_sigmoid_binary_cross_entropy(logits : jax.Array, labels : jax
     log_not_p = jax.nn.log_sigmoid(-logits)
 
     # Asymmetric BCE diswaying ALL negatives as training progresses.
-    bce = -labels * log_p - (1.0 - labels) * log_not_p * (1 / negative_class_weight)
+    bce = -labels * log_p - (1.0 - labels) * log_not_p * negative_class_weight
 
     return jnp.mean(bce)
 

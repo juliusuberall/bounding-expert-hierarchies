@@ -26,7 +26,6 @@ def train_mlp(
     hid_lay = configs[model_key]['hidden_layer']
 
     # Set training hyperparameters
-    epochs = configs['general']['epochs']
     batch_size = configs['general']['batch_size']
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
@@ -60,7 +59,7 @@ def train_mlp(
         return p, opt_state, grads
 
     # Training loop
-    print(f"\nEpochs: {epochs} | Batch: {batch_size} | LearnRate: {learning_rate}")
+    print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
     print(f"MLP: {mlp_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     val_loss_cache, fn_cache, fp_cache, epoch_cache = [], [], [], []
@@ -72,10 +71,9 @@ def train_mlp(
     fp_slope = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
     # Dont stop training until:
-    # -> epochs over 
     # -> FN == 0
     # -> FP plateaus
-    while i <= epochs or fn != 0.0 or fp_slope > fp_slope_thresh :
+    while fn != 0.0 or fp_slope > 0 or fp_slope < fp_slope_thresh:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
@@ -95,19 +93,17 @@ def train_mlp(
             fp_cache.append(fp) 
 
             # Compute False-Positive slope
-            fp_slope = fp - jnp.mean(jnp.array(fp_cache[-5:]))
+            fp_slope = fp - jnp.mean(jnp.array(fp_cache[-10:]))
 
             # Print epoch stats
             epoch_cache.append(i)     
             print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
         
-        if i % 1000 == 0: negative_class_weight *= 2
-        
+            if fp_slope < 0 and fp_slope > fp_slope_thresh and i > 1000: 
+                negative_class_weight /= 2
+                print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1
-        # Change to finer logging frequence to exit as soon as possible
-        if i == epochs: loss_logging_frequency = 5
-
     
     # Register training metrics
     reg_key = model_key + core_keys['training_time']

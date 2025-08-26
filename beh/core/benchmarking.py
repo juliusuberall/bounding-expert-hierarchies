@@ -76,8 +76,8 @@ def get_optimal_batch_size(
     \nExport plot of batch size - inference speed trend.
     '''
     speed = []
-    start_batch_size, optimal_batchsize = 128, 0
-    max = 16
+    start_batch_size, optimal_batchsize = 1024, 0
+    max = 13
     print(f"\nFinding optimal batch size")
     for i in range(0, max):
         try:
@@ -112,6 +112,12 @@ def get_optimal_batch_size(
     # In case OOM never reached on device
     if optimal_batchsize == 0:
         optimal_batchsize = start_batch_size * 2**i
+
+    # Final validation that final batch size was actually fastest measure
+    speed_jax = jnp.array(speed)
+    if speed[-1] > jnp.min(speed_jax):
+        idx = jnp.argmin(speed_jax)
+        optimal_batchsize = start_batch_size * 2**idx
 
     # Create and export plot
     plt.plot(np.arange(len(speed)), np.array(speed))

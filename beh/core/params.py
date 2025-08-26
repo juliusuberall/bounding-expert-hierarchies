@@ -17,9 +17,10 @@ def init_layer(layer_dims, key):
     keys = jax.random.split(key, len(layer_dims))
     for k, (n_in, n_out) in zip(keys, zip(layer_dims[:-1], layer_dims[1:])):
         # ReLU, LeCun initialization
-        W = jax.random.normal(k, (n_in, n_out)) * jnp.sqrt(1 / n_in)
-        b = jnp.zeros((n_out,))
-        p.append((W, b))
+        w = jax.random.normal(k, (n_in + 1, n_out)) * jnp.sqrt(1 / n_in)
+        # Zero all bias weights for legit initialization 
+        w = w.at[n_in, ...].set(0)
+        p.append(w)
     return p
 
 #------------------------------------------------------------------------------------

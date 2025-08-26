@@ -6,10 +6,12 @@ import optax
 
 @jax.jit
 def mlp_forward(p : list , x : jax.Array):
-    for W, b in p[:-1]:
-        x = jax.nn.relu(jnp.dot(x, W) + b)
-    final_w, final_b = p[-1]
-    return jnp.dot(x, final_w) + final_b
+    for w in p[:-1]:
+        # Bias Trick
+        x = jnp.append(x, 1)
+        x = jax.nn.relu(jnp.dot(x, w))
+    x = jnp.append(x, 1)
+    return jnp.dot(x, p[-1])
 
 @jax.jit
 def mlp_forward_INF(p : list , x : jax.Array):

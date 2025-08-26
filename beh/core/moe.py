@@ -16,7 +16,7 @@ from beh.config_parser import *
 @jax.jit
 def moe_forward_expert(p : dict, x : jax.Array, idx):
     for e in p['experts'][:-1]:
-        # We use the bias trick for all MoE implementation
+        # Bias Trick
         x = jnp.append(x, 1)
         x = jax.nn.tanh(jnp.dot(x, e[idx]))
     x = jnp.append(x, 1)

@@ -71,9 +71,10 @@ def train_mlp(
     fp_slope = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
     # Dont stop training until:
+    # -> Min epochs trained
     # -> FN == 0
     # -> FP plateaus
-    while fn != 0.0 or fp_slope > 0 or fp_slope < fp_slope_thresh:
+    while i < 1000 or fn != 0.0 or fp_slope > 0 or fp_slope < fp_slope_thresh:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax

@@ -132,6 +132,9 @@ def train_moe(
 
     
     # Register training metrics
+    reg_key = model_key + core_keys['total_epochs']
+    reg.add( reg_key, i)
+
     reg_key = model_key + core_keys['training_time']
     reg.add( reg_key, jnp.array((time.perf_counter_ns() - train_time_t0) / 1e9))
 

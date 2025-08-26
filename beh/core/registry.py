@@ -34,4 +34,5 @@ core_keys = {
     'train_fn_key' : '_training_fn', # False negative rate training cache
     'train_fp_key' : '_training_fp', # False negative rate training cache
     'optimal_batch_size_key' : 'inf_batch_size_key', # The determined batchsize on a the specific device for max inference speed
+    'total_epochs' : "total_trained_epochs" # The number of epochs until training stopped
 }

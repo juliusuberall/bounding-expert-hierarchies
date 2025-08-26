@@ -181,7 +181,7 @@ def create_model_details_string (
     \n- Loss function
     '''
     # Get model configurations
-    epochs = configs['general']['epochs']
+    epochs = reg.get(model_key + core_keys['total_epochs']),
     batch_size = configs['general']['batch_size']
 
     if model_type == 'moe':

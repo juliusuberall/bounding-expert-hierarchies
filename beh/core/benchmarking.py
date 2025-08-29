@@ -154,7 +154,7 @@ def benchmark_inference_speed(
         # Dynamic slice handles tail if query-size and batch-size are not % == 0. In that
         # case it moves the start index as required.
         x_slice = jax.lax.dynamic_slice(x, (start, 0), (batch_size, dimension))
-        y = jax.vmap(lambda x: func(model, x))(x_slice)
+        y = func(model, x_slice)
         return val + jnp.sum(y) # Passing to make sure JIT does not ignore forward call
 
     # Number of steps needed to go through entire query using defined batch size

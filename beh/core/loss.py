@@ -67,6 +67,6 @@ def moe_train_loss_1_expert(p : dict, x : jax.Array, y : jax.Array, negative_cla
 
 @jax.jit
 def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
-    yp = jax.vmap(lambda x: mlp_forward(p,x))(x).flatten() # Flatten to ensure correct shapes for BCE
+    yp = mlp_forward(p,x).flatten() # Flatten to ensure correct shapes for BCE
     loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
     return loss

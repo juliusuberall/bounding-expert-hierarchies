@@ -1,6 +1,5 @@
 general:
   batch_size: 2048
-  epochs: 200
   learning_rate: 0.01
   loss_logging_frequency: 100 # Each N epoch we print and save the loss
   boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 

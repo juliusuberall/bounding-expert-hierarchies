@@ -38,11 +38,11 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     epsilon = 1e-8
 
     # Binary Cross-Entropy 
-    yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
+    yp = moe_forward_dense(p,x)
     bce_loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
 
     # KL-divergence of the expert activation distribution against uniform distribution 
-    activation = (jax.vmap(lambda x: moe_forward_gate(p, x))(x)) * jnp.expand_dims(y,axis=1)
+    activation = moe_forward_gate(p['gate'], x) * jnp.expand_dims(y,axis=1)
     nex = activation.shape[1]
     max_kl = jnp.log(nex)
     g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
@@ -59,7 +59,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 @jax.jit
 def moe_train_loss_1_expert(p : dict, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
     '''Intended for benchmark MoE with only 1 expert. Will only use BCE, since gate needs no specific loss.'''
-    yp = jax.vmap(lambda x: moe_forward_dense(p,x))(x)
+    yp = moe_forward_dense(p,x)
     bce_loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
     return bce_loss
 

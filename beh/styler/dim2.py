@@ -92,8 +92,7 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Mask expert decision boundaries
     if mask_experts:
-        for i in range(nex):
-            e_decBoundaries[i] *= (top1_activation == i).flatten()
+        e_decBoundaries = e_decBoundaries.at[i].multiply((top1_activation == i).flatten())
 
     # Create plot 
     r, c = 4, 4
@@ -107,21 +106,21 @@ def export_plot_2D_moe_internal_8_experts (
     ax[0,3].imshow(top1_activation.reshape((img_dim_0,img_dim_1)), vmin=0, vmax=nex-1)
     ax[0,3].set_title(f"Activation Map Top {topk} Expert", fontsize=9)
     ax[1,0].set_title(f"Expert 1", fontsize=9)
-    ax[1,0].imshow(e_decBoundaries[0].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[0])
+    ax[1,0].imshow(e_decBoundaries[0,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[0])
     ax[1,1].set_title(f"Expert 2", fontsize=9)
-    ax[1,1].imshow(e_decBoundaries[1].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[1])
+    ax[1,1].imshow(e_decBoundaries[1,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[1])
     ax[1,2].set_title(f"Expert 3", fontsize=9)
-    ax[1,2].imshow(e_decBoundaries[2].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[2])
+    ax[1,2].imshow(e_decBoundaries[2,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[2])
     ax[1,3].set_title(f"Expert 4", fontsize=9)
-    ax[1,3].imshow(e_decBoundaries[3].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[3])
+    ax[1,3].imshow(e_decBoundaries[3,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[3])
     ax[2,0].set_title(f"Expert 5", fontsize=9)
-    ax[2,0].imshow(e_decBoundaries[4].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[4])
+    ax[2,0].imshow(e_decBoundaries[4,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[4])
     ax[2,1].set_title(f"Expert 6", fontsize=9)
-    ax[2,1].imshow(e_decBoundaries[5].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[5])
+    ax[2,1].imshow(e_decBoundaries[5,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[5])
     ax[2,2].set_title(f"Expert 7", fontsize=9)
-    ax[2,2].imshow(e_decBoundaries[6].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[6])
+    ax[2,2].imshow(e_decBoundaries[6,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[6])
     ax[2,3].set_title(f"Expert 8", fontsize=9)
-    ax[2,3].imshow(e_decBoundaries[7].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[7])
+    ax[2,3].imshow(e_decBoundaries[7,...].reshape((img_dim_0,img_dim_1)), cmap=expert_gradients[7])
 
     for i in range(r):
         for j in range(c):

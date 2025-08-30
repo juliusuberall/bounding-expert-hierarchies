@@ -24,7 +24,8 @@ def register_accuracy(
     dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
-    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF)
+    minibatch, expert_counter = moe_forward_sparse_inf_PREP(moe, x_batches[0].shape[0], x_batches[0].shape[1])
+    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF, minibatch, expert_counter)
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
@@ -129,10 +130,8 @@ def gating_confidence (
     ## If gating probability not near 1.0 the MoE 
     ## relies on dense predicition
     x_batched = jnp.stack(x_batches[0:-1])
-    gate_activation = jax.vmap(lambda x: 
-                    jax.vmap(lambda x: moe_forward_gate_INF(moe, x))(x)
-                    )(x_batched)
-    x_tail = jax.vmap(lambda x: moe_forward_gate_INF(moe,x))(x_batches[-1])
+    gate_activation = jax.vmap(lambda x: moe_forward_gate_INF(moe, x))(x_batched)
+    x_tail = moe_forward_gate_INF(moe, x_batches[-1])
     gate_activation = jnp.concatenate((gate_activation.reshape((-1,x_tail.shape[-1])), x_tail))
 
     # Extract crucial activation metrics
@@ -173,15 +172,14 @@ def register_all_expert_boundaries(
     nex = moe['experts'][0].shape[0]
 
     # Get prediction boundaries for full training signal from each expert
-    e_decBoundaries = []
     x_batched = jnp.stack(x_batches[0:-1])
-    for expert_i in range(nex):
-        iyp = jax.vmap(lambda x: 
-                        jax.vmap(lambda x: moe_forward_expert_INF(moe, x, expert_i))(x)
-                        )(x_batched).flatten()
-        ## Add tail
-        x_tail = jax.vmap(lambda x: moe_forward_expert_INF(moe, x, expert_i))(x_batches[-1])
-        e_decBoundaries.append(jnp.concatenate((iyp, x_tail.flatten())))
+    iyp = jax.vmap(lambda x: jax.vmap(lambda p: moe_forward_expert(p, x), out_axes=1)(moe['experts']).squeeze())(x_batched)
+    iyp = iyp.reshape((-1, nex))
+    ## Add tail
+    x_tail = jax.vmap(lambda p: moe_forward_expert(p, x_batches[-1]), out_axes=1)(moe['experts']).squeeze()
+    x_tail = x_tail.reshape((-1, nex))
+    ## Fomat as list of arrays
+    e_decBoundaries = jnp.concatenate((iyp, x_tail)).T
     
     # Save numerical results
     reg.add( model_key + core_keys['expert_boundary_key'],

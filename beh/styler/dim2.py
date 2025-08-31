@@ -92,7 +92,7 @@ def export_plot_2D_moe_internal_8_experts (
 
     # Mask expert decision boundaries
     if mask_experts:
-        e_decBoundaries = e_decBoundaries.at[i].multiply((top1_activation == i).flatten())
+        e_decBoundaries = e_decBoundaries.at[int(i)].multiply((top1_activation == i).flatten())
 
     # Create plot 
     r, c = 4, 4

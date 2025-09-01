@@ -8,7 +8,6 @@ from beh.core.moe_benchmarking import *
 from beh.config_parser import *
 from beh.core.wiring import *
 from beh.shared import setup_dirs
-from beh.styler.shared import export_plot_speed_accuracy_comparison
 
 def main():
 
@@ -69,14 +68,11 @@ def main():
             data_name = args.data_name
         )
 
-        save_model(
-            model_key = model_key,
-            configs = configs,
-            model = model
-        )
-
-    # Result comparison
-    export_plot_speed_accuracy_comparison(reg, configs, args.dim)
+        # save_model(
+        #     model_key = model_key,
+        #     configs = configs,
+        #     model = model
+        # )
 
 if __name__ == '__main__':
     main()

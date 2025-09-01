@@ -158,7 +158,7 @@ def export_plot_speed_accuracy_comparison (
     plt.title(f'{dimension}D Model Comparison\non {jax.devices()[0].device_kind}')
     plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.25), fontsize=8)
     plt.ylabel('False-Positive Rate')
-    plt.xlabel(f'Min. Inference Speed (ms) per batch ({batch_size})')
+    plt.xlabel(f'Inference Speed (ms) per batch ({batch_size})')
     plt.tight_layout()
 
     # Export plot

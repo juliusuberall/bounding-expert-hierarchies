@@ -1,8 +1,6 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
-import optax
-import time
 
 from datetime import datetime
 
@@ -49,65 +47,18 @@ def moe_forward_dense(p : dict, x : jax.Array):
     return jnp.sum(y * activation, axis=-1)
 
 @jax.jit
-def moe_forward_dense_INF(p : dict, x : jax.Array, minibatch : jax.Array = None, expert_counter : jax.Array = None):
+def moe_forward_dense_INF(p : dict, x : jax.Array):
     return jax.nn.sigmoid(moe_forward_dense(p, x))
 
 #------------------------------------------------------------------------------------
 
-@jax.jit
-def moe_forward_sparse(p : dict, x : jax.Array, minibatch : jax.Array, expert_counter : jax.Array):
-    _ , idx = jax.lax.top_k(moe_forward_gate(p['gate'], x), 1)
-    nex = jnp.array(p['experts'][0].shape[0], dtype=jnp.int32)
-    x, result_idx1, result_idx2 = expert_mini_batch(idx.squeeze(), x, minibatch, expert_counter)
-
-    # Since PyTree hold layer with leading axis == number of experts and
-    # we minibatch the queries for each expert, assuming uniformity we 
-    # can vmap along PyTree and minibatched queries. Essential for sparsity.
-    out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
-    return out[result_idx1, result_idx2].flatten()
-
-@jax.jit
-def moe_forward_sparse_INF(p : dict, x : jax.Array, minibatch : jax.Array, expert_counter : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse(p, x, minibatch, expert_counter))
-
-#------------------------------------------------------------------------------------
-
-@jax.jit
-def expert_mini_batch(idx : jax.Array, x : jax.Array, minibatch : jax.Array, expert_counter : jax.Array):
-    # Compute secondary indecies for placing in padded minibatch
-    _ , idx2 = jax.lax.scan(body, expert_counter, idx)
-    # Set in mini batch
-    x = minibatch.at[idx, idx2].set(x)
-    return x, idx, idx2
-
-@jax.jit
-def body(carry, x):
-    # Scan through expert activation and compute 2nd dimension index
-    counts = carry
-    val_count = counts[x]
-    counts = counts.at[x].add(1)
-    return counts, val_count
-
-def moe_forward_sparse_inf_PREP(moe : dict, batchsize : int, dimension : int):
-    ## Define empty minibatch and expert counter that works with batchsize.
-    ## Important and not definibale inside JIT as size depends on batchsize and nex.
-    ## Used for minibatching queries for experts.
-    nex = moe['experts'][0].shape[0]
-    max_minibatch_size = int(batchsize / nex * 1.3) # Expecting uniformity +- some queries
-    minibatch = jnp.zeros((nex, max_minibatch_size, dimension))
-    expert_counter = jnp.zeros(nex, dtype=jnp.int32)
-    return minibatch, expert_counter
-
-
-#------------------------------------------------------------------------------------
-
-def moe_error(x_batches : list, y : jax.Array , moe : dict, func, minibatch : jax.Array = None, expert_counter : jax.Array = None):
+def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
 
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
-    yp = jax.vmap(lambda x: func(moe, x, minibatch, expert_counter))(x_batched).flatten()
+    yp = jax.vmap(lambda x: func(moe, x))(x_batched).flatten()
     ## Add tail remaining when batching with batch size
-    x_tail = func(moe, x_batches[-1], minibatch, expert_counter)
+    x_tail = func(moe, x_batches[-1])
     yp = jnp.concatenate((yp, x_tail.flatten()))
 
     # MSE

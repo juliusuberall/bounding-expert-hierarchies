@@ -5,6 +5,7 @@ from beh.core.shared import *
 from beh.core.moe import *
 from beh.core.registry import *
 from beh.core.benchmarking import *
+from beh.core.moe_sparse import moe_forward_sparse_INF_2048
 
 def register_accuracy(
         model_key : str,
@@ -18,14 +19,12 @@ def register_accuracy(
     Computes and registers the accuracy with the provided training data batches.
     \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in %.
     '''
-
     # Dense MoE inference
     dense_mse, dense_yp, dense_yp_raw = moe_error(x_batches, y, moe, moe_forward_dense_INF)
     dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
-    minibatch, expert_counter = moe_forward_sparse_inf_PREP(moe, x_batches[0].shape[0], x_batches[0].shape[1])
-    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF, minibatch, expert_counter)
+    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF_2048)
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
@@ -71,48 +70,49 @@ def register_inference_speed (
         reg : CoreRegistry,
         dimension : int,
         infB_reps : int,
-        infB_qsize : int ) -> CoreRegistry:
+        infB_qsize : int,
+        inf_batch_sizes : list,
+        inf_batch_sizes_sparse_moe_funcs : list) -> CoreRegistry:
     '''
-    Registers the measured minimum inference speed over N iterations.
+    Registers the measured inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
     '''
-    print(f"\nMin. Inference Speed MoE:")
+    print(f"\nInference Speed MoE:")
 
-    # Measure inference for dense and sparse MoE   
-    dense_speed, dense_optimal_batch_size = inference_speed(
-        x,
-        moe,
-        moe_forward_dense_INF,
-        infB_reps,
-        infB_qsize,
-        dimension,
-        model_key)
+    # Measure inference for dense and sparse MoE
+    d_cache, s_cache = [], []
+    for i in range(len(inf_batch_sizes)):
+        dense_speed = inference_speed(
+            x,
+            moe,
+            moe_forward_dense_INF,
+            infB_reps,
+            infB_qsize,
+            dimension,
+            inf_batch_sizes[i])
+        d_cache.append([inf_batch_sizes[i], dense_speed])
+        
+        sparse_speed = inference_speed(
+            x,
+            moe,
+            inf_batch_sizes_sparse_moe_funcs[i],
+            infB_reps,
+            infB_qsize,
+            dimension,
+            inf_batch_sizes[i],
+            sparse = True)
+        s_cache.append([inf_batch_sizes[i], sparse_speed])
+        
+        print(f"\nDense Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(dense_speed),4)}ms")
+        print(f"Sparse Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(sparse_speed),4)}ms")
     
-    sparse_speed, sparse_optimal_batch_size = inference_speed(
-        x,
-        moe,
-        moe_forward_sparse_INF,
-        infB_reps,
-        infB_qsize,
-        dimension,
-        model_key,
-        sparse = True)
-    
-    # Save numerical results
+    # Save results
     dkey = f'{model_key}_dense'
     skey = f'{model_key}_sparse'
     reg.add( dkey + core_keys['inf_speed_key'],
-            dense_speed)
-    reg.add( dkey + core_keys['optimal_batch_size_key'],
-        dense_optimal_batch_size)
-    
+            d_cache)
     reg.add( skey + core_keys['inf_speed_key'],
-            sparse_speed)
-    reg.add( skey + core_keys['optimal_batch_size_key'],
-        sparse_optimal_batch_size)
-
-    print(f"\nDense Inf. Speed => {round(float(dense_speed),4)}ms")
-    print(f"Sparse Inf. Speed => {round(float(sparse_speed),4)}ms")
+            s_cache)
 
     return reg
 

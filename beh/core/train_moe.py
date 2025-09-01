@@ -83,7 +83,7 @@ def train_moe(
     print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
-    val_loss_cache, fn_cache, fp_cache, confidence_cache, epoch_cache = [], [], [], [], []
+    val_loss_cache, fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache = [], [], [], [], [], []
     ## Initalize self balancing factor for BCE
     negative_class_weight = jnp.array(1.0)
     
@@ -95,7 +95,7 @@ def train_moe(
     # -> Min epochs trained
     # -> FN == 0
     # -> FP plateaus
-    while i < 1000 or fn != 0.0 or fp_slope > 0 or fp_slope < fp_slope_thresh:
+    while fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
@@ -112,10 +112,11 @@ def train_moe(
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
             fn_cache.append(fn) 
-            fp_cache.append(fp) 
+            fp_cache.append(fp)
+            slope_cache.append(fp)  
 
             # Compute False-Positive slope
-            fp_slope = fp - jnp.mean(jnp.array(fp_cache[-10:]))
+            fp_slope = fp - jnp.mean(jnp.array(slope_cache[-5:]))
 
             # Confidence
             confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches)
@@ -123,10 +124,11 @@ def train_moe(
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
+            print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f} | FP-slope: {round(float(fp_slope),4):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
-            if fp_slope < 0 and fp_slope > fp_slope_thresh and i > 1000: 
+            if i > 2000 and  fp_slope < 0 and fp_slope > -fp_slope_thresh and len(slope_cache) >= 5: 
+                slope_cache = []
                 negative_class_weight /= 2
                 print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1

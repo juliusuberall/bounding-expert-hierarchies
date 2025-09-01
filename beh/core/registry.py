@@ -17,7 +17,7 @@ core_keys = {
     'training_time' : '_train_time', # Training time in s
     'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
-    'inf_speed_key' : '_inf_speed', # Inference speed in miliseconds
+    'inf_speed_key' : '_inf_speed', # List of pairs: batchsize + inference speed in miliseconds
     'fn_key' : '_fn', # False Negative rate in %
     'fp_key' : '_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark

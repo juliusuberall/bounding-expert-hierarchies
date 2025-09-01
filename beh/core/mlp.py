@@ -14,7 +14,7 @@ def mlp_forward(p : list , X : jax.Array):
     return X @ p[-1]
 
 @jax.jit
-def mlp_forward_INF(p : list , x : jax.Array, minibatch : jax.Array = None, expert_counter : jax.Array = None):
+def mlp_forward_INF(p : list , x : jax.Array):
     return jax.nn.sigmoid(mlp_forward(p, x))
 
 #------------------------------------------------------------------------------------

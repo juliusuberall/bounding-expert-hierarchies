@@ -80,8 +80,15 @@ def benchmark_inference_speed(
     def fori():
         return jax.lax.fori_loop(0, full_batch_iter, batch_INF, 0.0)
 
-    # Warm-up and JIT compile
-    _ = fori().block_until_ready()
+    # Warm-up and JIT + check if GPU would run out of memory and skip otherwise
+    try:
+        _ = fori().block_until_ready()
+    except jaxlib.xla_extension.XlaRuntimeError as e:
+        print(f"XLA Runtime Error - Device out of memory. Inference benchmark skipped.")
+        # Ensure GPU memory is cleaned after OOM and return -1
+        jax.clear_caches()
+        gc.collect()
+        return jnp.array(-1.0)
 
     speed = []
     for i in range(reps):

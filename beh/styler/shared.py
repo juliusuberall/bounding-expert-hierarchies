@@ -133,9 +133,8 @@ def create_model_details_string (
         b = f"\nGate: {moe_gate_arch}"
         c = f"\nTotal Parameters:{total_p}"
         d = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
-        e = f"\nLoss: BCE + KL + AE"
-        f = f"\n\nTop1 activation mean: {round(float(confidence),2)}"
-        return a + b + c + d + e + f
+        e = f"\n\nTop1 activation mean: {round(float(confidence),2)}"
+        return a + b + c + d + e
     
     elif model_type == 'mlp':
         # Get model configurations
@@ -148,9 +147,8 @@ def create_model_details_string (
         a = f"MLP: {mlp_arch}"
         b = f"\nTotal Parameters:{total_p}"
         c = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
-        d = f"\nLoss: BCE"
 
-        return a + b + c + d
+        return a + b + c
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")

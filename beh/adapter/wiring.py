@@ -18,7 +18,7 @@ def get_traininig_data(
     \nDelegation based on dimensionalty to ensure correct data extraction procedure.
     '''
     if dimension == 2:
-        return preprocess_rgba(data_dir_registry[dimension] + f"/{data_name}.png", reg)
+        return preprocess_rgba(data_dir_registry[dimension] + f"/{data_name}.png", reg, False)
     elif dimension == 3:
         return dim3.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
     elif dimension == 4:

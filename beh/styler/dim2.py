@@ -295,29 +295,25 @@ def export_plot_2D_mlp_internal (
     # Get results from registry
     yp = reg.get(model_key + core_keys['y_prediciton_key'])
     rounded_mse = round(float(reg.get(model_key + core_keys['accuracy_mse_key'])),4)
-    fn = reg.get(model_key + core_keys['fn_key'])
     fp = reg.get(model_key + core_keys['fp_key'])
     
     # Create plot 
-    r, c = 1, 4
-    fig, ax = plt.subplots(r,c, figsize=(16,5.5))
+    r, c = 1, 3
+    fig, ax = plt.subplots(r,c, figsize=(13,5.1))
     ax[0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0].set_title("Original", fontsize=9)
     ax[1].imshow(yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[1].set_title(f"Predicition MSE {rounded_mse}", fontsize=9)
     
     # Conservativness
-    ax[2].imshow(((yp < threshold) * ( y > 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
-    ax[2].set_title(f"False Negatives {round(float(fn),8)}", fontsize=9)
-    ax[3].imshow(((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
-    ax[3].set_title(f"False Positives {round(float(fp),8)}", fontsize=9)
+    ax[2].imshow(((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[2].set_title(f"False Positives {round(float(fp),8)}", fontsize=9)
 
     for i in range(c):
         ax[i].axis('off')
 
-    fig.text(0.75, 0.01, model_detail_str, fontsize=9)
-    plt.tight_layout(rect=[0, 0.05, 1, 0.94])
-    plt.suptitle(f'{model_key} Internal State')
+    fig.text(0.013, 0.02, model_detail_str, fontsize=9)
+    plt.tight_layout(rect=[0, 0.05, 1, 1])
     
     # Export plot
     path = result_dir_registry[dimension] + f"/{model_key}_2D_internal.png"

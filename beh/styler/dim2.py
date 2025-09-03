@@ -126,10 +126,10 @@ def export_plot_2D_moe_internal (
 
 def nex_gradients(nex: int):
     expert_gradients = []
-    hsv = mplt.cm.get_cmap('hsv')
+    cmap = mplt.cm.get_cmap('gist_rainbow')
     for i in jnp.linspace(0, 1, nex):
         expert_gradients.append(
-            mplt.colors.LinearSegmentedColormap.from_list("mono_custom", ["whitesmoke", hsv(i) ])
+            mplt.colors.LinearSegmentedColormap.from_list("mono_custom", ["whitesmoke", cmap(i) ])
         )
     return expert_gradients
 

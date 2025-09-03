@@ -103,8 +103,8 @@ def register_inference_speed (
             sparse = True)
         s_cache.append([inf_batch_sizes[i], sparse_speed])
         
-        print(f"\nDense Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(dense_speed),4)}ms")
-        print(f"Sparse Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(sparse_speed),4)}ms")
+        print(f"Dense Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(dense_speed),4)}ms")
+        print(f"Sparse Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(sparse_speed),4)}ms\n")
     
     # Save results
     dkey = f'{model_key}_dense'

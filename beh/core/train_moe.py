@@ -95,7 +95,7 @@ def train_moe(
     # -> Min epochs trained
     # -> FN == 0
     # -> FP plateaus
-    while fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
+    while i < 2000 or fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax

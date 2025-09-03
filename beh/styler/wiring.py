@@ -78,4 +78,4 @@ def format_export_results(
         raise ValueError(f"Unsupported model type: {model_type}")
     
     # Google sheet sync results
-    #gsheet_log_results(model_key, dimension,  reg, configs, data_name)
+    gsheet_log_results(model_key, dimension,  reg, configs, data_name)

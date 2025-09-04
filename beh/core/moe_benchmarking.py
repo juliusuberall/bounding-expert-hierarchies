@@ -5,7 +5,7 @@ from beh.core.shared import *
 from beh.core.moe import *
 from beh.core.registry import *
 from beh.core.benchmarking import *
-from beh.core.moe_sparse import moe_forward_sparse_INF_2048, moe_forward_sparse_INF_200K
+from beh.core.moe_sparse import sparse_funcs_2048, sparse_funcs_200K
 
 def register_accuracy(
         model_key : str,
@@ -24,7 +24,7 @@ def register_accuracy(
     dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
-    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, moe_forward_sparse_INF_2048)
+    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, sparse_funcs_2048[model_key])
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
@@ -89,11 +89,11 @@ def register_inference_speed (
         infB_qsize,
         dimension)
     d_cache.append([inf_batch_size, dense_speed])
-    
+
     sparse_speed = benchmark_inference_speed(
         x,
         moe,
-        moe_forward_sparse_INF_200K,
+        sparse_funcs_200K[model_key],
         inf_batch_size,
         infB_reps,
         infB_qsize,

@@ -5,46 +5,34 @@ general:
   boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 
   inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
   inf_bench_repitions: 1000 # Number of repitions to average speed benchmark 
-  fp_slope_stop: -0.003 # Training stop criteria - If difference to last 5 FP rates is smaller than can stop
+  fp_slope_stop: 0.001 # Training stop criteria - If difference to last 5 FP rates is smaller than can stop
 
-# mlp1:
-#   type: 'mlp'
-#   hidden_layer: [4,4]
+# 67K parameters - MoE faster
+mlp175:
+  type: 'mlp'
+  hidden_layer: [256,256]
+moe175:
+  type: 'moe'
+  nex : 175
+  expert_hidden_layer: [16,16]
+  gate_hidden_layer: [43]
 
-# mlp2:
-#   type: 'mlp'
-#   hidden_layer: [8,8]
+# 17K parameters - Draw
+mlp48:
+  type: 'mlp'
+  hidden_layer: [128,128]
+moe48:
+  type: 'moe'
+  nex : 48
+  expert_hidden_layer: [16,16]
+  gate_hidden_layer: [12]
 
-# mlp3:
-#   type: 'mlp'
-#   hidden_layer: [16,16]
-
+# 1K parameters - MLP faster
 mlp4:
   type: 'mlp'
   hidden_layer: [32,32]
-
-# moe1:
-#   type: 'moe'
-#   nex : 1
-#   expert_hidden_layer: [4,4]
-#   gate_hidden_layer: []
-# moe4:
-#   type: 'moe'
-#   nex : 4
-#   expert_hidden_layer: [4,4]
-#   gate_hidden_layer: []
-# moe8:
-#   type: 'moe'
-#   nex : 8
-#   expert_hidden_layer: [4,4]
-#   gate_hidden_layer: []
-# moe16:
-#   type: 'moe'
-#   nex : 16
-#   expert_hidden_layer: [4,4]
-#   gate_hidden_layer: []
-moe16:
+moe4:
   type: 'moe'
-  nex : 32
-  expert_hidden_layer: [32,32]
-  gate_hidden_layer: []
+  nex : 4
+  expert_hidden_layer: [16,16]
+  gate_hidden_layer: [2]

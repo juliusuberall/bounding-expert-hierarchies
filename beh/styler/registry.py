@@ -7,3 +7,11 @@ white_gray = "whitesmoke" # Replacement for #FFFFFF because otherwise no differe
 
 # Custom gray to black gradient
 wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [white_gray, "black"])
+
+# Model colors
+cols = {
+    'moe' : '#00A517',
+    'mlp' : '#ff00c2',
+    'light_gray' : '#f5f5f5',
+    'dark_gray' : '#B3B3B3'
+}

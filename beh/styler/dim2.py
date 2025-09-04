@@ -8,7 +8,8 @@ from beh.styler.registry import *
 from beh.core.registry import *
 from beh.core.moe import *
 from beh.core.params import *
-from beh.styler.colors import *
+
+#------------------------------------------------------------------------------------
 
 def export_plot_training_data (x : jax.Array, y : jax.Array):
     '''
@@ -31,6 +32,8 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
     )
     print(f"2D training data plot saved at {path}")
     pass
+
+#------------------------------------------------------------------------------------
 
 def export_plot_2D_moe_internal (
     model_key : str,
@@ -81,11 +84,11 @@ def export_plot_2D_moe_internal (
     dense_yp_col = color_by_expert(nex, dense_yp, top1_activation)
     sparse_yp_col = color_by_expert(nex, sparse_yp, top1_activation)
 
-    whitesmoke = mplt.colors.to_rgba("whitesmoke")
+    background_col = mplt.colors.to_rgba(white_gray)
     dense_mask = np.expand_dims(((dense_yp > threshold) * ( y == 0)), axis=1)
-    dense_yp_col_fp = dense_yp_col * dense_mask + ~dense_mask * whitesmoke
+    dense_yp_col_fp = dense_yp_col * dense_mask + ~dense_mask * background_col
     sparse_mask = np.expand_dims(((sparse_yp > threshold) * ( y == 0)), axis=1)
-    sparse_yp_col_fp = sparse_yp_col * sparse_mask + ~sparse_mask * whitesmoke
+    sparse_yp_col_fp = sparse_yp_col * sparse_mask + ~sparse_mask * background_col
     
     # Create plot 
     r, c = 2, 4
@@ -96,7 +99,7 @@ def export_plot_2D_moe_internal (
     ax[0,0].set_title("Original", fontsize=9)
 
     ## Activation map
-    ax[0,1].imshow(top1_activation.reshape((img_dim_0,img_dim_1)), vmin=0, cmap="hsv", vmax=nex-1)
+    ax[0,1].imshow(top1_activation.reshape((img_dim_0,img_dim_1)), vmin=0, cmap=expert_cmap, vmax=nex-1)
     ax[0,1].set_title(f"Activation Map Top-{topk} Expert", fontsize=9)
 
     ## Predicitions
@@ -124,14 +127,18 @@ def export_plot_2D_moe_internal (
     plt.savefig(path)
     plt.close()
 
+#------------------------------------------------------------------------------------
+
 def nex_gradients(nex: int):
     expert_gradients = []
-    cmap = mplt.cm.get_cmap('gist_rainbow')
+    cmap = mplt.cm.get_cmap(expert_cmap)
     for i in jnp.linspace(0, 1, nex):
         expert_gradients.append(
-            mplt.colors.LinearSegmentedColormap.from_list("mono_custom", ["whitesmoke", cmap(i) ])
+            mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [white_gray, cmap(i) ])
         )
     return expert_gradients
+
+#------------------------------------------------------------------------------------
 
 def color_by_expert(nex : int, yp : jax.Array, top1_activation : jax.Array):
     # Extract colors for all experts
@@ -145,6 +152,8 @@ def color_by_expert(nex : int, yp : jax.Array, top1_activation : jax.Array):
         expert = expert_gradients[i](yp[mask]) # color based yp
         colored_yp[mask] = expert
     return colored_yp
+
+#------------------------------------------------------------------------------------
 
 def export_plot_2D_mlp_internal (
     model_key : str,

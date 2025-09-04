@@ -37,9 +37,8 @@ def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
     plt.title(f"Learning Signal {dimension}D MLP | Epoch {epoch}")
     i = 0
     for l in gradient:
-        l_flat = l[0] + l[1]
-        plt.plot(l_flat, linewidth=0.5) # Needs to be cleaned if MLP also uses bias trick
-        v, i = jax.lax.top_k(l_flat, 1)
+        plt.plot(l.flatten(), linewidth=0.5) # Needs to be cleaned if MLP also uses bias trick
+        v, i = jax.lax.top_k(l.flatten(), 1)
         plt.scatter(i, v, label=f'L{i}')
         i += 1
     plt.xlabel('Weights')

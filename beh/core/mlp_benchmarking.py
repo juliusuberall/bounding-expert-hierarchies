@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from beh.core.shared import *
 from beh.core.mlp import *
@@ -24,14 +25,10 @@ def register_accuracy(
     fn, fp = get_fn_fp_rate(yp, y, threshold=threshold)
 
     # Save numerical results
-    reg.add(model_key + core_keys['accuracy_mse_key'],
-            jnp.array(mse))
-    reg.add(model_key + core_keys['y_prediciton_key'],
-        jnp.array(yp))
-    reg.add(model_key + core_keys['fn_key'],
-        jnp.array(fn))
-    reg.add(model_key + core_keys['fp_key'],
-        jnp.array(fp))
+    reg.add(model_key + core_keys['accuracy_mse_key'], mse)
+    reg.add(model_key + core_keys['y_prediciton_key'], yp)
+    reg.add(model_key + core_keys['fn_key'], fn)
+    reg.add(model_key + core_keys['fp_key'], fp)
 
 
     print(f"\nMSE: {round(float(mse),4)}")
@@ -69,7 +66,6 @@ def register_inference_speed (
     print(f"\nInf. Speed {inf_batch_size} batch size => {round(float(speed),4)}ms")
     
     # Save all speeds paired with their batchsize
-    reg.add( model_key + core_keys['inf_speed_key'],
-            cache)
+    reg.add( model_key + core_keys['inf_speed_key'], cache)
 
     return reg

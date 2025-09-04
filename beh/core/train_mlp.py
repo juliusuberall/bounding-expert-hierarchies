@@ -74,7 +74,7 @@ def train_mlp(
     # -> Min epochs trained
     # -> FN == 0
     # -> FP plateaus
-    while i < 2000 or fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
+    while i < 100:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
@@ -113,18 +113,18 @@ def train_mlp(
     reg.add( reg_key, i)
 
     reg_key = model_key + core_keys['training_time']
-    reg.add( reg_key, jnp.array((time.perf_counter_ns() - train_time_t0) / 1e9))
+    reg.add( reg_key, np.array((time.perf_counter_ns() - train_time_t0) / 1e9))
 
     reg_key = model_key + core_keys['train_val_loss_key']
-    reg.add( reg_key, jnp.array(val_loss_cache))
+    reg.add( reg_key, np.array(val_loss_cache))
 
     reg_key = model_key + core_keys['train_fn_key']
-    reg.add( reg_key, jnp.array(fn_cache))
+    reg.add( reg_key, np.array(fn_cache))
 
     reg_key = model_key + core_keys['train_fp_key']
-    reg.add( reg_key, jnp.array(fp_cache))
+    reg.add( reg_key, np.array(fp_cache))
 
     reg_key = model_key + core_keys['train_epoch_key']
-    reg.add( reg_key, jnp.array(epoch_cache))
+    reg.add( reg_key, np.array(epoch_cache))
     
     return mlp, reg

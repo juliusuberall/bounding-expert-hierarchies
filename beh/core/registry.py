@@ -1,3 +1,6 @@
+import jax
+import numpy as np
+
 # Class to register all relevant experiment data
 class CoreRegistry:
     def __init__(self):
@@ -10,6 +13,9 @@ class CoreRegistry:
             raise ValueError(f"Metric {name} not registered")
 
     def add(self, name : str, value):
+        # Ensure we only store numpy arrays and not jax arrays which could be on device
+        if isinstance(value, jax.Array):
+            value = np.array(value)
         self.registry[name] = value
 
 # Data directory managment

@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from beh.core.shared import *
 from beh.core.moe import *
@@ -32,29 +33,18 @@ def register_accuracy(
     skey = f'{model_key}_sparse'
     
     ## Dense
-    reg.add(dkey + core_keys['accuracy_mse_key'],
-            jnp.array(dense_mse))
-    reg.add(dkey + core_keys['y_prediciton_key'],
-        jnp.array(dense_yp))
-    reg.add(dkey + core_keys['y_prediciton_RAW_key'],
-        jnp.array(dense_yp_raw))
-    reg.add(dkey + core_keys['fn_key'],
-        jnp.array(dense_fn))
-    reg.add(dkey + core_keys['fp_key'],
-        jnp.array(dense_fp))
-
+    reg.add(dkey + core_keys['accuracy_mse_key'], dense_mse)
+    reg.add(dkey + core_keys['y_prediciton_key'], dense_yp)
+    reg.add(dkey + core_keys['y_prediciton_RAW_key'], dense_yp_raw)
+    reg.add(dkey + core_keys['fn_key'], dense_fn)
+    reg.add(dkey + core_keys['fp_key'], dense_fp)
     
     ## Sparse
-    reg.add(skey + core_keys['accuracy_mse_key'],
-            jnp.array(sparse_mse))
-    reg.add(skey + core_keys['y_prediciton_key'],
-        jnp.array(sparse_yp))
-    reg.add(skey + core_keys['y_prediciton_RAW_key'],
-        jnp.array(sparse_yp_raw))
-    reg.add(skey + core_keys['fn_key'],
-        jnp.array(sparse_fn))
-    reg.add(skey + core_keys['fp_key'],
-        jnp.array(sparse_fp))
+    reg.add(skey + core_keys['accuracy_mse_key'], sparse_mse)
+    reg.add(skey + core_keys['y_prediciton_key'], sparse_yp)
+    reg.add(skey + core_keys['y_prediciton_RAW_key'], sparse_yp_raw)
+    reg.add(skey + core_keys['fn_key'], sparse_fn)
+    reg.add(skey + core_keys['fp_key'], sparse_fp)
 
     print(f"\n      |    MSE   |    FN    |    FP   ")
     print(f"------|-------------------------------")
@@ -148,12 +138,9 @@ def register_gating_confidence (
     confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches)
     
     # Save numerical results
-    reg.add( model_key + core_keys['gating_confidence_key'],
-            confidence)
-    reg.add( model_key + core_keys['gating_sorted_activation_key'],
-            gate_sorted_activation)
-    reg.add( model_key + core_keys['gate_top1_activation_key'],
-            idx)
+    reg.add( model_key + core_keys['gating_confidence_key'], confidence)
+    reg.add( model_key + core_keys['gating_sorted_activation_key'], gate_sorted_activation)
+    reg.add( model_key + core_keys['gate_top1_activation_key'], idx)
 
     print(f"\nGate Confidence: {round(float(confidence),4)}")
     return reg

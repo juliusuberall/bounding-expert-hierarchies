@@ -2,7 +2,7 @@ import jax
 
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
-from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal
+from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_internal_comparison
 from beh.gsheets_registry import gsheet_log_results
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
@@ -10,7 +10,6 @@ def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int 
     Validation visualization of training data.
     \nDelegates to corresponding data dimensionality sub-routine.
     '''
-
     if dimension == 2:
         export_plot_training_data(x, y)
         pass
@@ -49,7 +48,7 @@ def format_export_results(
     if model_type == 'moe':
         if dimension == 2:
             export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str)
-
+            export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
         elif dimension == 3:
             pass
         elif dimension == 4:

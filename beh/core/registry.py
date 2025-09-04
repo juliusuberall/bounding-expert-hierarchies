@@ -21,7 +21,6 @@ core_keys = {
     'fn_key' : '_fn', # False Negative rate in %
     'fp_key' : '_fp', # False Positive rate in %
     'accuracy_mse_key' : '_accuracy_mse', # Stores the mean squared error of the accuracy benchmark
-    'expert_boundary_key' : '_expert_boundary', # The individual full decision boundaries for all experts
     'gate_top1_activation_key' : '_top1_activation', # Map of top1 activation indicies of experts
     'y_prediciton_key' : '_yp', # All remapped outputs predicited during accuracy compute
     'y_prediciton_RAW_key' : '_yp_raw', # All NOT REMAPPED outputs predicited during accuracy compute

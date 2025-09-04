@@ -4,7 +4,6 @@ import jax.numpy as jnp
 import numpy as np
 import time
 import gc
-import matplotlib.pyplot as plt
 
 from beh.registry import *
 
@@ -15,38 +14,6 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
     fp_rate = jnp.sum((yp > threshold) * (y == 0)) / jnp.sum(y == 0)
     fn_rate = jnp.sum((yp < threshold) * (y > 0)) / jnp.sum(y > 0)
     return fn_rate, fp_rate
-
-#------------------------------------------------------------------------------------
-
-def inference_speed(
-    x,
-    model,
-    func,
-    reps : int,
-    query_size : int,
-    dimension : int,
-    inf_batch_size : int,
-    sparse : bool = False):
-    '''
-    Measures the inference speed of a model with an ideal batch size for max. speed.
-    '''
-
-    # Create queries and upload once to device
-    ## Replace true makes this much faster allowing for duplicates
-    idx = np.random.choice(np.arange(x.shape[0]), query_size, replace=True)
-    x = x[idx,...]
-
-    # Benchmark
-    speed = benchmark_inference_speed(
-        x=x,
-        model=model,
-        func=func,
-        batch_size=inf_batch_size,
-        reps=reps,
-        query_size=query_size,
-        dimension=dimension
-    )
-    return speed
 
 #------------------------------------------------------------------------------------
 

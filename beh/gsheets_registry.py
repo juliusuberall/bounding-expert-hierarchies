@@ -44,8 +44,6 @@ def gsheet_log_row(
         active_p,
         epochs,
         float(batch_speeds[0][1]),
-        float(batch_speeds[1][1]),
-        float(batch_speeds[2][1]),
         timing_setup,
         fp,
         fn,

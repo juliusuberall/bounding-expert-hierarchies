@@ -2,7 +2,7 @@ import jax
 
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
-from beh.styler.dim2 import export_plot_2D_moe_internal_8_experts, export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal
+from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal
 from beh.gsheets_registry import gsheet_log_results
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
@@ -48,10 +48,7 @@ def format_export_results(
     # Create model internal state overview
     if model_type == 'moe':
         if dimension == 2:
-            if configs[model_key]['nex'] == 8:
-                export_plot_2D_moe_internal_8_experts(model_key, y, reg, configs, dimension, threshold, model_detail_str)
-            else:
-                export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str)
+            export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str)
 
         elif dimension == 3:
             pass

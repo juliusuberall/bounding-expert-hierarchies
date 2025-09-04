@@ -5,7 +5,7 @@ from beh.core.shared import *
 from beh.core.moe import *
 from beh.core.registry import *
 from beh.core.benchmarking import *
-from beh.core.moe_sparse import moe_forward_sparse_INF_2048
+from beh.core.moe_sparse import moe_forward_sparse_INF_2048, moe_forward_sparse_INF_200K
 
 def register_accuracy(
         model_key : str,
@@ -56,7 +56,7 @@ def register_accuracy(
     reg.add(skey + core_keys['fp_key'],
         jnp.array(sparse_fp))
 
-    print(f"\n      |      MSE   |    FN    |    FP   ")
+    print(f"\n      |    MSE   |    FN    |    FP   ")
     print(f"------|-------------------------------")
     print(f"Dense | {dense_mse:05f} | {dense_fn:05f} | {dense_fp:05f}")
     print(f"Sparse| {sparse_mse:05f} | {sparse_fn:05f} | {sparse_fp:05f}")
@@ -71,8 +71,7 @@ def register_inference_speed (
         dimension : int,
         infB_reps : int,
         infB_qsize : int,
-        inf_batch_sizes : list,
-        inf_batch_sizes_sparse_moe_funcs : list) -> CoreRegistry:
+        inf_batch_size : int) -> CoreRegistry:
     '''
     Registers the measured inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
@@ -81,30 +80,28 @@ def register_inference_speed (
 
     # Measure inference for dense and sparse MoE
     d_cache, s_cache = [], []
-    for i in range(len(inf_batch_sizes)):
-        dense_speed = inference_speed(
-            x,
-            moe,
-            moe_forward_dense_INF,
-            infB_reps,
-            infB_qsize,
-            dimension,
-            inf_batch_sizes[i])
-        d_cache.append([inf_batch_sizes[i], dense_speed])
-        
-        sparse_speed = inference_speed(
-            x,
-            moe,
-            inf_batch_sizes_sparse_moe_funcs[i],
-            infB_reps,
-            infB_qsize,
-            dimension,
-            inf_batch_sizes[i],
-            sparse = True)
-        s_cache.append([inf_batch_sizes[i], sparse_speed])
-        
-        print(f"Dense Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(dense_speed),4)}ms")
-        print(f"Sparse Inf. Speed {inf_batch_sizes[i]} batch size => {round(float(sparse_speed),4)}ms\n")
+    dense_speed = benchmark_inference_speed(
+        x,
+        moe,
+        moe_forward_dense_INF,
+        inf_batch_size,
+        infB_reps,
+        infB_qsize,
+        dimension)
+    d_cache.append([inf_batch_size, dense_speed])
+    
+    sparse_speed = benchmark_inference_speed(
+        x,
+        moe,
+        moe_forward_sparse_INF_200K,
+        inf_batch_size,
+        infB_reps,
+        infB_qsize,
+        dimension)
+    s_cache.append([inf_batch_size, sparse_speed])
+    
+    print(f"Dense Inf. Speed {inf_batch_size} batch size => {round(float(dense_speed),4)}ms")
+    print(f"Sparse Inf. Speed {inf_batch_size} batch size => {round(float(sparse_speed),4)}ms\n")
     
     # Save results
     dkey = f'{model_key}_dense'
@@ -159,30 +156,4 @@ def register_gating_confidence (
             idx)
 
     print(f"\nGate Confidence: {round(float(confidence),4)}")
-    return reg
-
-def register_all_expert_boundaries(
-        model_key : str,
-        moe : dict,
-        x_batches : list,
-        reg : CoreRegistry
-    ):
-
-    # Retrieve number of experts
-    nex = moe['experts'][0].shape[0]
-
-    # Get prediction boundaries for full training signal from each expert
-    x_batched = jnp.stack(x_batches[0:-1])
-    iyp = jax.vmap(lambda x: jax.vmap(lambda p: moe_forward_expert(p, x), out_axes=1)(moe['experts']).squeeze())(x_batched)
-    iyp = iyp.reshape((-1, nex))
-    ## Add tail
-    x_tail = jax.vmap(lambda p: moe_forward_expert(p, x_batches[-1]), out_axes=1)(moe['experts']).squeeze()
-    x_tail = x_tail.reshape((-1, nex))
-    ## Fomat as list of arrays
-    e_decBoundaries = jnp.concatenate((iyp, x_tail)).T
-    
-    # Save numerical results
-    reg.add( model_key + core_keys['expert_boundary_key'],
-            e_decBoundaries)
-    
     return reg

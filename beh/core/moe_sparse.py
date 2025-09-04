@@ -21,9 +21,9 @@ args, configs = parse_train()
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_1048576(p : dict, x : jax.Array):
+def moe_forward_sparse_200K(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_1048576(x, logits)
+    x, unpack_mini = minibatch_200K(x, logits)
     # Since PyTree hold layer with leading axis == number of experts and
     # we minibatch the queries for each expert, assuming uniformity we 
     # can vmap along PyTree and minibatched queries. Essential for sparsity.
@@ -31,15 +31,15 @@ def moe_forward_sparse_1048576(p : dict, x : jax.Array):
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_1048576(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_1048576(p, x))
+def moe_forward_sparse_INF_200K(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_200K(p, x))
 
 @jax.jit
-def minibatch_1048576(x : jax.Array , logits : jax.Array):
+def minibatch_200K(x : jax.Array , logits : jax.Array):
     # Constants from config
     nex = configs['moe']['nex']
     in_dim = args.dim
-    minibatch_size = int((1048576 / nex ) * 1.1)
+    minibatch_size = int((200000 / nex ) * 1.1)
 
     # top-1 gating
     expert_idx = jnp.argmax(logits, axis=-1)    
@@ -61,72 +61,6 @@ def minibatch_1048576(x : jax.Array , logits : jax.Array):
     query_unsort = jnp.argsort(perm)
     unpack_mini = jnp.stack([expert_idx_sorted, minibatch_idx]).T[query_unsort]
 
-    return padded_x, unpack_mini
-
-#------------------------------------------------------------------------------------
-
-@jax.jit
-def moe_forward_sparse_262144(p : dict, x : jax.Array):
-    logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_262144(x, logits)
-    out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
-    return out[unpack_mini[...,0], unpack_mini[...,1]]
-
-@jax.jit
-def moe_forward_sparse_INF_262144(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_262144(p, x))
-
-@jax.jit
-def minibatch_262144(x, logits):
-    # Constants from config
-    nex = configs['moe']['nex']
-    in_dim = args.dim
-    minibatch_size = int((262144 / nex ) * 1.1)
-
-    expert_idx = jnp.argmax(logits, axis=-1)    
-    perm = jnp.argsort(expert_idx)
-    x_sorted = x[perm]
-    expert_idx_sorted = expert_idx[perm]
-    counts = jnp.bincount(expert_idx_sorted, length=nex)
-    starts = jnp.cumsum(jnp.concatenate([jnp.array([0], expert_idx_sorted.dtype), counts[:-1]]))
-    minibatch_idx = jnp.arange(x.shape[0]) - starts[expert_idx_sorted]
-    padded_x = jnp.zeros((nex, minibatch_size, in_dim), x.dtype)
-    padded_x = padded_x.at[expert_idx_sorted, minibatch_idx].set(x_sorted)
-    query_unsort = jnp.argsort(perm)
-    unpack_mini = jnp.stack([expert_idx_sorted, minibatch_idx]).T[query_unsort]
-    return padded_x, unpack_mini
-
-#------------------------------------------------------------------------------------
-
-@jax.jit
-def moe_forward_sparse_65536(p : dict, x : jax.Array):
-    logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_65536(x, logits)
-    out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
-    return out[unpack_mini[...,0], unpack_mini[...,1]]
-
-@jax.jit
-def moe_forward_sparse_INF_65536(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_65536(p, x))
-
-@jax.jit
-def minibatch_65536(x, logits):
-    # Constants from config
-    nex = configs['moe']['nex']
-    in_dim = args.dim
-    minibatch_size = int((65536 / nex ) * 1.1)
-
-    expert_idx = jnp.argmax(logits, axis=-1)    
-    perm = jnp.argsort(expert_idx)
-    x_sorted = x[perm]
-    expert_idx_sorted = expert_idx[perm]
-    counts = jnp.bincount(expert_idx_sorted, length=nex)
-    starts = jnp.cumsum(jnp.concatenate([jnp.array([0], expert_idx_sorted.dtype), counts[:-1]]))
-    minibatch_idx = jnp.arange(x.shape[0]) - starts[expert_idx_sorted]
-    padded_x = jnp.zeros((nex, minibatch_size, in_dim), x.dtype)
-    padded_x = padded_x.at[expert_idx_sorted, minibatch_idx].set(x_sorted)
-    query_unsort = jnp.argsort(perm)
-    unpack_mini = jnp.stack([expert_idx_sorted, minibatch_idx]).T[query_unsort]
     return padded_x, unpack_mini
 
 #------------------------------------------------------------------------------------

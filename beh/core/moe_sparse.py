@@ -21,9 +21,9 @@ args, configs = parse_train()
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_200K_128(p : dict, x : jax.Array):
+def moe_forward_sparse_200K_L(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_200K_128(x, logits)
+    x, unpack_mini = minibatch_200K_L(x, logits)
     # Since PyTree hold layer with leading axis == number of experts and
     # we minibatch the queries for each expert, assuming uniformity we 
     # can vmap along PyTree and minibatched queries. Essential for sparsity.
@@ -31,13 +31,13 @@ def moe_forward_sparse_200K_128(p : dict, x : jax.Array):
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_200K_128(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_200K_128(p, x))
+def moe_forward_sparse_INF_200K_L(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_200K_L(p, x))
 
 @jax.jit
-def minibatch_200K_128(x : jax.Array , logits : jax.Array):
+def minibatch_200K_L(x : jax.Array , logits : jax.Array):
     # Constants from config
-    nex = configs['moe128']['nex']
+    nex = configs['moeL']['nex']
     in_dim = args.dim
     minibatch_size = int((200000 / nex ) * 1.1)
 
@@ -66,19 +66,19 @@ def minibatch_200K_128(x : jax.Array , logits : jax.Array):
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_200K_32(p : dict, x : jax.Array):
+def moe_forward_sparse_200K_M(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_200K_32(x, logits)
+    x, unpack_mini = minibatch_200K_M(x, logits)
     out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_200K_32(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_200K_32(p, x))
+def moe_forward_sparse_INF_200K_M(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_200K_M(p, x))
 
 @jax.jit
-def minibatch_200K_32(x : jax.Array , logits : jax.Array):
-    nex = configs['moe32']['nex']
+def minibatch_200K_M(x : jax.Array , logits : jax.Array):
+    nex = configs['moeM']['nex']
     in_dim = args.dim
     minibatch_size = int((200000 / nex ) * 1.1)
     expert_idx = jnp.argmax(logits, axis=-1)    
@@ -98,19 +98,19 @@ def minibatch_200K_32(x : jax.Array , logits : jax.Array):
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_200K_8(p : dict, x : jax.Array):
+def moe_forward_sparse_200K_S(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_200K_8(x, logits)
+    x, unpack_mini = minibatch_200K_S(x, logits)
     out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_200K_8(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_200K_8(p, x))
+def moe_forward_sparse_INF_200K_S(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_200K_S(p, x))
 
 @jax.jit
-def minibatch_200K_8(x : jax.Array , logits : jax.Array):
-    nex = configs['moe8']['nex']
+def minibatch_200K_S(x : jax.Array , logits : jax.Array):
+    nex = configs['moeS']['nex']
     in_dim = args.dim
     minibatch_size = int((200000 / nex ) * 1.1)
     expert_idx = jnp.argmax(logits, axis=-1)    
@@ -130,27 +130,27 @@ def minibatch_200K_8(x : jax.Array , logits : jax.Array):
 #------------------------------------------------------------------------------------
 
 # Create lookup table of sparse inference functions for each sparse MoE configuration
-sparse_funcs_200K = {'moe128': moe_forward_sparse_INF_200K_128,
-                'moe32': moe_forward_sparse_INF_200K_32,
-                'moe8': moe_forward_sparse_INF_200K_8}
+sparse_funcs_200K = {'moeL': moe_forward_sparse_INF_200K_L,
+                'moeM': moe_forward_sparse_INF_200K_M,
+                'moeS': moe_forward_sparse_INF_200K_S}
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_2048_128(p : dict, x : jax.Array):
+def moe_forward_sparse_2048_L(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_2048_128(x, logits)
+    x, unpack_mini = minibatch_2048_L(x, logits)
     out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_2048_128(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_2048_128(p, x))
+def moe_forward_sparse_INF_2048_L(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_2048_L(p, x))
 
 @jax.jit
-def minibatch_2048_128(x, logits):
+def minibatch_2048_L(x, logits):
     # Constants from config
-    nex = configs['moe128']['nex']
+    nex = configs['moeL']['nex']
     in_dim = args.dim
     minibatch_size = 2048
 
@@ -170,20 +170,20 @@ def minibatch_2048_128(x, logits):
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_2048_32(p : dict, x : jax.Array):
+def moe_forward_sparse_2048_M(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_2048_32(x, logits)
+    x, unpack_mini = minibatch_2048_M(x, logits)
     out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_2048_32(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_2048_32(p, x))
+def moe_forward_sparse_INF_2048_M(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_2048_M(p, x))
 
 @jax.jit
-def minibatch_2048_32(x, logits):
+def minibatch_2048_M(x, logits):
     # Constants from config
-    nex = configs['moe32']['nex']
+    nex = configs['moeM']['nex']
     in_dim = args.dim
     minibatch_size = 2048
 
@@ -203,20 +203,20 @@ def minibatch_2048_32(x, logits):
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_sparse_2048_8(p : dict, x : jax.Array):
+def moe_forward_sparse_2048_S(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
-    x, unpack_mini = minibatch_2048_8(x, logits)
+    x, unpack_mini = minibatch_2048_S(x, logits)
     out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
     return out[unpack_mini[...,0], unpack_mini[...,1]]
 
 @jax.jit
-def moe_forward_sparse_INF_2048_8(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_sparse_2048_8(p, x))
+def moe_forward_sparse_INF_2048_S(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse_2048_S(p, x))
 
 @jax.jit
-def minibatch_2048_8(x, logits):
+def minibatch_2048_S(x, logits):
     # Constants from config
-    nex = configs['moe8']['nex']
+    nex = configs['moeS']['nex']
     in_dim = args.dim
     minibatch_size = 2048
 
@@ -236,6 +236,6 @@ def minibatch_2048_8(x, logits):
 #------------------------------------------------------------------------------------
 
 # Create lookup table of sparse inference functions for each sparse MoE configuration
-sparse_funcs_2048 = {'moe128': moe_forward_sparse_INF_2048_128,
-                'moe32': moe_forward_sparse_INF_2048_32,
-                'moe8': moe_forward_sparse_INF_2048_8}
+sparse_funcs_2048 = {'moeL': moe_forward_sparse_INF_2048_L,
+                'moeM': moe_forward_sparse_INF_2048_M,
+                'moeS': moe_forward_sparse_INF_2048_S}

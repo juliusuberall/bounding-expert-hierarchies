@@ -107,7 +107,7 @@ def train_moe(
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            val_loss, yp , __  = moe_error(x_batches, y, moe, moe_forward_dense_INF)  
+            val_loss, yp , __  = moe_error(x_batches, y, moe, sparse_funcs_2048[model_key])  
             val_loss_cache.append(val_loss) 
 
             # False-Negatives and False-Positives 
@@ -125,7 +125,7 @@ def train_moe(
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f} | FP-slope: {round(float(fp_slope),4):04f}")
+            print(f"Epoch {i:05d}, Sparse Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Sparse FP-slope: {round(float(fp_slope),4):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
             if i > 2000 and  fp_slope < 0 and fp_slope > -fp_slope_thresh and len(slope_cache) >= 5: 

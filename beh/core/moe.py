@@ -43,7 +43,15 @@ def moe_forward_gate_INF(p : dict, x : jax.Array):
 @jax.jit
 def moe_forward_dense(p : dict, x : jax.Array):
     activation = moe_forward_gate(p['gate'], x)
-    y = jax.vmap(lambda p: moe_forward_expert(p, x), out_axes=1)(p['experts']).squeeze()
+
+    # Originally we used vmap here but this caused for large models always OOM on a T4, 
+    # which is why we swapped to a on devcice sequential compute, forward passing the batch
+    # through each expert.
+    def body(carry, p_e):
+        out = moe_forward_expert(p_e, x)
+        return carry + out, None
+    y, _ = jax.lax.scan(body, jnp.zeros((x.shape[0],1)), p['experts'])
+
     return jnp.sum(y * activation, axis=-1)
 
 @jax.jit
@@ -56,10 +64,21 @@ def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
 
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
-    yp = jax.vmap(lambda x: func(moe, x))(x_batched).flatten()
-    ## Add tail remaining when batching with batch size
-    x_tail = func(moe, x_batches[-1])
-    yp = jnp.concatenate((yp, x_tail.flatten()))
+
+    # Originally we used vmap here but this caused for large models always OOM on a T4, 
+    # which is why we swapped to a on devcice sequential compute, forward passing the batch
+    # through each expert.
+    def run_in_batches(func, moe, x_batches):
+        def step(carry, xb):
+            yp = func(moe, xb).flatten()
+            return carry, yp
+
+        _, yp = jax.lax.scan(step, None, x_batched)
+        return jnp.concatenate(yp, axis=0)
+
+    yp = run_in_batches(func, moe, x_batched)
+    yp_tail = func(moe, x_batches[-1]).flatten()
+    yp = jnp.concatenate((yp, yp_tail), axis=0)
 
     # MSE
     yp_raw = yp.copy()

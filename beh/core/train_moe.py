@@ -32,6 +32,7 @@ def train_moe(
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
     fp_slope_thresh = configs['general']['fp_slope_stop']
+    min_epochs = configs[model_key]['min_epochs']
 
     # Create validation loss batches
     x_batches = batch_data(x, batch_size)
@@ -95,7 +96,7 @@ def train_moe(
     # -> Min epochs trained
     # -> FN == 0
     # -> FP plateaus
-    while i < 2000 or fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
+    while i < min_epochs or fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax

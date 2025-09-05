@@ -43,15 +43,7 @@ def moe_forward_gate_INF(p : dict, x : jax.Array):
 @jax.jit
 def moe_forward_dense(p : dict, x : jax.Array):
     activation = moe_forward_gate(p['gate'], x)
-
-    # Originally we used vmap here but this caused for large models always OOM on a T4, 
-    # which is why we swapped to a on devcice sequential compute, forward passing the batch
-    # through each expert.
-    def body(carry, p_e):
-        out = moe_forward_expert(p_e, x)
-        return carry + out, None
-    y, _ = jax.lax.scan(body, jnp.zeros((x.shape[0],1)), p['experts'])
-
+    y = jax.vmap(lambda p: moe_forward_expert(p, x), out_axes=1)(p['experts']).squeeze()
     return jnp.sum(y * activation, axis=-1)
 
 @jax.jit

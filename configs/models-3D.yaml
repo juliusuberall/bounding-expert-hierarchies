@@ -10,11 +10,11 @@ general:
 # Small = 170
 mlpS:
   type: 'mlp'
-  min_epochs: 2000
+  min_epochs: 30000
   hidden_layer: [11,11]
 moeS:
   type: 'moe'
-  min_epochs: 2000
+  min_epochs: 30000
   nex : 4
   expert_hidden_layer: [4,4]
   gate_hidden_layer: [2]
@@ -22,11 +22,11 @@ moeS:
 # Medium = 6K
 mlpM:
   type: 'mlp'
-  min_epochs: 10000
+  min_epochs: 30000
   hidden_layer: [52,52,52]
 moeM:
   type: 'moe'
-  min_epochs: 10000
+  min_epochs: 30000
   nex : 16
   expert_hidden_layer: [12,12,12]
   gate_hidden_layer: [4]

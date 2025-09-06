@@ -92,11 +92,12 @@ def train_moe(
     fn = jnp.array(1.0)
     fp_slope = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
+    making_conservative = False
     # Dont stop training until:
     # -> Min epochs trained
     # -> FN == 0
     # -> FP plateaus
-    while i < min_epochs or fn != 0.0 or jnp.abs(fp_slope) > fp_slope_thresh:
+    while i < min_epochs or fn != 0.0:
 
         # Using numpy for random sampling because we dont need random
         # determinism and numpy runs therefor much faster than jax
@@ -128,9 +129,10 @@ def train_moe(
             print(f"Epoch {i:05d}, Sparse Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Sparse FP-slope: {round(float(fp_slope),4):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
-            if i > 2000 and  fp_slope < 0 and fp_slope > -fp_slope_thresh and len(slope_cache) >= 5: 
+            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 5: 
+                making_conservative = True
+                negative_class_weight /= 5
                 slope_cache = []
-                negative_class_weight /= 2
                 print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1
 

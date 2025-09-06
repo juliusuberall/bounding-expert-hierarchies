@@ -220,9 +220,9 @@ def export_plot_2D_internal_comparison (
     config_list = list(configs.keys())
     config_model_idx = config_list.index(model_key)
     previous_model_key = config_list[config_model_idx-1]
-    current_size = int(model_key[3:])
+    current_size = model_key[3:]
     # Skip if first model to evaluate or 
-    if previous_model_key == 'general' or int(previous_model_key[3:]) != current_size: return
+    if previous_model_key == 'general' or previous_model_key[3:] != current_size: return
 
     # Retrieve model specific key for results
     dkey = f'{model_key}_dense'

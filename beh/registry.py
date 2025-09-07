@@ -22,6 +22,14 @@ result_dir_registry = {
     9 : "./results/4D_plus",
 }
 
+# VDB directory managment 
+result_vdb_dir_registry = {
+    2 : None, 
+    3 : result_dir_registry[3] + "/vdb", 
+    4 : result_dir_registry[4] + "/vdb", 
+    9 : result_dir_registry[9] + "/vdb", 
+}
+
 # Model directory managment 
 result_model_dir_registry = {
     2 : result_dir_registry[2] + "/models", 

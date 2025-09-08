@@ -7,7 +7,7 @@ general:
   inf_bench_repitions: 100 # Number of repitions to average speed benchmark 
   fp_slope_stop: 0.002 # Training stop criteria - If difference to last 5 FP rates is smaller than can stop
 
-# Small = 170
+# Small = 180
 mlpS:
   type: 'mlp'
   min_epochs: 30000
@@ -23,22 +23,22 @@ moeS:
 mlpM:
   type: 'mlp'
   min_epochs: 30000
-  hidden_layer: [52,52,52]
+  hidden_layer: [53,53,53]
 moeM:
   type: 'moe'
   min_epochs: 30000
   nex : 16
   expert_hidden_layer: [12,12,12]
-  gate_hidden_layer: [4]
+  gate_hidden_layer: [8]
 
 # Large = 20K
 mlpL:
   type: 'mlp'
   min_epochs: 30000
-  hidden_layer: [98,98,98]
+  hidden_layer: [100,100,100]
 moeL:
   type: 'moe'
   min_epochs: 30000
   nex : 32
   expert_hidden_layer: [16,16,16]
-  gate_hidden_layer: [8]
+  gate_hidden_layer: [16]

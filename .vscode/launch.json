@@ -9,7 +9,7 @@
             "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "money",
+                "--data_name", "dwarfumbrella",
                 "--query", "point",
                 "--dim", "2",
             ],
@@ -24,7 +24,7 @@
             "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "bunny_64K_random_samples",
+                "--data_name", "jade_1M_grid_samples",
                 "--query", "point",
                 "--dim", "3",
             ],
@@ -69,11 +69,21 @@
             "program": "${workspaceFolder}/scripts/preprocess.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "robot_ur10",
-                "--dim", "9",
-                "--res", "40",
-                "--strategy", "random"
+                "--data_name", "jade",
+                "--dim", "3",
+                "--res", "100",
+                "--strategy", "grid"
             ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "GSheet To Latex Table",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/gsheet_formatting.py",
+            "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }

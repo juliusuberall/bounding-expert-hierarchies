@@ -117,21 +117,19 @@ def train_moe(
             fp_cache.append(fp)
             slope_cache.append(fp)  
 
-            # Compute False-Positive slope
-            fp_slope = fp - jnp.mean(jnp.array(slope_cache[-5:]))
-
             # Confidence
-            confidence , _ , _ = gating_confidence(moe=moe, x_batches=x_batches)
+            confidence , _ , e_idx = gating_confidence(moe=moe, x_batches=x_batches)
             confidence_cache.append(confidence)
+            active_e = jnp.unique(e_idx.flatten()).size
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d}, Sparse Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Sparse FP-slope: {round(float(fp_slope),4):04f}")
+            print(f"Epoch {i:05d}, Sparse Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
-            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 5: 
+            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
                 making_conservative = True
-                negative_class_weight /= 5
+                negative_class_weight /= 4
                 slope_cache = []
                 print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1

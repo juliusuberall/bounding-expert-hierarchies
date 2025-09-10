@@ -31,7 +31,6 @@ def train_moe(
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
-    fp_slope_thresh = configs['general']['fp_slope_stop']
     min_epochs = configs[model_key]['min_epochs']
 
     # Create validation loss batches

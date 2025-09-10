@@ -5,7 +5,6 @@ general:
   boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 
   inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
   inf_bench_repitions: 100 # Number of repitions to average speed benchmark 
-  fp_slope_stop: 0.002 # Training stop criteria - If difference to last 5 FP rates is smaller than can stop
 
 # Small = 170
 mlpS:

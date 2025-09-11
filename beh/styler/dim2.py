@@ -44,7 +44,7 @@ def export_plot_2D_moe_internal (
     dimension : int,
     threshold : float,
     model_detail_str : str,
-    mask_experts : bool = True):
+    id : str = ''):
     '''
     2D
     \nCreate MoE internal state overview plot independtly of number of experts inlcuding:
@@ -77,9 +77,9 @@ def export_plot_2D_moe_internal (
 
     dense_fp = reg.get(dkey + core_keys['fp_key'])
     sparse_fp = reg.get(skey + core_keys['fp_key'])
+    sparse_fn = reg.get(skey + core_keys['fn_key'])
 
     top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
-    gate_sorted_activation = reg.get(model_key + core_keys['gating_sorted_activation_key'])
 
     # Color prediction based on top-1 expert colors
     dense_yp_col = color_by_expert(nex, dense_yp, top1_activation)
@@ -90,6 +90,11 @@ def export_plot_2D_moe_internal (
     dense_yp_col_fp = dense_yp_col * dense_mask + ~dense_mask * background_col
     sparse_mask = np.expand_dims(((sparse_yp > threshold) * ( y == 0)), axis=1)
     sparse_yp_col_fp = sparse_yp_col * sparse_mask + ~sparse_mask * background_col
+
+    # FN
+    sparse_mask = np.expand_dims(((sparse_yp <= threshold) * ( y == 1)), axis=1)
+    sparse_yp_col_fn = color_by_expert(nex, sparse_mask.flatten().astype(jnp.float32), top1_activation)
+    sparse_yp_col_fn = sparse_yp_col_fn * sparse_mask + ~sparse_mask * background_col
     
     # Create plot 
     r, c = 2, 4
@@ -109,7 +114,11 @@ def export_plot_2D_moe_internal (
     
     ax[0,3].imshow(sparse_yp_col.reshape((img_dim_0,img_dim_1, -1)))
     ax[0,3].set_title(f"Sparse Prediction MSE {rounded_sparse_mse} with\n{round(float(jnp.min(sparse_yp_NOTremapped)),2)} - {round(float(jnp.max(sparse_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(sparse_yp)),2)} - {round(float(jnp.max(sparse_yp)),2)}", fontsize=9)
-    
+
+    ## FN
+    ax[1,1].imshow((sparse_yp_col_fn).reshape((img_dim_0,img_dim_1, -1)))
+    ax[1,1].set_title(f"Sparse FN {round(float(sparse_fn),8)}", fontsize=9)    
+
     ## Conservativness
     ax[1,2].imshow((dense_yp_col_fp).reshape((img_dim_0,img_dim_1, -1)))
     ax[1,2].set_title(f"Dense FP {round(float(dense_fp),8)}", fontsize=9)
@@ -124,7 +133,7 @@ def export_plot_2D_moe_internal (
     fig.text(0.01, 0.05, model_detail_str, fontsize=9)
     plt.tight_layout()
     # Export plot
-    path = result_dir_registry[dimension] + f"/{model_key}_2D_internal.png"
+    path = result_dir_registry[dimension] + f"/{model_key}{id}_2D_internal.png"
     plt.savefig(path)
     plt.close()
 
@@ -162,7 +171,8 @@ def export_plot_2D_mlp_internal (
     reg : CoreRegistry,
     dimension : int,
     threshold : float,
-    model_detail_str : str):
+    model_detail_str : str,
+    id : str = '',):
     '''
     2D
     \nCreate MLP internal state overview plot inlcuding:
@@ -197,7 +207,7 @@ def export_plot_2D_mlp_internal (
     plt.tight_layout(rect=[0, 0.05, 1, 1])
     
     # Export plot
-    path = result_dir_registry[dimension] + f"/{model_key}_2D_internal.png"
+    path = result_dir_registry[dimension] + f"/{model_key}{id}_2D_internal.png"
     plt.savefig(path)
     plt.close()
 

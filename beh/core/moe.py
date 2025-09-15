@@ -16,9 +16,9 @@ def moe_forward_expert(p : list, x : jax.Array):
     for e in p[:-1]:
         # Bias Trick
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-        x = jax.nn.relu(x @ e)
+        x = jax.nn.tanh(x @ e)
     x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-    return x @ p[-1]
+    return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 + 1e-03
 
 @jax.jit
 def moe_forward_expert_INF(p : dict, x : jax.Array):

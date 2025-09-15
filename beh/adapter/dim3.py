@@ -75,11 +75,13 @@ def load_samples(path : str, reg : CoreRegistry,):
     size = jnp.array(loaded['size'])
     bounds = jnp.array(loaded['bounds'])
 
-    # Normalize coordinates to range -1.0 to 1.0
-    x = (x - bounds[0]) / size
+    # Normalize coordinates to range -1.0 to 1.0 
+    if loaded['strategy'] != "grid":
+        x = (x - bounds[0]) / size
     x = x * 2 - 1 
 
     # Store sample size per dimension 
     reg.add(core_keys['data_size_key'], size)
+    reg.add(core_keys['data_bounds_key'], bounds)
 
     return reg, x ,y

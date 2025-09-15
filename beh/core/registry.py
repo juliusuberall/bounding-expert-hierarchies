@@ -23,6 +23,7 @@ core_keys = {
     'training_time' : '_train_time', # Training time in s
     'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
+    'active_experts_key' : '_act_e', # Cache of active experts throughout training 
     'inf_speed_key' : '_inf_speed', # List of pairs: batchsize + inference speed in miliseconds
     'fn_key' : '_fn', # False Negative rate in %
     'fp_key' : '_fp', # False Positive rate in %
@@ -31,6 +32,7 @@ core_keys = {
     'y_prediciton_key' : '_yp', # All remapped outputs predicited during accuracy compute
     'y_prediciton_RAW_key' : '_yp_raw', # All NOT REMAPPED outputs predicited during accuracy compute
     'data_size_key' : 'data_size_per_dim', # Stores data size, capturing width and height, depth etc.
+    'data_bounds_key' : 'data_bounds', # Stores data original data bounds so we can translate back correct after normalization
     'gating_confidence_key' : '_gate_confidence', # The sparsity of the MoE gate
     'gating_sorted_activation_key' : '_gate_sorted_activation', # The gate activation probabilities sorted from max to min
     'train_val_loss_key' : '_training_validation_loss', # Stores training validation loss based on logging frequency in configs

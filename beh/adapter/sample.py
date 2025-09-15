@@ -39,6 +39,7 @@ def save_samples(args, x, y, size, bounds):
         x = x,
         y = y,
         size = size,
-        bounds = bounds
+        bounds = bounds,
+        strategy = args.strategy,
     )
     return path

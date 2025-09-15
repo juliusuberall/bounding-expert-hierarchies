@@ -10,8 +10,8 @@ wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [whit
 
 # Model colors
 cols = {
-    'moe' : '#00A517',
-    'mlp' : '#ff00c2',
+    'moe' : '#ff00c2',
+    'mlp' : '#00A517',
     'light_gray' : '#f5f5f5',
     'dark_gray' : '#B3B3B3'
 }

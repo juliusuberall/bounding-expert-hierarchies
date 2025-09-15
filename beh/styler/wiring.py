@@ -3,6 +3,7 @@ import jax
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
 from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_internal_comparison
+from beh.styler.dim3 import prep_openVDB
 from beh.gsheets_registry import gsheet_log_results
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
@@ -23,6 +24,7 @@ def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int 
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
 
 def format_export_results(
+    model,
     model_key : str,
     x : jax.Array, 
     y : jax.Array, 
@@ -50,7 +52,7 @@ def format_export_results(
             export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str)
             export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
         elif dimension == 3:
-            pass
+            prep_openVDB(dimension, 100, model, model_key, configs, reg)
         elif dimension == 4:
             pass
         elif dimension == 9:
@@ -62,7 +64,7 @@ def format_export_results(
         if dimension == 2:
             export_plot_2D_mlp_internal(model_key, y, reg, dimension, threshold, model_detail_str)
         elif dimension == 3:
-            pass
+            prep_openVDB(dimension, 100, model, model_key, configs, reg)
         elif dimension == 4:
             pass
         elif dimension == 9:

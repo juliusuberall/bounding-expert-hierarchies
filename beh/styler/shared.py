@@ -87,6 +87,8 @@ def export_plot_training_metrics (
     if model_type == 'moe':
         confidence = reg.get(model_key + core_keys['train_confidence_key'])
         ax.plot(epochs, confidence, label='Gate Confidence')
+        active_experts = reg.get(model_key + core_keys['active_experts_key'])
+        ax.plot(epochs, active_experts, label='Active Experts')
     elif model_type == 'mlp':
         pass
     else:

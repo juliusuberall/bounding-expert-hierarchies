@@ -107,7 +107,7 @@ def train_moe(
     print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
-    val_loss_cache, fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache = [], [], [], [], [], []
+    val_loss_cache, fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache = [], [], [], [], [], [], []
     ## Initalize self balancing factor for BCE
     negative_class_weight = jnp.array(1.0)
     
@@ -143,6 +143,7 @@ def train_moe(
             confidence , _ , e_idx = gating_confidence(moe=moe, x_batches=x_batches)
             confidence_cache.append(confidence)
             active_e = jnp.unique(e_idx.flatten()).size
+            active_e_cache.append(active_e / nex)
 
             # Print epoch stats
             epoch_cache.append(i)     
@@ -217,5 +218,8 @@ def train_moe(
 
     reg_key = model_key + core_keys['train_epoch_key']
     reg.add( reg_key, np.array(epoch_cache))
+
+    reg_key = model_key + core_keys['active_experts_key']
+    reg.add( reg_key, np.array(active_e_cache))
     
     return moe, reg

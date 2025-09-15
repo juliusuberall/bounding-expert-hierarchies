@@ -23,6 +23,7 @@ core_keys = {
     'training_time' : '_train_time', # Training time in s
     'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
+    'active_experts_key' : '_act_e', # Cache of active experts throughout training 
     'inf_speed_key' : '_inf_speed', # List of pairs: batchsize + inference speed in miliseconds
     'fn_key' : '_fn', # False Negative rate in %
     'fp_key' : '_fp', # False Positive rate in %

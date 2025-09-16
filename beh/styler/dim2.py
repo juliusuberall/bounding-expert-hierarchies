@@ -132,10 +132,21 @@ def export_plot_2D_moe_internal (
 
     fig.text(0.01, 0.05, model_detail_str, fontsize=9)
     plt.tight_layout()
+
     # Export plot
     path = result_dir_registry[dimension] + f"/{model_key}{id}_2D_internal.png"
     plt.savefig(path)
     plt.close()
+
+    # Export binary classification images
+    ## Dense
+    binary_yp = (dense_yp > threshold).reshape((img_dim_0,img_dim_1))
+    yp = (binary_yp * 255).astype(np.uint8)
+    plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_dense_yp.png", yp, cmap="binary")
+    ## Sparse
+    binary_yp = (sparse_yp > threshold).reshape((img_dim_0,img_dim_1))
+    yp = (binary_yp * 255).astype(np.uint8)
+    plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_sparse_yp.png", yp, cmap="binary")
 
 #------------------------------------------------------------------------------------
 
@@ -197,7 +208,8 @@ def export_plot_2D_mlp_internal (
     ax[1].set_title(f"Model Output", fontsize=9)
     
     # Conservativness
-    ax[2].imshow(((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    binary_yp = ((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1))
+    ax[2].imshow(binary_yp, cmap= wb_gradient)
     ax[2].set_title(f"False Positives {round(float(fp),8)}", fontsize=9)
 
     for i in range(c):
@@ -210,6 +222,11 @@ def export_plot_2D_mlp_internal (
     path = result_dir_registry[dimension] + f"/{model_key}{id}_2D_internal.png"
     plt.savefig(path)
     plt.close()
+
+    # Export binary classification image
+    binary_yp = (yp > threshold).reshape((img_dim_0,img_dim_1))
+    yp = (binary_yp * 255).astype(np.uint8)
+    plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_yp.png", yp, cmap="binary")
 
 #------------------------------------------------------------------------------------
 

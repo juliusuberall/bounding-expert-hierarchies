@@ -52,7 +52,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     nex = activation.shape[1]
     max_kl = jnp.log(nex)
     g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
-    kl_loss = jnp.sum(g * jnp.log(g / (1 / nex) + epsilon))# / max_kl
+    kl_loss = jnp.sum(g * jnp.log(g / (1 / nex) + epsilon))# / max_kl # Only normalize in 3D adn higher, becausing gating becomes more complex
 
     # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
@@ -63,16 +63,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_train_loss_1_expert(p : dict, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
-    '''Intended for benchmark MoE with only 1 expert. Will only use BCE, since gate needs no specific loss.'''
-    yp = moe_forward_dense(p,x)
-    bce_loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
-    return bce_loss
-
-#------------------------------------------------------------------------------------
-
-@jax.jit
 def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
     yp = mlp_forward(p,x).flatten() # Flatten to ensure correct shapes for BCE
-    loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
+    loss = optax.sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
     return loss

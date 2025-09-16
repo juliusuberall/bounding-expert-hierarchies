@@ -72,9 +72,6 @@ def export_plot_2D_moe_internal (
     dense_yp = reg.get(dkey + core_keys['y_prediciton_key'])
     sparse_yp = reg.get(skey + core_keys['y_prediciton_key'])
 
-    rounded_dense_mse = round(float(reg.get(dkey + core_keys['accuracy_mse_key'])),4)
-    rounded_sparse_mse = round(float(reg.get(skey + core_keys['accuracy_mse_key'])),4)
-
     dense_fp = reg.get(dkey + core_keys['fp_key'])
     sparse_fp = reg.get(skey + core_keys['fp_key'])
     sparse_fn = reg.get(skey + core_keys['fn_key'])
@@ -87,8 +84,11 @@ def export_plot_2D_moe_internal (
 
     background_col = mplt.colors.to_rgba(white_gray)
     dense_mask = np.expand_dims(((dense_yp > threshold) * ( y == 0)), axis=1)
+    dense_yp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
     dense_yp_col_fp = dense_yp_col * dense_mask + ~dense_mask * background_col
+
     sparse_mask = np.expand_dims(((sparse_yp > threshold) * ( y == 0)), axis=1)
+    sparse_yp_col_fp = color_by_expert(nex, sparse_mask.flatten().astype(jnp.float32), top1_activation)
     sparse_yp_col_fp = sparse_yp_col * sparse_mask + ~sparse_mask * background_col
 
     # FN
@@ -110,10 +110,10 @@ def export_plot_2D_moe_internal (
 
     ## Predicitions
     ax[0,2].imshow(dense_yp_col.reshape((img_dim_0,img_dim_1, -1)))
-    ax[0,2].set_title(f"Dense Predicition MSE {rounded_dense_mse} with\n{round(float(jnp.min(dense_yp_NOTremapped)),2)} - {round(float(jnp.max(dense_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(dense_yp)),2)} - {round(float(jnp.max(dense_yp)),2)}", fontsize=9)
+    ax[0,2].set_title(f"Model output with\n{round(float(jnp.min(dense_yp_NOTremapped)),2)} - {round(float(jnp.max(dense_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(dense_yp)),2)} - {round(float(jnp.max(dense_yp)),2)}", fontsize=9)
     
     ax[0,3].imshow(sparse_yp_col.reshape((img_dim_0,img_dim_1, -1)))
-    ax[0,3].set_title(f"Sparse Prediction MSE {rounded_sparse_mse} with\n{round(float(jnp.min(sparse_yp_NOTremapped)),2)} - {round(float(jnp.max(sparse_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(sparse_yp)),2)} - {round(float(jnp.max(sparse_yp)),2)}", fontsize=9)
+    ax[0,3].set_title(f"Model output with\n{round(float(jnp.min(sparse_yp_NOTremapped)),2)} - {round(float(jnp.max(sparse_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(sparse_yp)),2)} - {round(float(jnp.max(sparse_yp)),2)}", fontsize=9)
 
     ## FN
     ax[1,1].imshow((sparse_yp_col_fn).reshape((img_dim_0,img_dim_1, -1)))
@@ -194,7 +194,7 @@ def export_plot_2D_mlp_internal (
     ax[0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0].set_title("Original", fontsize=9)
     ax[1].imshow(yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
-    ax[1].set_title(f"Predicition MSE {rounded_mse}", fontsize=9)
+    ax[1].set_title(f"Model Output", fontsize=9)
     
     # Conservativness
     ax[2].imshow(((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)

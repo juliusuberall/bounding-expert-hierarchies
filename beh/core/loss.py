@@ -34,6 +34,25 @@ def self_balancing_sigmoid_binary_cross_entropy(logits : jax.Array, labels : jax
 #------------------------------------------------------------------------------------
 
 @jax.jit
+def self_balancing_sigmoid_binary_cross_entropy_mlp(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
+    '''
+    Neural bounding asymmetric BCE for achieving conservativness (https://dl.acm.org/doi/abs/10.1145/3641519.3657442).
+    Based on optax.sigmoid_binary_cross_entropy() implementation.
+    '''
+    chex.assert_type([logits], float)
+    labels = labels.astype(logits.dtype)
+
+    log_p = jax.nn.log_sigmoid(logits)
+    log_not_p = jax.nn.log_sigmoid(-logits)
+
+    # Asymmetric BCE diswaying ALL negatives as training progresses.
+    bce = -labels * log_p - (1.0 - labels) * log_not_p * negative_class_weight
+
+    return jnp.mean(bce)
+
+#------------------------------------------------------------------------------------
+
+@jax.jit
 def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
     '''
     Deafult MoE loss. Combines
@@ -65,5 +84,5 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 @jax.jit
 def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
     yp = mlp_forward(p,x).flatten() # Flatten to ensure correct shapes for BCE
-    loss = optax.sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
+    loss = self_balancing_sigmoid_binary_cross_entropy_mlp(yp, y, negative_class_weight)
     return loss

@@ -44,7 +44,8 @@ def export_plot_2D_moe_internal (
     dimension : int,
     threshold : float,
     model_detail_str : str,
-    id : str = ''):
+    id : str = '',
+    export_binary : bool = False):
     '''
     2D
     \nCreate MoE internal state overview plot independtly of number of experts inlcuding:
@@ -82,7 +83,7 @@ def export_plot_2D_moe_internal (
     dense_yp_col = color_by_expert(nex, dense_yp, top1_activation)
     sparse_yp_col = color_by_expert(nex, sparse_yp, top1_activation)
 
-    background_col = mplt.colors.to_rgba(white_gray)
+    background_col = mplt.colors.to_rgba(back_col)
     dense_mask = np.expand_dims(((dense_yp > threshold) * ( y == 0)), axis=1)
     dense_yp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
     dense_yp_col_fp = dense_yp_col * dense_mask + ~dense_mask * background_col
@@ -139,6 +140,7 @@ def export_plot_2D_moe_internal (
     plt.close()
 
     # Export binary classification images
+    if not export_binary: return
     ## Dense
     binary_yp = (dense_yp > threshold).reshape((img_dim_0,img_dim_1))
     yp = (binary_yp * 255).astype(np.uint8)
@@ -155,7 +157,7 @@ def nex_gradients(nex: int):
     cmap = mplt.cm.get_cmap(expert_cmap)
     for i in jnp.linspace(0, 1, nex):
         expert_gradients.append(
-            mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [white_gray, cmap(i) ])
+            mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [back_col, cmap(i) ])
         )
     return expert_gradients
 
@@ -183,7 +185,8 @@ def export_plot_2D_mlp_internal (
     dimension : int,
     threshold : float,
     model_detail_str : str,
-    id : str = '',):
+    id : str = '',
+    export_binary : bool = False):
     '''
     2D
     \nCreate MLP internal state overview plot inlcuding:
@@ -224,6 +227,7 @@ def export_plot_2D_mlp_internal (
     plt.close()
 
     # Export binary classification image
+    if not export_binary: return
     binary_yp = (yp > threshold).reshape((img_dim_0,img_dim_1))
     yp = (binary_yp * 255).astype(np.uint8)
     plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_yp.png", yp, cmap="binary")
@@ -240,7 +244,7 @@ def export_plot_2D_internal_comparison (
     mask_experts : bool = True):
     '''
     2D
-    \nCreate internal state overview plot comparison between models. 
+    \nCreate internal state overview plot comparison between models. Shows raw model output which might be helpful for debugging.
     \nRequire configuration to be in order such that first MLP and then MoE.
     '''
     # Return if not all configured models of same size have been benchmarked yet
@@ -282,7 +286,7 @@ def export_plot_2D_internal_comparison (
     dense_yp_col = color_by_expert(nex, dense_yp, top1_activation)
     sparse_yp_col = color_by_expert(nex, sparse_yp, top1_activation)
 
-    background_col = mplt.colors.to_rgba(white_gray)
+    background_col = mplt.colors.to_rgba(back_col)
 
     dense_mask = np.expand_dims(((dense_yp > threshold) * ( y == 0)), axis=1)
     dense_yp_fp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
@@ -342,3 +346,118 @@ def export_plot_2D_internal_comparison (
     path = result_dir_registry[dimension] + f"/{current_size}_2D_internal_comparison.png"
     plt.savefig(path)
     plt.close()
+
+#------------------------------------------------------------------------------------
+
+def export_plot_2D_binary_comparison_paper_row (
+    model_key : str,
+    y : jax.Array,
+    reg : CoreRegistry,
+    configs : dict,
+    dimension : int,
+    threshold : float,
+    mask_experts : bool = True,
+    export_binary : bool = False):
+    '''
+    2D
+    \nCreate a binary classification comparison plot. A row with scene, mlp, dense and sparse moe. 
+    \nIntended for paper figure.
+    \nRequires configuration to be in order such that first MLP and then MoE.
+    '''
+    # Return if not all configured models of same size have been benchmarked yet
+    config_list = list(configs.keys())
+    config_model_idx = config_list.index(model_key)
+    previous_model_key = config_list[config_model_idx-1]
+    current_size = model_key[3:]
+    # Skip if first model to evaluate or 
+    if previous_model_key == 'general' or previous_model_key[3:] != current_size: return
+
+    # Retrieve model specific key for results
+    dkey = f'{model_key}_dense'
+    skey = f'{model_key}_sparse'
+
+    # Dimension
+    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
+
+    # MOE
+    # Get model configuration
+    nex = configs[model_key]['nex']
+    topk = 1
+
+    # Get results from registry
+    dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])
+    sparse_yp_NOTremapped = reg.get(skey + core_keys['y_prediciton_RAW_key'])
+
+    dense_yp = reg.get(dkey + core_keys['y_prediciton_key'])
+    sparse_yp = reg.get(skey + core_keys['y_prediciton_key'])
+
+    rounded_dense_mse = round(float(reg.get(dkey + core_keys['accuracy_mse_key'])),4)
+    rounded_sparse_mse = round(float(reg.get(skey + core_keys['accuracy_mse_key'])),4)
+
+    dense_fp = reg.get(dkey + core_keys['fp_key'])
+    sparse_fp = reg.get(skey + core_keys['fp_key'])
+
+    top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
+
+    # Color prediction based on top-1 expert colors
+    dense_yp_col = color_by_expert(nex, dense_yp, top1_activation)
+    sparse_yp_col = color_by_expert(nex, sparse_yp, top1_activation)
+
+    background_col = mplt.colors.to_rgba(back_col)
+
+    dense_mask = np.expand_dims(dense_yp > threshold, axis=1)
+    dense_yp_fp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
+    dense_yp_fp_col = dense_yp_fp_col * dense_mask + ~dense_mask * background_col
+    dense_yp_fp_col = dense_yp_fp_col.reshape((img_dim_0,img_dim_1, -1))
+
+    sparse_mask = np.expand_dims(sparse_yp > threshold, axis=1)
+    sparse_yp_fp_col = color_by_expert(nex, sparse_mask.flatten().astype(jnp.float32), top1_activation)
+    sparse_yp_fp_col = sparse_yp_fp_col * sparse_mask + ~sparse_mask * background_col
+    sparse_yp_fp_col = sparse_yp_fp_col.reshape((img_dim_0,img_dim_1, -1))
+
+    # MLP
+    mlp_yp = reg.get(previous_model_key + core_keys['y_prediciton_key'])
+    mlp_fp = reg.get(previous_model_key + core_keys['fp_key'])
+    mlp_yp_fp = mlp_yp > threshold
+    mlp_yp_fp = mlp_yp_fp.reshape((img_dim_0,img_dim_1, -1))
+    
+    # Create combined model detail string
+    moe_string = create_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
+    mlp_string = create_model_details_string(configs[previous_model_key]['type'], previous_model_key, reg, configs, dimension)
+    model_detail_str = moe_string + '\n\n' + mlp_string
+
+    # Create plot 
+    r, c = 1, 4
+    fig, ax = plt.subplots(r,c, figsize=(16,6))
+    
+    ## Original
+    ax[0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[0].set_title("Original", fontsize=9)
+    
+    ## Conservativness
+    ax[1].imshow(mlp_yp_fp, cmap= wb_gradient)
+    ax[1].set_title(f"MLP | FP {float(mlp_fp):.4f}", fontsize=9)
+
+    ax[2].imshow(dense_yp_fp_col)
+    ax[2].set_title(f"Dense MoE | FP {float(dense_fp):.4f}", fontsize=9)
+
+    ax[3].imshow(sparse_yp_fp_col)
+    ax[3].set_title(f"Sparse MoE | FP {float(sparse_fp):.4f}", fontsize=9)
+
+    for i in range(c):
+        ax[i].axis('off')
+
+    fig.text(0.01, 0.04, model_detail_str, fontsize=9)
+    plt.tight_layout(rect=(0.0,0.25,1.0,1.0))
+    # Export plot
+    path = result_dir_registry[dimension] + f"/{current_size}_2D_binary_comparison.png"
+    plt.savefig(path)
+    plt.close()
+
+    # Export binary classification image
+    if not export_binary: return
+    yp = (~mlp_yp_fp * (np.array(background_col)[0:3]*255)).astype(np.uint8)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_mlp_binary.png", yp, dpi=300)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", dense_yp_fp_col, dpi=300)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", sparse_yp_fp_col, dpi=300)
+    

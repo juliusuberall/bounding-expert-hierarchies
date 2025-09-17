@@ -3,12 +3,12 @@ import matplotlib as mplt
 # Project wide default cmap for plots
 cmap = 'gray'
 expert_cmap = 'nipy_spectral'
-white_gray = "whitesmoke" # Replacement for #FFFFFF because otherwise no difference on white background
+back_col = "#f2f2e9" # Replacement for #FFFFFF because otherwise no difference on white background
 
 # Custom gray to black gradient
-wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [white_gray, "black"])
+wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [back_col, "black"])
 
-# Model colors
+# Model colors used for create graph plot of tabular data
 cols = {
     'moe' : '#ff00c2',
     'mlp' : '#00A517',

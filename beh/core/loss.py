@@ -9,7 +9,7 @@ from beh.core.mlp import mlp_forward
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def self_balancing_sigmoid_binary_cross_entropy(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
+def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
     '''
     Neural bounding asymmetric BCE for achieving conservativness (https://dl.acm.org/doi/abs/10.1145/3641519.3657442).
     Based on optax.sigmoid_binary_cross_entropy() implementation.
@@ -34,7 +34,7 @@ def self_balancing_sigmoid_binary_cross_entropy(logits : jax.Array, labels : jax
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def self_balancing_sigmoid_binary_cross_entropy_mlp(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
+def sigmoid_binary_cross_entropy_asymmetry(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
     '''
     Neural bounding asymmetric BCE for achieving conservativness (https://dl.acm.org/doi/abs/10.1145/3641519.3657442).
     Based on optax.sigmoid_binary_cross_entropy() implementation.
@@ -64,7 +64,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 
     # Binary Cross-Entropy 
     yp = moe_forward_dense(p,x)
-    bce_loss = self_balancing_sigmoid_binary_cross_entropy(yp, y, negative_class_weight)
+    bce_loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
 
     # KL-divergence of the expert activation distribution against uniform distribution 
     activation = moe_forward_gate(p['gate'], x) * jnp.expand_dims(y,axis=1)
@@ -84,5 +84,5 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 @jax.jit
 def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
     yp = mlp_forward(p,x).flatten() # Flatten to ensure correct shapes for BCE
-    loss = self_balancing_sigmoid_binary_cross_entropy_mlp(yp, y, negative_class_weight)
+    loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
     return loss

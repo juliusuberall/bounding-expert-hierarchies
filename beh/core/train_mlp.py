@@ -98,22 +98,22 @@ def train_mlp(
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d}, Val-MSE-Loss: {round(float(val_loss),4):04f} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
+            print(f"Epoch {i:05d} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
             checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
         
-            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 5: 
+            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
                 making_conservative = True
                 negative_class_weight /= 1.5
                 slope_cache = []
 
-                # Capture state when making conservative
-                reg_key = model_key + core_keys['total_epochs']
-                reg.add( reg_key, i)
-                ## Benchmark
-                reg = register_accuracy(model_key, mlp, x_batches, y, reg, threshold)
-                ## Format
-                model_detail_str = create_model_details_string('mlp', model_key, reg, configs, dimension)
-                export_plot_2D_mlp_internal(model_key, y, reg, dimension, threshold, model_detail_str, f'_epoch{i}')
+                # # Capture state when making conservative
+                # reg_key = model_key + core_keys['total_epochs']
+                # reg.add( reg_key, i)
+                # ## Benchmark
+                # reg = register_accuracy(model_key, mlp, x_batches, y, reg, threshold)
+                # ## Format
+                # model_detail_str = create_model_details_string('mlp', model_key, reg, configs, dimension)
+                # export_plot_2D_mlp_internal(model_key, y, reg, dimension, threshold, model_detail_str, f'_epoch{i}')
 
                 print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1

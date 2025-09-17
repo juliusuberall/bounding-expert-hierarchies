@@ -7,7 +7,7 @@ from beh.core.moe import *
 from beh.core.params import *
 from beh.core.registry import *
 from beh.core.moe_benchmarking import *
-from beh.core.loss import moe_train_loss, moe_train_loss_1_expert
+from beh.core.loss import moe_train_loss
 
 from beh.styler.shared import *
 from beh.styler.dim2 import export_plot_2D_moe_internal
@@ -115,6 +115,7 @@ def train_moe(
     fn = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
     making_conservative = False
+    flip = 0
     # Dont stop training until:
     # -> Min epochs trained
     # -> FN == 0
@@ -147,51 +148,78 @@ def train_moe(
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d}, Sparse Val-MSE-Loss: {round(float(val_loss),4):04f} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex}")
+            print(f"Epoch {i:05d} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
-
-            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 5: 
-
+            if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
                 making_conservative = True
-                negative_class_weight /= 1.5
                 slope_cache = []
+                flip += 1
 
-                # Determine which experts to freeze because they are conservative
-                con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
+                # Switch back and forth between optimzing either experts or gate 
+                if flip % 2 == 0:
+                    print('Adjust Gate')
+                    # Freeze gate with multi_transform and remove Adam decay on gradient.
+                    ## Makes the gate gradient strictly 0 during updates
+                    tx = optax.multi_transform(
+                        {
+                            "e": optax.set_to_zero(),
+                            "g": optax.adam(0.0001)
+                        },
+                        param_labels={"experts": "e", "gate": "g"}
+                    )
+                    opt = tx
+                    opt_state = opt.init(moe)
 
-                # Freeze gate with multi_transform and remove Adam decay on gradient.
-                ## Makes the gate gradient strictly 0 during updates
-                tx = optax.multi_transform(
-                    {
-                        "e": optax.adam(0.0001),
-                        "g": optax.set_to_zero()
-                    },
-                    param_labels={"experts": "e", "gate": "g"}
-                )
-                opt = tx
-                opt_state = opt.init(moe)
+                    # Change update function to freeze conservative experts.
+                    # Since all experts are part of each leaf as we store them combined we
+                    # have to do it like this to maintain speed.
+                    @jax.jit
+                    def update(p, opt_state, xB, yB, negative_class_weight):
+                        grads = jax.grad(moe_train_loss)(p, xB, yB, negative_class_weight)
+                        grads = mask_grads(grads, con_experts)
+                        updates, opt_state = opt.update(grads, opt_state)
+                        p = optax.apply_updates(p, updates)
+                        return p, opt_state, grads
+                
+                else:
+                    print('Adjust Experts')
+                    negative_class_weight /= 1.5
+                    # Determine which experts to freeze because they are conservative
+                    con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
 
-                # Change update function to freeze conservative experts.
-                # Since all experts are part of each leaf as we store them combined we
-                # have to do it like this to maintain speed.
-                @jax.jit
-                def update(p, opt_state, xB, yB, negative_class_weight):
-                    grads = jax.grad(moe_train_loss)(p, xB, yB, negative_class_weight)
-                    grads = mask_grads(grads, con_experts)
-                    updates, opt_state = opt.update(grads, opt_state)
-                    p = optax.apply_updates(p, updates)
-                    return p, opt_state, grads
+                    # Freeze gate with multi_transform and remove Adam decay on gradient.
+                    ## Makes the gate gradient strictly 0 during updates
+                    tx = optax.multi_transform(
+                        {
+                            "e": optax.adam(0.0001),
+                            "g": optax.set_to_zero()
+                        },
+                        param_labels={"experts": "e", "gate": "g"}
+                    )
+                    opt = tx
+                    opt_state = opt.init(moe)
+
+                    # Change update function to freeze conservative experts.
+                    # Since all experts are part of each leaf as we store them combined we
+                    # have to do it like this to maintain speed.
+                    @jax.jit
+                    def update(p, opt_state, xB, yB, negative_class_weight):
+                        grads = jax.grad(moe_train_loss)(p, xB, yB, negative_class_weight)
+                        grads = mask_grads(grads, con_experts)
+                        updates, opt_state = opt.update(grads, opt_state)
+                        p = optax.apply_updates(p, updates)
+                        return p, opt_state, grads
 
                 # Capture state when making conservative
-                reg_key = model_key + core_keys['total_epochs']
-                reg.add( reg_key, i)
-                ## Benchmark
-                reg = register_accuracy(model_key, moe, x_batches, y, reg, threshold)
-                reg = register_gating_confidence(model_key, moe, x_batches, reg)
-                ## Format
-                model_detail_str = create_model_details_string('moe', model_key, reg, configs, dimension)
-                export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str, f'_epoch{i}')
+                # reg_key = model_key + core_keys['total_epochs']
+                # reg.add( reg_key, i)
+                # ## Benchmark
+                # reg = register_accuracy(model_key, moe, x_batches, y, reg, threshold)
+                # reg = register_gating_confidence(model_key, moe, x_batches, reg)
+                # ## Format
+                # model_detail_str = create_model_details_string('moe', model_key, reg, configs, dimension)
+                # export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str, f'_epoch{i}')
 
                 print(f"{con_experts.size}/{active_e} experts are conservative\nDecreasing negative weight to {negative_class_weight}")
         i += 1

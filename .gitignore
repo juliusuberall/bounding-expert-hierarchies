@@ -14,6 +14,7 @@ __pycache__/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+demo.ipynb
 
 # Environments
 .env

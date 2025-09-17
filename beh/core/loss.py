@@ -84,5 +84,5 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 @jax.jit
 def mlp_bce_loss(p : list, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
     yp = mlp_forward(p,x).flatten() # Flatten to ensure correct shapes for BCE
-    loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
+    loss = sigmoid_binary_cross_entropy_asymmetry(yp, y, negative_class_weight)
     return loss

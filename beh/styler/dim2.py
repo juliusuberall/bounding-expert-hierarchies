@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import matplotlib as mplt
+import cv2
 
 from beh.registry import *
 from beh.styler.registry import *
@@ -44,8 +45,7 @@ def export_plot_2D_moe_internal (
     dimension : int,
     threshold : float,
     model_detail_str : str,
-    id : str = '',
-    export_binary : bool = False):
+    id : str = ''):
     '''
     2D
     \nCreate MoE internal state overview plot independtly of number of experts inlcuding:
@@ -139,17 +139,6 @@ def export_plot_2D_moe_internal (
     plt.savefig(path)
     plt.close()
 
-    # Export binary classification images
-    if not export_binary: return
-    ## Dense
-    binary_yp = (dense_yp > threshold).reshape((img_dim_0,img_dim_1))
-    yp = (binary_yp * 255).astype(np.uint8)
-    plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_dense_yp.png", yp, cmap="binary")
-    ## Sparse
-    binary_yp = (sparse_yp > threshold).reshape((img_dim_0,img_dim_1))
-    yp = (binary_yp * 255).astype(np.uint8)
-    plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_sparse_yp.png", yp, cmap="binary")
-
 #------------------------------------------------------------------------------------
 
 def nex_gradients(nex: int):
@@ -185,8 +174,7 @@ def export_plot_2D_mlp_internal (
     dimension : int,
     threshold : float,
     model_detail_str : str,
-    id : str = '',
-    export_binary : bool = False):
+    id : str = '',):
     '''
     2D
     \nCreate MLP internal state overview plot inlcuding:
@@ -226,12 +214,6 @@ def export_plot_2D_mlp_internal (
     plt.savefig(path)
     plt.close()
 
-    # Export binary classification image
-    if not export_binary: return
-    binary_yp = (yp > threshold).reshape((img_dim_0,img_dim_1))
-    yp = (binary_yp * 255).astype(np.uint8)
-    plt.imsave(result_dir_registry[dimension] + f"/{model_key}{id}_yp.png", yp, cmap="binary")
-
 #------------------------------------------------------------------------------------
 
 def export_plot_2D_internal_comparison (
@@ -240,8 +222,7 @@ def export_plot_2D_internal_comparison (
     reg : CoreRegistry,
     configs : dict,
     dimension : int,
-    threshold : float,
-    mask_experts : bool = True):
+    threshold : float):
     '''
     2D
     \nCreate internal state overview plot comparison between models. Shows raw model output which might be helpful for debugging.
@@ -356,7 +337,6 @@ def export_plot_2D_binary_comparison_paper_row (
     configs : dict,
     dimension : int,
     threshold : float,
-    mask_experts : bool = True,
     export_binary : bool = False):
     '''
     2D
@@ -397,13 +377,10 @@ def export_plot_2D_binary_comparison_paper_row (
     dense_fp = reg.get(dkey + core_keys['fp_key'])
     sparse_fp = reg.get(skey + core_keys['fp_key'])
 
-    top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
-
-    # Color prediction based on top-1 expert colors
-    dense_yp_col = color_by_expert(nex, dense_yp, top1_activation)
-    sparse_yp_col = color_by_expert(nex, sparse_yp, top1_activation)
-
     background_col = mplt.colors.to_rgba(back_col)
+
+    # Color densen and sparse classification based on top1 experts
+    top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
 
     dense_mask = np.expand_dims(dense_yp > threshold, axis=1)
     dense_yp_fp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
@@ -454,10 +431,31 @@ def export_plot_2D_binary_comparison_paper_row (
     plt.savefig(path)
     plt.close()
 
-    # Export binary classification image
+    # Export binary classification image for mlp and sparse Moe.
     if not export_binary: return
-    yp = (~mlp_yp_fp * (np.array(background_col)[0:3]*255)).astype(np.uint8)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_mlp_binary.png", yp, dpi=300)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", dense_yp_fp_col, dpi=300)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", sparse_yp_fp_col, dpi=300)
     
+    # Before exporting we upscale for anti-aliasing
+    interpolation = cv2.INTER_LANCZOS4
+    ## MLP black-white classification
+    yp = (~mlp_yp_fp * 255).astype(np.uint8)
+    upscaled = yp.reshape((img_dim_0,img_dim_1)) # cv2.resize(yp, None, fx=2, fy=2, interpolation=interpolation)
+    upscaled = np.stack((upscaled,upscaled,upscaled), axis=-1)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_mlp_binary.png", upscaled, cmap="binary", dpi=300)
+
+    ## Dense MoE black-white classification
+    binary_yp = (dense_yp > threshold).reshape((img_dim_0,img_dim_1))
+    yp = (~binary_yp * 255).astype(np.uint8)
+    upscaled = yp # cv2.resize(yp, None, fx=2, fy=2, interpolation=interpolation)
+    upscaled = np.stack((upscaled,upscaled,upscaled), axis=-1)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", upscaled, cmap="binary", dpi=300)
+
+    ## Sparse MoE black-white classification
+    binary_yp = (sparse_yp > threshold).reshape((img_dim_0,img_dim_1))
+    yp = (~binary_yp * 255).astype(np.uint8)
+    upscaled = yp #cv2.resize(yp, None, fx=2, fy=2, interpolation=interpolation)
+    upscaled = np.stack((upscaled,upscaled,upscaled), axis=-1)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", upscaled, cmap="binary", dpi=300)
+
+    # Sparse MoE expert colored classification
+    upscaled = sparse_yp_fp_col # cv2.resize(sparse_yp_fp_col, None, fx=2, fy=2, interpolation=interpolation)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary_col.png", upscaled, dpi=300)

@@ -59,7 +59,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
     Log all results in google sheets using google sheets api.
     '''
     # Set basic row arguments
-    worksheet_name = 'table2'
+    worksheet_name = 'last_run'
     accelerator = jax.devices()[0].device_kind
     model_type = configs[model_key]['type']
     

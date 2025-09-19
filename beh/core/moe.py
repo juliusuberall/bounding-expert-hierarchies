@@ -18,7 +18,7 @@ def moe_forward_expert(p : list, x : jax.Array):
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
         x = jax.nn.tanh(x @ e)
     x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-    return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 + 1e-03
+    return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 # 3D jax.nn.tanh((x @ p[-1]) * 0.01) * 10.0
 
 @jax.jit
 def moe_forward_expert_INF(p : dict, x : jax.Array):

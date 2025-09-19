@@ -5,7 +5,7 @@ from google.oauth2.service_account import Credentials
 
 from beh.core.registry import *
 
-sheet_id = "1b7f7NInSCiL8j7LPke36DgO3PDBNEITAP3ytK95m_RM"
+sheet_id = "1bK4UXi6Orcgq8jQwv1Ikeq5sa5qIWIk-ZQxrH71axX8"
 scopes = ["https://www.googleapis.com/auth/spreadsheets"]
 creds = Credentials.from_service_account_file("./keys/gsheets_credentials.json", scopes=scopes)
 gc = gspread.authorize(creds)

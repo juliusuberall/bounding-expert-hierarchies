@@ -107,7 +107,7 @@ def train_moe(
     print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
-    val_loss_cache, fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache = [], [], [], [], [], [], []
+    fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache = [], [], [], [], [], []
     ## Initalize self balancing factor for BCE
     negative_class_weight = jnp.array(1.0)
     
@@ -131,8 +131,7 @@ def train_moe(
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            val_loss, yp , __  = moe_error(x_batches, y, moe, sparse_funcs_2048[model_key])  
-            val_loss_cache.append(val_loss) 
+            yp , __  = batch_query_moe(x_batches, moe, sparse_funcs_2048[model_key])  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
@@ -211,16 +210,6 @@ def train_moe(
                         p = optax.apply_updates(p, updates)
                         return p, opt_state, grads
 
-                # Capture state when making conservative
-                # reg_key = model_key + core_keys['total_epochs']
-                # reg.add( reg_key, i)
-                # ## Benchmark
-                # reg = register_accuracy(model_key, moe, x_batches, y, reg, threshold)
-                # reg = register_gating_confidence(model_key, moe, x_batches, reg)
-                # ## Format
-                # model_detail_str = create_model_details_string('moe', model_key, reg, configs, dimension)
-                # export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str, f'_epoch{i}')
-
                 print(f"{con_experts.size}/{active_e} experts are conservative\nDecreasing negative weight to {negative_class_weight}")
         i += 1
 
@@ -231,9 +220,6 @@ def train_moe(
 
     reg_key = model_key + core_keys['training_time']
     reg.add( reg_key, np.array((time.perf_counter_ns() - train_time_t0) / 1e9))
-
-    reg_key = model_key + core_keys['train_val_loss_key']
-    reg.add( reg_key, np.array(val_loss_cache))
 
     reg_key = model_key + core_keys['train_fn_key']
     reg.add( reg_key, np.array(fn_cache))

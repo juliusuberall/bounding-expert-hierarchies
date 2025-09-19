@@ -12,6 +12,7 @@ def register_accuracy(
         model_key : str,
         moe : dict,
         x_batches : list,
+        x_aa : list,
         y : jax.Array,
         reg : CoreRegistry,
         threshold : float,
@@ -21,35 +22,40 @@ def register_accuracy(
     \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in %.
     '''
     # Dense MoE inference
-    dense_mse, dense_yp, dense_yp_raw = moe_error(x_batches, y, moe, moe_forward_dense_INF)
+    dense_yp, dense_yp_raw = batch_query_moe(x_batches, moe, moe_forward_dense_INF)
     dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
-    sparse_mse, sparse_yp, sparse_yp_raw = moe_error(x_batches, y, moe, sparse_funcs_2048[model_key])
+    sparse_yp, sparse_yp_raw = batch_query_moe(x_batches, moe, sparse_funcs_2048[model_key])
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
+
+    ## 2D - Query in higher resolution for anti-aliased binary classification plot
+    if x_aa != None : 
+        dense_yp_aa, _ = batch_query_moe(x_aa, moe, moe_forward_dense_INF)
+        sparse_yp_aa, _ = batch_query_moe(x_aa, moe, sparse_funcs_2048[model_key])
 
     # Save numerical results
     dkey = f'{model_key}_dense'
     skey = f'{model_key}_sparse'
     
     ## Dense
-    reg.add(dkey + core_keys['accuracy_mse_key'], dense_mse)
     reg.add(dkey + core_keys['y_prediciton_key'], dense_yp)
     reg.add(dkey + core_keys['y_prediciton_RAW_key'], dense_yp_raw)
     reg.add(dkey + core_keys['fn_key'], dense_fn)
     reg.add(dkey + core_keys['fp_key'], dense_fp)
+    reg.add(dkey + core_keys['aa_y_prediciton_key'], dense_yp_aa)
     
     ## Sparse
-    reg.add(skey + core_keys['accuracy_mse_key'], sparse_mse)
     reg.add(skey + core_keys['y_prediciton_key'], sparse_yp)
     reg.add(skey + core_keys['y_prediciton_RAW_key'], sparse_yp_raw)
     reg.add(skey + core_keys['fn_key'], sparse_fn)
     reg.add(skey + core_keys['fp_key'], sparse_fp)
+    reg.add(skey + core_keys['aa_y_prediciton_key'], sparse_yp_aa)
 
-    print(f"\n      |    MSE   |    FN    |    FP   ")
+    print(f"\n      |    FN    |    FP   ")
     print(f"------|-------------------------------")
-    print(f"Dense | {dense_mse:05f} | {dense_fn:05f} | {dense_fp:05f}")
-    print(f"Sparse| {sparse_mse:05f} | {sparse_fn:05f} | {sparse_fp:05f}")
+    print(f"Dense | {dense_fn:05f} | {dense_fp:05f}")
+    print(f"Sparse| {sparse_fn:05f} | {sparse_fp:05f}")
 
     return reg
 
@@ -132,15 +138,18 @@ def register_gating_confidence (
         model_key : str,     
         moe : dict,
         x_batches : list,
+        x_aa : list,
         reg : CoreRegistry
     ):
 
-    confidence, gate_sorted_activation, idx = gating_confidence(moe=moe,x_batches=x_batches)
+    confidence, gate_sorted_activation, idx = gating_confidence(moe, x_batches)
+    _, _, idx_aa = gating_confidence(moe, x_aa)
     
     # Save numerical results
     reg.add( model_key + core_keys['gating_confidence_key'], confidence)
     reg.add( model_key + core_keys['gating_sorted_activation_key'], gate_sorted_activation)
     reg.add( model_key + core_keys['gate_top1_activation_key'], idx)
+    reg.add( model_key + core_keys['aa_gate_top1_activation_key'], idx_aa)
 
     print(f"\nGate Confidence: {round(float(confidence),4)}")
     return reg

@@ -64,7 +64,7 @@ def train_mlp(
     print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
     print(f"MLP: {mlp_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
-    val_loss_cache, fn_cache, fp_cache, slope_cache, epoch_cache = [], [], [], [], []
+    fn_cache, fp_cache, slope_cache, epoch_cache = [], [], [], []
     ## Initalize self balancing factor for BCE
     negative_class_weight = jnp.array(1.0)
 
@@ -87,8 +87,7 @@ def train_mlp(
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            val_loss, yp  = mlp_error(x_batches, y, mlp)  
-            val_loss_cache.append(val_loss) 
+            yp  = batch_query_mlp(x_batches, mlp)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
@@ -105,16 +104,6 @@ def train_mlp(
                 making_conservative = True
                 negative_class_weight /= 1.5
                 slope_cache = []
-
-                # # Capture state when making conservative
-                # reg_key = model_key + core_keys['total_epochs']
-                # reg.add( reg_key, i)
-                # ## Benchmark
-                # reg = register_accuracy(model_key, mlp, x_batches, y, reg, threshold)
-                # ## Format
-                # model_detail_str = create_model_details_string('mlp', model_key, reg, configs, dimension)
-                # export_plot_2D_mlp_internal(model_key, y, reg, dimension, threshold, model_detail_str, f'_epoch{i}')
-
                 print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1
     
@@ -124,9 +113,6 @@ def train_mlp(
 
     reg_key = model_key + core_keys['training_time']
     reg.add( reg_key, np.array((time.perf_counter_ns() - train_time_t0) / 1e9))
-
-    reg_key = model_key + core_keys['train_val_loss_key']
-    reg.add( reg_key, np.array(val_loss_cache))
 
     reg_key = model_key + core_keys['train_fn_key']
     reg.add( reg_key, np.array(fn_cache))

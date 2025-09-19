@@ -63,7 +63,6 @@ def main():
         format_export_results(
             model = model,
             model_key = model_key,
-            x = x,
             y = y,
             reg = reg,
             configs = configs,

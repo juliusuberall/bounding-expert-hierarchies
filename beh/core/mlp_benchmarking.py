@@ -11,6 +11,7 @@ def register_accuracy(
         model_key : str,
         mlp : list,
         x_batches : list,
+        x_aa : list,
         y : jax.Array,
         reg : CoreRegistry,
         threshold : float,
@@ -21,17 +22,19 @@ def register_accuracy(
     '''
     
     # MLP inference
-    mse, yp = mlp_error(x_batches, y, mlp)
+    yp = batch_query_mlp(x_batches, mlp)
     fn, fp = get_fn_fp_rate(yp, y, threshold=threshold)
 
+    ## 2D - Query in higher resolution for anti-aliased binary classification plot
+    if x_aa != None : 
+        yp_aa = batch_query_mlp(x_aa, mlp)
+
     # Save numerical results
-    reg.add(model_key + core_keys['accuracy_mse_key'], mse)
     reg.add(model_key + core_keys['y_prediciton_key'], yp)
     reg.add(model_key + core_keys['fn_key'], fn)
     reg.add(model_key + core_keys['fp_key'], fp)
+    reg.add(model_key + core_keys['aa_y_prediciton_key'], yp_aa)
 
-
-    print(f"\nMSE: {round(float(mse),4)}")
     print(f"FN: {float(fn)}")
     print(f"FP: {float(fp)}")
 

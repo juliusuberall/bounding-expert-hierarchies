@@ -52,8 +52,7 @@ def moe_forward_dense_INF(p : dict, x : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
-
+def batch_query_moe(x_batches : list, moe : dict, func):
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
 
@@ -80,9 +79,8 @@ def moe_error(x_batches : list, y : jax.Array , moe : dict, func):
         jnp.max(yp),
         0,
         1,)
-    mse = jnp.mean((y - yp)**2)
 
-    return mse, yp, yp_raw
+    return yp, yp_raw
 
 #------------------------------------------------------------------------------------
 

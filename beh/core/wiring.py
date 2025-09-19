@@ -10,6 +10,7 @@ from beh.registry import *
 from beh.core.registry import *
 from beh.core.train_moe import train_moe
 from beh.core.train_mlp import train_mlp
+from beh.core.shared import create_queries
 
 def train_model(
     model_key : str,
@@ -69,23 +70,32 @@ def get_benchmarks(
     infB_qsize = configs['general']['inf_bench_query_size']
     infB_reps = configs['general']['inf_bench_repitions'] 
 
+    # Dimensions
+    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
+
     # Define the different batchsizes to test and their sparse MoE inference functions
     inf_batch_size = 200000  
 
     # Batch data
     x_batches = batch_data(x, batch_size)
 
+    # Create queries for anti-aliasing binary classification plots in 2D
+    x_aa, s = None, None
+    if dimension == 2:
+        s = configs['general']['aa_scaling'] 
+        x_aa = batch_data(create_queries(width=img_dim_0*s, height=img_dim_1*s), batch_size=2048)
+
     # Get general configs
     model_type = configs[model_key]['type']
 
     if model_type == 'moe':
-        reg = moe_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
-        reg = moe_B.register_gating_confidence(model_key, model, x_batches, reg)
+        reg = moe_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
+        reg = moe_B.register_gating_confidence(model_key, model, x_batches, x_aa, reg)
         reg = moe_B.register_inference_speed(model_key, model, x, reg, dimension, infB_reps, infB_qsize, inf_batch_size)
         return reg
     
     elif model_type == 'mlp':
-        reg = mlp_B.register_accuracy(model_key, model, x_batches, y, reg, threshold)
+        reg = mlp_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
         reg = mlp_B.register_inference_speed(model_key, model, x, reg, dimension, infB_reps, infB_qsize, inf_batch_size)
         return reg
     else:

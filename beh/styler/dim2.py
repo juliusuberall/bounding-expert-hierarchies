@@ -7,7 +7,9 @@ import cv2
 from beh.registry import *
 from beh.styler.registry import *
 from beh.core.registry import *
-from beh.core.moe import *
+from beh.core.moe import batch_query_moe
+from beh.core.mlp import batch_query_mlp
+from beh.core.shared import batch_data
 from beh.core.params import *
 from beh.styler.shared import create_model_details_string
 
@@ -187,7 +189,6 @@ def export_plot_2D_mlp_internal (
     
     # Get results from registry
     yp = reg.get(model_key + core_keys['y_prediciton_key'])
-    rounded_mse = round(float(reg.get(model_key + core_keys['accuracy_mse_key'])),4)
     fp = reg.get(model_key + core_keys['fp_key'])
     
     # Create plot 
@@ -246,17 +247,10 @@ def export_plot_2D_internal_comparison (
     # MOE
     # Get model configuration
     nex = configs[model_key]['nex']
-    topk = 1
 
     # Get results from registry
-    dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])
-    sparse_yp_NOTremapped = reg.get(skey + core_keys['y_prediciton_RAW_key'])
-
     dense_yp = reg.get(dkey + core_keys['y_prediciton_key'])
     sparse_yp = reg.get(skey + core_keys['y_prediciton_key'])
-
-    rounded_dense_mse = round(float(reg.get(dkey + core_keys['accuracy_mse_key'])),4)
-    rounded_sparse_mse = round(float(reg.get(skey + core_keys['accuracy_mse_key'])),4)
 
     dense_fp = reg.get(dkey + core_keys['fp_key'])
     sparse_fp = reg.get(skey + core_keys['fp_key'])
@@ -358,45 +352,46 @@ def export_plot_2D_binary_comparison_paper_row (
 
     # Dimension
     img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
+    s = configs['general']['aa_scaling'] 
 
     # MOE
-    # Get model configuration
+    ## Get model configuration
     nex = configs[model_key]['nex']
-    topk = 1
 
-    # Get results from registry
-    dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])
-    sparse_yp_NOTremapped = reg.get(skey + core_keys['y_prediciton_RAW_key'])
+    ## Query MoE in double resolution and anti-alias 
+    dense_yp = reg.get(dkey + core_keys['aa_y_prediciton_key'])
+    sparse_yp = reg.get(skey + core_keys['aa_y_prediciton_key'])
 
-    dense_yp = reg.get(dkey + core_keys['y_prediciton_key'])
-    sparse_yp = reg.get(skey + core_keys['y_prediciton_key'])
-
-    rounded_dense_mse = round(float(reg.get(dkey + core_keys['accuracy_mse_key'])),4)
-    rounded_sparse_mse = round(float(reg.get(skey + core_keys['accuracy_mse_key'])),4)
-
-    dense_fp = reg.get(dkey + core_keys['fp_key'])
-    sparse_fp = reg.get(skey + core_keys['fp_key'])
-
-    background_col = mplt.colors.to_rgba(back_col)
-
-    # Color densen and sparse classification based on top1 experts
-    top1_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
+    ## Color densen and sparse classification based on top1 experts
+    back_col = (1.0, 1.0, 1.0, 0.0) # background is transparent, make bright white to avoid outlines
+    back = (0.0, 0.0, 0.0, 0.0) # background is transparent, make bright white to avoid outlines
+    top1_activation = reg.get(model_key + core_keys['aa_gate_top1_activation_key'])
 
     dense_mask = np.expand_dims(dense_yp > threshold, axis=1)
-    dense_yp_fp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
-    dense_yp_fp_col = dense_yp_fp_col * dense_mask + ~dense_mask * background_col
-    dense_yp_fp_col = dense_yp_fp_col.reshape((img_dim_0,img_dim_1, -1))
+    dense_binary_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
+    dense_binary_col = dense_binary_col * dense_mask + ~dense_mask * back_col
+    dense_binary_col = dense_binary_col.reshape((img_dim_0*s, img_dim_1*s, -1))
 
     sparse_mask = np.expand_dims(sparse_yp > threshold, axis=1)
-    sparse_yp_fp_col = color_by_expert(nex, sparse_mask.flatten().astype(jnp.float32), top1_activation)
-    sparse_yp_fp_col = sparse_yp_fp_col * sparse_mask + ~sparse_mask * background_col
-    sparse_yp_fp_col = sparse_yp_fp_col.reshape((img_dim_0,img_dim_1, -1))
+    sparse_binary_col = color_by_expert(nex, sparse_mask.flatten().astype(jnp.float32), top1_activation)
+    sparse_binary_col = sparse_binary_col * sparse_mask + ~sparse_mask * back_col
+    sparse_binary_col = sparse_binary_col.reshape((img_dim_0*s, img_dim_1*s, -1))
 
     # MLP
-    mlp_yp = reg.get(previous_model_key + core_keys['y_prediciton_key'])
-    mlp_fp = reg.get(previous_model_key + core_keys['fp_key'])
-    mlp_yp_fp = mlp_yp > threshold
-    mlp_yp_fp = mlp_yp_fp.reshape((img_dim_0,img_dim_1, -1))
+    mlp_yp = reg.get(previous_model_key + core_keys['aa_y_prediciton_key'])
+    mask = np.expand_dims(mlp_yp > threshold, axis=1)
+    mlp_binary = (0.0, 0.0, 0.0, 1.0) * mask + ~mask * back
+    mlp_binary = mlp_binary.reshape((img_dim_0*s, img_dim_1*s, -1))
+
+    # Anti-Alias
+    interpolation = cv2.INTER_AREA
+    dense_binary_col = cv2.resize(dense_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    sparse_binary_col = cv2.resize(sparse_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    mlp_binary = cv2.resize(mlp_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+
+    dense_binary_col = np.clip(dense_binary_col, 0, 1)
+    sparse_binary_col = np.clip(sparse_binary_col, 0, 1)
+    mlp_binary = np.clip(mlp_binary, 0, 1)
     
     # Create combined model detail string
     moe_string = create_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
@@ -412,13 +407,16 @@ def export_plot_2D_binary_comparison_paper_row (
     ax[0].set_title("Original", fontsize=9)
     
     ## Conservativness
-    ax[1].imshow(mlp_yp_fp, cmap= wb_gradient)
+    mlp_fp = reg.get(previous_model_key + core_keys['fp_key'])
+    ax[1].imshow(mlp_binary)
     ax[1].set_title(f"MLP | FP {float(mlp_fp):.4f}", fontsize=9)
 
-    ax[2].imshow(dense_yp_fp_col)
+    dense_fp = reg.get(dkey + core_keys['fp_key'])
+    ax[2].imshow(dense_binary_col)
     ax[2].set_title(f"Dense MoE | FP {float(dense_fp):.4f}", fontsize=9)
 
-    ax[3].imshow(sparse_yp_fp_col)
+    sparse_fp = reg.get(skey + core_keys['fp_key'])
+    ax[3].imshow(sparse_binary_col)
     ax[3].set_title(f"Sparse MoE | FP {float(sparse_fp):.4f}", fontsize=9)
 
     for i in range(c):
@@ -432,30 +430,25 @@ def export_plot_2D_binary_comparison_paper_row (
     plt.close()
 
     # Export binary classification image for mlp and sparse Moe.
+    # We want to export with an alpha channel and not as previously on background.
     if not export_binary: return
-    
-    # Before exporting we upscale for anti-aliasing
-    interpolation = cv2.INTER_LANCZOS4
-    ## MLP black-white classification
-    yp = (~mlp_yp_fp * 255).astype(np.uint8)
-    upscaled = yp.reshape((img_dim_0,img_dim_1)) # cv2.resize(yp, None, fx=2, fy=2, interpolation=interpolation)
-    upscaled = np.stack((upscaled,upscaled,upscaled), axis=-1)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_mlp_binary.png", upscaled, cmap="binary", dpi=300)
 
-    ## Dense MoE black-white classification
-    binary_yp = (dense_yp > threshold).reshape((img_dim_0,img_dim_1))
-    yp = (~binary_yp * 255).astype(np.uint8)
-    upscaled = yp # cv2.resize(yp, None, fx=2, fy=2, interpolation=interpolation)
-    upscaled = np.stack((upscaled,upscaled,upscaled), axis=-1)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", upscaled, cmap="binary", dpi=300)
+    ## MLP
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_mlp_binary.png", mlp_binary)
 
-    ## Sparse MoE black-white classification
-    binary_yp = (sparse_yp > threshold).reshape((img_dim_0,img_dim_1))
-    yp = (~binary_yp * 255).astype(np.uint8)
-    upscaled = yp #cv2.resize(yp, None, fx=2, fy=2, interpolation=interpolation)
-    upscaled = np.stack((upscaled,upscaled,upscaled), axis=-1)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", upscaled, cmap="binary", dpi=300)
+    ## Dense MoE
+    dense_binary = (0.0, 0.0, 0.0, 1.0) * dense_mask + ~dense_mask * back
+    dense_binary = dense_binary.reshape((img_dim_0* s,img_dim_1 * s, -1))
+    dense_binary = cv2.resize(dense_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    dense_binary = np.clip(dense_binary, 0, 1)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", dense_binary)
 
-    # Sparse MoE expert colored classification
-    upscaled = sparse_yp_fp_col # cv2.resize(sparse_yp_fp_col, None, fx=2, fy=2, interpolation=interpolation)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary_col.png", upscaled, dpi=300)
+    ## Sparse MoE
+    sparse_binary = (0.0, 0.0, 0.0, 1.0) * sparse_mask + ~sparse_mask * back
+    sparse_binary = sparse_binary.reshape((img_dim_0 * s,img_dim_1 * s, -1))
+    sparse_binary = cv2.resize(sparse_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    sparse_binary = np.clip(sparse_binary, 0, 1)
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", sparse_binary)
+
+    # Sparse MoE expert color
+    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary_col.png", sparse_binary_col)

@@ -26,7 +26,6 @@ def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int 
 def format_export_results(
     model,
     model_key : str,
-    x : jax.Array, 
     y : jax.Array, 
     reg : CoreRegistry, 
     configs : dict,

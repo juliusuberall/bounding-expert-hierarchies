@@ -60,7 +60,6 @@ def export_plot_training_metrics (
     dimension : int):
     '''
     Create a training metrics plot, showing the trend throughout training inlcuding:
-    \n- Loss
     \n- False-Negative Rate
     \n- False-Positive Rate
     '''
@@ -69,7 +68,6 @@ def export_plot_training_metrics (
     model_type = configs[model_key]['type']
 
     # Get training metrics from registry
-    loss = reg.get(model_key + core_keys['train_val_loss_key'])
     fn = reg.get(model_key + core_keys['train_fn_key'])
     fp = reg.get(model_key + core_keys['train_fp_key'])
     epochs = reg.get(model_key + core_keys['train_epoch_key'])
@@ -77,7 +75,6 @@ def export_plot_training_metrics (
     # Create plot 
     fig, ax = plt.subplots(1,1, figsize=(5,5))
     fig.suptitle(f"{model_key.split('_')[0]} {dimension}D training")
-    ax.plot(epochs, loss, label='Loss')
     ax.plot(epochs, fn, label='False Negatives')
     ax.plot(epochs, fp, label='False Positives')
     ax.set_ylim(0.0, 1.0)
@@ -113,7 +110,6 @@ def create_model_details_string (
     \n- Epochs
     \n- Batchsize
     \n- Parameter count
-    \n- Loss function
     '''
     # Get model configurations
     epochs = reg.get(model_key + core_keys['total_epochs']),

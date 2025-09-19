@@ -107,7 +107,7 @@ def train_moe(
     print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
-    fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache = [], [], [], [], [], []
+    fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache, con_experts_cache = [], [], [], [], [], [], []
     ## Initalize self balancing factor for BCE
     negative_class_weight = jnp.array(1.0)
     
@@ -115,6 +115,7 @@ def train_moe(
     fn = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
     making_conservative = False
+    con_experts = jnp.array([])
     flip = 0
     # Dont stop training until:
     # -> Min epochs trained
@@ -145,9 +146,13 @@ def train_moe(
             active_e = jnp.unique(e_idx.flatten()).size
             active_e_cache.append(active_e / nex)
 
+            # Track number of conservative experts
+            con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
+            con_experts_cache.append(con_experts.size / active_e)
+
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex}")
+            print(f"Epoch {i:05d} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex} | Con Experts: {con_experts.size}/{active_e}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
@@ -184,8 +189,6 @@ def train_moe(
                 else:
                     print('Adjust Experts')
                     negative_class_weight /= 1.5
-                    # Determine which experts to freeze because they are conservative
-                    con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
 
                     # Freeze gate with multi_transform and remove Adam decay on gradient.
                     ## Makes the gate gradient strictly 0 during updates
@@ -205,12 +208,12 @@ def train_moe(
                     @jax.jit
                     def update(p, opt_state, xB, yB, negative_class_weight):
                         grads = jax.grad(moe_train_loss)(p, xB, yB, negative_class_weight)
+                        # Freeze conservative experts
                         grads = mask_grads(grads, con_experts)
                         updates, opt_state = opt.update(grads, opt_state)
                         p = optax.apply_updates(p, updates)
                         return p, opt_state, grads
-
-                print(f"{con_experts.size}/{active_e} experts are conservative\nDecreasing negative weight to {negative_class_weight}")
+                print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1
 
     
@@ -235,5 +238,8 @@ def train_moe(
 
     reg_key = model_key + core_keys['active_experts_key']
     reg.add( reg_key, np.array(active_e_cache))
+
+    reg_key = model_key + core_keys['train_conservative_experts_key']
+    reg.add( reg_key, np.array(con_experts_cache))
     
     return moe, reg

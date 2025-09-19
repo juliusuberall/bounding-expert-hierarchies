@@ -7,9 +7,6 @@ import cv2
 from beh.registry import *
 from beh.styler.registry import *
 from beh.core.registry import *
-from beh.core.moe import batch_query_moe
-from beh.core.mlp import batch_query_mlp
-from beh.core.shared import batch_data
 from beh.core.params import *
 from beh.styler.shared import create_model_details_string
 
@@ -87,7 +84,7 @@ def export_plot_2D_moe_internal (
 
     background_col = mplt.colors.to_rgba(back_col)
     dense_mask = np.expand_dims(((dense_yp > threshold) * ( y == 0)), axis=1)
-    dense_yp_col = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
+    dense_yp_col_fp = color_by_expert(nex, dense_mask.flatten().astype(jnp.float32), top1_activation)
     dense_yp_col_fp = dense_yp_col * dense_mask + ~dense_mask * background_col
 
     sparse_mask = np.expand_dims(((sparse_yp > threshold) * ( y == 0)), axis=1)
@@ -389,6 +386,11 @@ def export_plot_2D_binary_comparison_paper_row (
     sparse_binary_col = cv2.resize(sparse_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
     mlp_binary = cv2.resize(mlp_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
 
+    ## OpenCV swaps width and height such that we have to swap back
+    dense_binary_col = np.transpose(dense_binary_col, (1, 0, 2))
+    sparse_binary_col = np.transpose(sparse_binary_col, (1, 0, 2))
+    mlp_binary = np.transpose(mlp_binary, (1, 0, 2))
+
     dense_binary_col = np.clip(dense_binary_col, 0, 1)
     sparse_binary_col = np.clip(sparse_binary_col, 0, 1)
     mlp_binary = np.clip(mlp_binary, 0, 1)
@@ -440,6 +442,7 @@ def export_plot_2D_binary_comparison_paper_row (
     dense_binary = (0.0, 0.0, 0.0, 1.0) * dense_mask + ~dense_mask * back
     dense_binary = dense_binary.reshape((img_dim_0* s,img_dim_1 * s, -1))
     dense_binary = cv2.resize(dense_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    dense_binary = np.transpose(dense_binary, (1, 0, 2))
     dense_binary = np.clip(dense_binary, 0, 1)
     plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", dense_binary)
 
@@ -447,6 +450,7 @@ def export_plot_2D_binary_comparison_paper_row (
     sparse_binary = (0.0, 0.0, 0.0, 1.0) * sparse_mask + ~sparse_mask * back
     sparse_binary = sparse_binary.reshape((img_dim_0 * s,img_dim_1 * s, -1))
     sparse_binary = cv2.resize(sparse_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    sparse_binary = np.transpose(sparse_binary, (1, 0, 2))
     sparse_binary = np.clip(sparse_binary, 0, 1)
     plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", sparse_binary)
 

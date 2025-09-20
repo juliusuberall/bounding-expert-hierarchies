@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 #------------------------------------------------------------------------------------
 
@@ -26,3 +27,18 @@ def batch_query_mlp(x_batches : list, mlp : list):
     x_tail = mlp_forward_INF(mlp, x_batches[-1])
     yp = jnp.concatenate((yp, x_tail.flatten()))
     return yp
+
+#------------------------------------------------------------------------------------
+
+def batch_query_mlp_OOM(x_batches : list, mlp : list, at_once : int):
+    '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
+    \nPassing all batches at once can be done with batch_query_mlp().'''
+
+    # Forward batch subsets WITHOUT remapping the subsets already to 0.0 - 1.0
+    yp_all = []
+    for i in range(0, len(x_batches), at_once):
+        yp = batch_query_mlp(x_batches[i:i+at_once], mlp)
+        yp_all.append(np.array(yp)) # unload from GPU
+    yp_all = np.concatenate(yp_all, axis=0)
+    
+    return yp_all

@@ -18,4 +18,5 @@ def create_queries(width : int, height : int):
     xs = np.linspace(-1, 1, width)
     ys = np.linspace(-1, 1, height)
     xx, yy = np.meshgrid(xs, ys)
-    return np.stack([xx, yy], axis=-1).reshape(-1, 2)
+    q = np.stack([xx, yy], axis=-1).reshape(-1, 2).astype(np.float32)
+    return q

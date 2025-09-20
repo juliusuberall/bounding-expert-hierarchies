@@ -52,7 +52,8 @@ def moe_forward_dense_INF(p : dict, x : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moe(x_batches : list, moe : dict, func):
+def batch_query_moe(x_batches : list, moe : dict, func, remap_flag : bool = True):
+    '''List of batched queries that will be passed through the model at once. Be aware of device OOM.'''
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
 
@@ -71,16 +72,40 @@ def batch_query_moe(x_batches : list, moe : dict, func):
     yp_tail = func(moe, x_batches[-1]).flatten()
     yp = jnp.concatenate((yp, yp_tail), axis=0)
 
-    # MSE
+    # Remap
     yp_raw = yp.copy()
-    yp = remap(
-        yp, 
-        jnp.min(yp),
-        jnp.max(yp),
-        0,
-        1,)
+    if remap_flag:
+        yp = remap(
+            yp, 
+            jnp.min(yp),
+            jnp.max(yp),
+            0,
+            1,)
 
     return yp, yp_raw
+
+#------------------------------------------------------------------------------------
+
+def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
+    '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
+    \nPassing all batches at once can be done with batch_query_moe().'''
+
+    # Forward batch subsets WITHOUT remapping the subsets already to 0.0 - 1.0
+    yp_all = []
+    for i in range(0, len(x_batches), at_once):
+        yp, _ = batch_query_moe(x_batches[i:i+at_once], moe, func, remap_flag=False)
+        yp_all.append(np.array(yp)) # unload from GPU
+    yp_all = np.concatenate(yp_all, axis=0)
+
+    # Remap after all batches were processed to avoid uneven remapping
+    yp_all = remap(
+        yp_all, 
+        np.min(yp_all),
+        np.max(yp_all),
+        0,
+        1,)
+    
+    return yp_all
 
 #------------------------------------------------------------------------------------
 

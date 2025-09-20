@@ -29,10 +29,10 @@ def register_accuracy(
     sparse_yp, sparse_yp_raw = batch_query_moe(x_batches, moe, sparse_funcs_2048[model_key])
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
-    ## 2D - Query in higher resolution for anti-aliased binary classification plot
     if x_aa != None : 
-        dense_yp_aa, _ = batch_query_moe(x_aa, moe, moe_forward_dense_INF)
-        sparse_yp_aa, _ = batch_query_moe(x_aa, moe, sparse_funcs_2048[model_key])
+        # 2D - Query in higher res for AA while avoiding OOM
+        dense_yp_aa = batch_query_moe_OOM(x_aa, moe, moe_forward_dense_INF, 50)
+        sparse_yp_aa = batch_query_moe_OOM(x_aa, moe, sparse_funcs_2048[model_key], 50)
 
     # Save numerical results
     dkey = f'{model_key}_dense'
@@ -53,7 +53,7 @@ def register_accuracy(
     reg.add(skey + core_keys['aa_y_prediciton_key'], sparse_yp_aa)
 
     print(f"\n      |    FN    |    FP   ")
-    print(f"------|-------------------------------")
+    print(f"------|--------------------")
     print(f"Dense | {dense_fn:05f} | {dense_fp:05f}")
     print(f"Sparse| {sparse_fn:05f} | {sparse_fp:05f}")
 
@@ -143,7 +143,14 @@ def register_gating_confidence (
     ):
 
     confidence, gate_sorted_activation, idx = gating_confidence(moe, x_batches)
-    _, _, idx_aa = gating_confidence(moe, x_aa)
+
+    # Query in higher res for AA while avoiding OOM
+    at_once = 50
+    idx_aa = []
+    for i in range(0, len(x_aa), at_once):
+        _, _, idx_at_once = gating_confidence(moe, x_aa[i:i+at_once])
+        idx_aa.append(idx_at_once)
+    idx_aa = np.concatenate(idx_aa, axis=0)
     
     # Save numerical results
     reg.add( model_key + core_keys['gating_confidence_key'], confidence)

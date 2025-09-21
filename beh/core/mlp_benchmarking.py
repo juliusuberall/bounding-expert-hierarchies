@@ -40,7 +40,8 @@ def register_accuracy(
 
     return reg
 
-def register_inference_speed (     
+def register_inference_speed (  
+        benchmark : bool,   
         model_key : str,     
         mlp : list,
         x : jax.Array,
@@ -50,23 +51,29 @@ def register_inference_speed (
         infB_qsize : int,
         inf_batch_size : int) -> CoreRegistry:
     '''
-    Registers the measured minimum inference speed over N iterations.
+    \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
+    \nRegisters the measured minimum inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
     '''
     print(f"\nInference Speed MLP:")
 
     # Measure inference speed for each batchsize
     cache = []
-    speed = benchmark_inference_speed(
-        x,
-        mlp,
-        mlp_forward_INF,
-        inf_batch_size,
-        infB_reps,
-        infB_qsize,
-        dimension)
-    cache.append([inf_batch_size, speed])
-    print(f"\nInf. Speed {inf_batch_size} batch size => {round(float(speed),4)}ms")
+    if benchmark:
+        speed = benchmark_inference_speed(
+            x,
+            mlp,
+            mlp_forward_INF,
+            inf_batch_size,
+            infB_reps,
+            infB_qsize,
+            dimension)
+        cache.append([inf_batch_size, speed])
+        print(f"\nInf. Speed {inf_batch_size} batch size => {round(float(speed),4)}ms")
+    else:
+        cache.append([0, 0])
+        print('Skipped Benchmarking')
+
     
     # Save all speeds paired with their batchsize
     reg.add( model_key + core_keys['inf_speed_key'], cache)

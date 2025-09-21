@@ -59,7 +59,8 @@ def register_accuracy(
 
     return reg
 
-def register_inference_speed (     
+def register_inference_speed (  
+        benchmark : bool,   
         model_key : str,     
         moe : dict,
         x : jax.Array,
@@ -69,35 +70,43 @@ def register_inference_speed (
         infB_qsize : int,
         inf_batch_size : int) -> CoreRegistry:
     '''
-    Registers the measured inference speed over N iterations.
+    \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
+    \nRegisters the measured inference speed over N iterations.
     \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
     '''
     print(f"\nInference Speed MoE:")
 
     # Measure inference for dense and sparse MoE
     d_cache, s_cache = [], []
-    dense_speed = benchmark_inference_speed(
-        x,
-        moe,
-        moe_forward_dense_INF,
-        inf_batch_size,
-        infB_reps,
-        infB_qsize,
-        dimension)
-    d_cache.append([inf_batch_size, dense_speed])
 
-    sparse_speed = benchmark_inference_speed(
-        x,
-        moe,
-        sparse_funcs_200K[model_key],
-        inf_batch_size,
-        infB_reps,
-        infB_qsize,
-        dimension)
-    s_cache.append([inf_batch_size, sparse_speed])
-    
-    print(f"Dense Inf. Speed {inf_batch_size} batch size => {round(float(dense_speed),4)}ms")
-    print(f"Sparse Inf. Speed {inf_batch_size} batch size => {round(float(sparse_speed),4)}ms\n")
+    # If we dont benchmark we fill core registry with filler
+    if benchmark:
+        dense_speed = benchmark_inference_speed(
+            x,
+            moe,
+            moe_forward_dense_INF,
+            inf_batch_size,
+            infB_reps,
+            infB_qsize,
+            dimension)
+        d_cache.append([inf_batch_size, dense_speed])
+
+        sparse_speed = benchmark_inference_speed(
+            x,
+            moe,
+            sparse_funcs_200K[model_key],
+            inf_batch_size,
+            infB_reps,
+            infB_qsize,
+            dimension)
+        s_cache.append([inf_batch_size, sparse_speed])
+        
+        print(f"Dense Inf. Speed {inf_batch_size} batch size => {round(float(dense_speed),4)}ms")
+        print(f"Sparse Inf. Speed {inf_batch_size} batch size => {round(float(sparse_speed),4)}ms\n")
+    else:
+        d_cache.append([0, 0])
+        s_cache.append([0, 0])
+        print('Skipped Benchmarking')
     
     # Save results
     dkey = f'{model_key}_dense'

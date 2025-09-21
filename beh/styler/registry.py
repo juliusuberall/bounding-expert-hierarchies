@@ -10,7 +10,7 @@ wb_gradient = mplt.colors.LinearSegmentedColormap.from_list("mono_custom", [back
 
 # Model colors used for create graph plot of tabular data
 cols = {
-    'moe' : '#ff00c2',
+    'moe' : '#FF8200',
     'mlp' : '#00A517',
     'light_gray' : '#f5f5f5',
     'dark_gray' : '#B3B3B3'

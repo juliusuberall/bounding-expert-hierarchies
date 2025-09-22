@@ -28,12 +28,12 @@ def register_accuracy(
     ## 2D - Query in higher resolution for anti-aliased binary classification plot
     if x_aa != None : 
         yp_aa = batch_query_mlp_OOM(x_aa, mlp, 50)
+        reg.add(model_key + core_keys['aa_y_prediciton_key'], yp_aa)
 
     # Save numerical results
     reg.add(model_key + core_keys['y_prediciton_key'], yp)
     reg.add(model_key + core_keys['fn_key'], fn)
     reg.add(model_key + core_keys['fp_key'], fp)
-    reg.add(model_key + core_keys['aa_y_prediciton_key'], yp_aa)
 
     print(f"FN: {float(fn)}")
     print(f"FP: {float(fp)}")

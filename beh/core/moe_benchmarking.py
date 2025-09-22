@@ -29,28 +29,28 @@ def register_accuracy(
     sparse_yp, sparse_yp_raw = batch_query_moe(x_batches, moe, sparse_funcs_2048[model_key])
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
+    # Save numerical results
+    dkey = f'{model_key}_dense'
+    skey = f'{model_key}_sparse'
+
     if x_aa != None : 
         # 2D - Query in higher res for AA while avoiding OOM
         dense_yp_aa = batch_query_moe_OOM(x_aa, moe, moe_forward_dense_INF, 50)
         sparse_yp_aa = batch_query_moe_OOM(x_aa, moe, sparse_funcs_2048[model_key], 50)
-
-    # Save numerical results
-    dkey = f'{model_key}_dense'
-    skey = f'{model_key}_sparse'
+        reg.add(dkey + core_keys['aa_y_prediciton_key'], dense_yp_aa)
+        reg.add(skey + core_keys['aa_y_prediciton_key'], sparse_yp_aa)
     
     ## Dense
     reg.add(dkey + core_keys['y_prediciton_key'], dense_yp)
     reg.add(dkey + core_keys['y_prediciton_RAW_key'], dense_yp_raw)
     reg.add(dkey + core_keys['fn_key'], dense_fn)
     reg.add(dkey + core_keys['fp_key'], dense_fp)
-    reg.add(dkey + core_keys['aa_y_prediciton_key'], dense_yp_aa)
     
     ## Sparse
     reg.add(skey + core_keys['y_prediciton_key'], sparse_yp)
     reg.add(skey + core_keys['y_prediciton_RAW_key'], sparse_yp_raw)
     reg.add(skey + core_keys['fn_key'], sparse_fn)
     reg.add(skey + core_keys['fp_key'], sparse_fp)
-    reg.add(skey + core_keys['aa_y_prediciton_key'], sparse_yp_aa)
 
     print(f"\n      |    FN    |    FP   ")
     print(f"------|--------------------")
@@ -153,19 +153,20 @@ def register_gating_confidence (
 
     confidence, gate_sorted_activation, idx = gating_confidence(moe, x_batches)
 
-    # Query in higher res for AA while avoiding OOM
-    at_once = 50
-    idx_aa = []
-    for i in range(0, len(x_aa), at_once):
-        _, _, idx_at_once = gating_confidence(moe, x_aa[i:i+at_once])
-        idx_aa.append(idx_at_once)
-    idx_aa = np.concatenate(idx_aa, axis=0)
+    if x_aa != None : 
+        # Query in higher res for AA while avoiding OOM
+        at_once = 50
+        idx_aa = []
+        for i in range(0, len(x_aa), at_once):
+            _, _, idx_at_once = gating_confidence(moe, x_aa[i:i+at_once])
+            idx_aa.append(idx_at_once)
+        idx_aa = np.concatenate(idx_aa, axis=0)
+        reg.add( model_key + core_keys['aa_gate_top1_activation_key'], idx_aa)
     
     # Save numerical results
     reg.add( model_key + core_keys['gating_confidence_key'], confidence)
     reg.add( model_key + core_keys['gating_sorted_activation_key'], gate_sorted_activation)
     reg.add( model_key + core_keys['gate_top1_activation_key'], idx)
-    reg.add( model_key + core_keys['aa_gate_top1_activation_key'], idx_aa)
 
     print(f"\nGate Confidence: {round(float(confidence),4)}")
     return reg

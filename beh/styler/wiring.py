@@ -48,12 +48,12 @@ def format_export_results(
     # Create model internal state overview
     if model_type == 'moe':
         if dimension == 2:
-            export_plot_2D_moe_internal(model_key, y, reg, configs, dimension, threshold, model_detail_str)
+            export_plot_2D_moe_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
             #export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
-            export_plot_2D_binary_comparison_paper_row(model_key, y, reg, configs, dimension, threshold, export_binary=True)
+            export_plot_2D_binary_comparison_paper_row(data_name, model_key, y, reg, configs, dimension, threshold, export_binary=True)
         elif dimension == 3:
-            prep_openVDB(dimension, 100, model, model_key, configs, reg)
-            marching_cube(dimension, 100, model, model_key, configs, reg)
+            prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+            marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
         elif dimension == 4:
             pass
         elif dimension == 9:
@@ -63,10 +63,10 @@ def format_export_results(
     
     elif model_type == 'mlp':
         if dimension == 2:
-            export_plot_2D_mlp_internal(model_key, y, reg, dimension, threshold, model_detail_str)
+            export_plot_2D_mlp_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
         elif dimension == 3:
-            prep_openVDB(dimension, 100, model, model_key, configs, reg)
-            marching_cube(dimension, 100, model, model_key, configs, reg)
+            prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+            marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
         elif dimension == 4:
             pass
         elif dimension == 9:

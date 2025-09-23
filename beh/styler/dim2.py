@@ -37,6 +37,7 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
 #------------------------------------------------------------------------------------
 
 def export_plot_2D_moe_internal (
+    data_name : str, 
     model_key : str,
     y : jax.Array,
     reg : CoreRegistry,
@@ -134,7 +135,7 @@ def export_plot_2D_moe_internal (
     plt.tight_layout()
 
     # Export plot
-    path = result_dir_registry[dimension] + f"/{model_key}{id}_2D_internal.png"
+    path = result_dir_registry[dimension] + f"/{data_name}_{model_key}{id}_2D_internal.png"
     plt.savefig(path)
     plt.close()
 
@@ -322,6 +323,7 @@ def export_plot_2D_internal_comparison (
 #------------------------------------------------------------------------------------
 
 def export_plot_2D_binary_comparison_paper_row (
+    data_name : str,
     model_key : str,
     y : jax.Array,
     reg : CoreRegistry,
@@ -427,7 +429,7 @@ def export_plot_2D_binary_comparison_paper_row (
     fig.text(0.01, 0.04, model_detail_str, fontsize=9)
     plt.tight_layout(rect=(0.0,0.25,1.0,1.0))
     # Export plot
-    path = result_dir_registry[dimension] + f"/{current_size}_2D_binary_comparison.png"
+    path = result_dir_registry[dimension] + f"/{data_name}_{current_size}_2D_binary_comparison.png"
     plt.savefig(path)
     plt.close()
 
@@ -436,7 +438,7 @@ def export_plot_2D_binary_comparison_paper_row (
     if not export_binary: return
 
     ## MLP
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_mlp_binary.png", mlp_binary)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_mlp_binary.png", mlp_binary)
 
     ## Dense MoE
     dense_binary = (0.0, 0.0, 0.0, 1.0) * dense_mask + ~dense_mask * back
@@ -444,7 +446,7 @@ def export_plot_2D_binary_comparison_paper_row (
     dense_binary = cv2.resize(dense_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
     dense_binary = np.transpose(dense_binary, (1, 0, 2))
     dense_binary = np.clip(dense_binary, 0, 1)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_denseMoE_binary.png", dense_binary)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_denseMoE_binary.png", dense_binary)
 
     ## Sparse MoE
     sparse_binary = (0.0, 0.0, 0.0, 1.0) * sparse_mask + ~sparse_mask * back
@@ -452,7 +454,7 @@ def export_plot_2D_binary_comparison_paper_row (
     sparse_binary = cv2.resize(sparse_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
     sparse_binary = np.transpose(sparse_binary, (1, 0, 2))
     sparse_binary = np.clip(sparse_binary, 0, 1)
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary.png", sparse_binary)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary.png", sparse_binary)
 
     # Sparse MoE expert color
-    plt.imsave(result_dir_registry[dimension] + f"/{current_size}_sparseMoE_binary_col.png", sparse_binary_col)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary_col.png", sparse_binary_col)

@@ -15,6 +15,7 @@ inf_batch_size = 2048 # Important to ensure no query swalloing when sampling ful
 #------------------------------------------------------------------------------------
 
 def marching_cube(
+    data_name : str,
     dimension : int, 
     grid_res : int,
     model ,
@@ -51,13 +52,14 @@ def marching_cube(
     # Export
     implicitMesh = tm.Trimesh(vertices=verts, faces=faces, vertex_normals=normals)
     implicitMesh.apply_translation(bounds[0])
-    path = result_visual_registry[dimension] + '/'+ model_key
+    path = result_visual_registry[dimension] + '/'+ data_name + "_" + model_key
     implicitMesh.export(f"{path}.ply")
 
 
 #------------------------------------------------------------------------------------
 
 def prep_openVDB(
+    data_name : str,
     dimension : int, 
     vdb_res : int,
     model ,
@@ -134,7 +136,7 @@ def prep_openVDB(
     origin_offset = bounds[0].astype(np.float64)
     voxel_spacing = np.array((dim[0]/vdb_res, dim[1]/vdb_res, dim[2]/vdb_res))
 
-    path = result_visual_registry[dimension] + '/'+ model_key
+    path = result_visual_registry[dimension] + '/'+ data_name + "_" + model_key
     np.savez(f"{path}.npz",
                 activation = activation, 
                 density = density,

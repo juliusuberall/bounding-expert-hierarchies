@@ -4,7 +4,8 @@ import jax.numpy as jnp
 from beh.registry import *
 from beh.core.registry import *
 from beh.core.moe_sparse import *
-from beh.core.mlp import mlp_forward_INF
+from beh.core.moe import batch_query_moe_OOM
+from beh.core.mlp import mlp_forward_INF, batch_query_mlp_OOM
 from beh.core.shared import batch_data
 from beh.core.moe_benchmarking import gating_confidence
 from skimage.measure import marching_cubes
@@ -67,7 +68,7 @@ def prep_openVDB(
 
     print("\nExtracting results and formatting for OpenVDB.")
 
-    # Get configs
+    # Get configs and data info
     model_type = configs[model_key]['type']
     dim = reg.get(core_keys['data_size_key'])
     bounds = reg.get(core_keys['data_bounds_key'])
@@ -78,7 +79,6 @@ def prep_openVDB(
     vdb_x = jnp.stack([vdb_X, vdb_Y, vdb_Z], axis=-1).reshape(-1, 3) 
 
     # Break in batches
-    inf_batch_size = 200000 # Hardcoded in project 
     x_batches = batch_data(vdb_x, inf_batch_size)
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
@@ -86,7 +86,7 @@ def prep_openVDB(
     if model_type == 'moe':
         nex = configs[model_key]['nex']
         # Forward through model and compute voxel densities
-        func = sparse_funcs_200K[model_key]
+        func = sparse_funcs_2048[model_key]
         # Originally we used vmap here but this caused for large models always OOM on a T4, 
         # which is why we swapped to a on devcice sequential compute, forward passing the batch
         # through each expert.
@@ -134,7 +134,7 @@ def prep_openVDB(
     origin_offset = bounds[0].astype(np.float64)
     voxel_spacing = np.array((dim[0]/vdb_res, dim[1]/vdb_res, dim[2]/vdb_res))
 
-    path = result_vdb_dir_registry[dimension] + '/'+ model_key
+    path = result_visual_registry[dimension] + '/'+ model_key
     np.savez(f"{path}.npz",
                 activation = activation, 
                 density = density,

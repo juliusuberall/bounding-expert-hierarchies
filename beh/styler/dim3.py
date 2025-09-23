@@ -7,6 +7,52 @@ from beh.core.moe_sparse import *
 from beh.core.mlp import mlp_forward_INF
 from beh.core.shared import batch_data
 from beh.core.moe_benchmarking import gating_confidence
+from skimage.measure import marching_cubes
+
+inf_batch_size = 2048 # Important to ensure no query swalloing when sampling full MoE
+
+#------------------------------------------------------------------------------------
+
+def marching_cube(
+    dimension : int, 
+    grid_res : int,
+    model ,
+    model_key : str,
+    configs : dict,
+    reg : CoreRegistry):
+    '''Create a .ply file for the extracted decision boundary using marching cubes.'''
+
+    # Get data info
+    threshold = configs['general']['boundary_threshold']
+    dim = reg.get(core_keys['data_size_key'])
+    bounds = reg.get(core_keys['data_bounds_key'])
+    model_type = configs[model_key]['type']
+
+    # Define sampling grid for marching cubes
+    ## Defines mesh resolution
+    mc_res = grid_res
+    lin = np.linspace(-1, 1, mc_res)
+    mc_x, mc_y, mc_z = np.meshgrid(lin, lin, lin, indexing='ij')  # use 'ij' for matrix-style indexing
+    mc_x = np.stack([mc_x, mc_y, mc_z], axis=-1).reshape(-1, 3)  
+
+    # Evaluate the function over grid
+    mc_x = batch_data(mc_x, inf_batch_size)
+    if model_type == 'moe':
+        values = batch_query_moe_OOM(mc_x, model, sparse_funcs_2048[model_key], 50)
+    else:
+        values = batch_query_mlp_OOM(mc_x, model, 50)
+    values = np.array(values).reshape((mc_res,mc_res,mc_res))
+
+    # Extract mesh at with threshold of SDF
+    voxel_spacing = (dim[0]/mc_res, dim[1]/mc_res, dim[2]/mc_res)
+    verts, faces, normals, values_on_surface = marching_cubes(values, level=threshold, spacing=voxel_spacing)
+
+    # Export
+    implicitMesh = tm.Trimesh(vertices=verts, faces=faces, vertex_normals=normals)
+    implicitMesh.apply_translation(bounds[0])
+    path = result_visual_registry[dimension] + '/'+ model_key
+    implicitMesh.export(f"{path}.ply")
+
 
 #------------------------------------------------------------------------------------
 

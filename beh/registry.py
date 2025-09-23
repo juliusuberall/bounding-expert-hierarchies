@@ -23,11 +23,11 @@ result_dir_registry = {
 }
 
 # VDB directory managment 
-result_vdb_dir_registry = {
+result_visual_registry = {
     2 : None, 
-    3 : result_dir_registry[3] + "/vdb", 
-    4 : result_dir_registry[4] + "/vdb", 
-    9 : result_dir_registry[9] + "/vdb", 
+    3 : result_dir_registry[3] + "/visual_data", 
+    4 : result_dir_registry[4] + "/visual_data", 
+    9 : result_dir_registry[9] + "/visual_data", 
 }
 
 # Model directory managment 

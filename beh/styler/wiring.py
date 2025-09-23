@@ -3,7 +3,7 @@ import jax
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
 from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_internal_comparison, export_plot_2D_binary_comparison_paper_row
-from beh.styler.dim3 import prep_openVDB
+from beh.styler.dim3 import prep_openVDB, marching_cube
 from beh.gsheets_registry import gsheet_log_results
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
@@ -53,6 +53,7 @@ def format_export_results(
             export_plot_2D_binary_comparison_paper_row(model_key, y, reg, configs, dimension, threshold, export_binary=True)
         elif dimension == 3:
             prep_openVDB(dimension, 100, model, model_key, configs, reg)
+            marching_cube(dimension, 100, model, model_key, configs, reg)
         elif dimension == 4:
             pass
         elif dimension == 9:
@@ -65,6 +66,7 @@ def format_export_results(
             export_plot_2D_mlp_internal(model_key, y, reg, dimension, threshold, model_detail_str)
         elif dimension == 3:
             prep_openVDB(dimension, 100, model, model_key, configs, reg)
+            marching_cube(dimension, 100, model, model_key, configs, reg)
         elif dimension == 4:
             pass
         elif dimension == 9:

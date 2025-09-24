@@ -71,11 +71,11 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     nex = activation.shape[1]
     max_kl = jnp.log(nex)
     g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
-    kl_loss = jnp.sum(g * jnp.log(g / (1 / nex) + epsilon))# / max_kl # Only normalize in 3D adn higher, becausing gating becomes more complex
+    kl_loss = jnp.sum(g * jnp.log(g / (1 / nex) + epsilon))
 
     # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
-    ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 1)
+    ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 5)
 
     return kl_loss + bce_loss + ae_loss
 

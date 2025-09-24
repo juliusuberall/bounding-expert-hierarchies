@@ -19,6 +19,7 @@ def preprocess_4D(args):
     folderN = folder + f"/{args.data_name}/negative"
     folderP = folder + f"/{args.data_name}/positive"
     start_frame, end_frame = args.start, args.end
+    frame_rate = args.frame_rate
 
     ## Check if positive and negative frame amount matches 
     p_endF, n_endF = np.sum([f.split(".")[1] == "npy" for f in os.listdir(folderP)]), np.sum([f.split(".")[1] == "npy" for f in os.listdir(folderN)])
@@ -28,9 +29,9 @@ def preprocess_4D(args):
     t = np.linspace(0, 1, end_frame - start_frame)
     sample_types = [folderN, folderP] # Index equals sample label
     x, y = [], []
-    for i in range(start_frame, end_frame):
+    for i in range(start_frame, end_frame, frame_rate):
         for j in range(len(sample_types)):
-            samples = np.load(sample_types[j] + f"/frame_{i+1:04d}.npy")
+            samples = np.load(sample_types[j] + f"/frame_{i:04d}.npy")
             samples = np.concatenate((
                 np.full((samples.shape[0],1), t[i - start_frame]), 
                 samples, 
@@ -41,7 +42,7 @@ def preprocess_4D(args):
 
         # Print when positive and negative samples of frame are processed
         end = '\n' if i == (end_frame - 1) else '\r'
-        print(f'Loaded: frame_{i+1:04d}.npy', end = end, flush = True)
+        print(f'Loaded: frame_{i:04d}.npy', end = end, flush = True)
     
     # Pre-Process data such that
     ## x shape [n samples, 4D (frame, XYZ)]

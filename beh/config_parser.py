@@ -81,5 +81,10 @@ def parse_sample():
         type = int,
         default = None,
         help = "Dataset End Frame")
+    parser.add_argument(
+        "--frame_rate",
+        required=False, 
+        type = int,
+        default = None)
     
     return parser.parse_args()

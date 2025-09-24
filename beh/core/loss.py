@@ -75,7 +75,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 
     # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
-    ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 5)
+    ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 1)
 
     return kl_loss + bce_loss + ae_loss
 

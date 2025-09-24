@@ -53,6 +53,7 @@ def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
     pass
 
 def export_plot_training_metrics (
+    data_name : str,
     model_key : str,
     model_detail_str : str,
     reg : CoreRegistry,
@@ -94,7 +95,7 @@ def export_plot_training_metrics (
         raise ValueError(f"Unsupported model type: {model_type}")
 
     # Export plot
-    path = result_dir_registry[dimension] + f"/{model_key}_{dimension}D_training.png"
+    path = result_dir_registry[dimension] + f"/{data_name}_{model_key}_{dimension}D_training.png"
     plt.legend()
     plt.tight_layout(rect=[0, 0.25, 1, 0.99])
     plt.savefig(path)

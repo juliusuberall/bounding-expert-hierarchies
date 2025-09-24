@@ -43,7 +43,7 @@ def format_export_results(
     model_detail_str = create_model_details_string(model_type, model_key, reg, configs, dimension) 
 
     # Result plots relevant for all dimensions and models
-    export_plot_training_metrics(model_key, model_detail_str, reg, configs, dimension)
+    export_plot_training_metrics(data_name, model_key, model_detail_str, reg, configs, dimension)
 
     # Create model internal state overview
     if model_type == 'moe':

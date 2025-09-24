@@ -69,5 +69,17 @@ def parse_sample():
         choices = [ 'random', 'grid'],
         default = None,
         help = "Sampling Strategy")
+    parser.add_argument(
+        "--start",
+        required=False, 
+        type = int,
+        default = None,
+        help = "Dataset Start Frame")
+    parser.add_argument(
+        "--end",
+        required=False, 
+        type = int,
+        default = None,
+        help = "Dataset End Frame")
     
     return parser.parse_args()

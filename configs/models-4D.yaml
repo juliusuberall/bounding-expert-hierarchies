@@ -2,42 +2,44 @@ general:
   batch_size: 2048 # Training
   learning_rate: 0.01 # Training
   loss_logging_frequency: 100 # Each N epoch we print and save the loss
-  boundary_threshold: 0.1 # Decision boundary when converting continous model output to binary 
+  boundary_threshold: 0.5 # Decision boundary when converting continous model output to binary 
   inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
-  inf_bench_repitions: 100 # Number of repitions to average speed benchmark 
+  inf_bench_repitions: 1000 # Number of repitions to average speed benchmark 
+  aa_scaling : 3 # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
+  inf_benchmark : True # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
 
-# Small = 170
+# Small = 200
 mlpS:
   type: 'mlp'
-  min_epochs: 30000
+  min_epochs: 15000
   hidden_layer: [11,11]
 moeS:
   type: 'moe'
-  min_epochs: 30000
+  min_epochs: 15000
   nex : 4
   expert_hidden_layer: [4,4]
-  gate_hidden_layer: [2]
+  gate_hidden_layer: [4]
 
 # Medium = 6K
 mlpM:
   type: 'mlp'
-  min_epochs: 30000
-  hidden_layer: [52,52,52]
+  min_epochs: 20000
+  hidden_layer: [53,53,53]
 moeM:
   type: 'moe'
-  min_epochs: 30000
+  min_epochs: 20000
   nex : 16
   expert_hidden_layer: [12,12,12]
-  gate_hidden_layer: [4]
+  gate_hidden_layer: [8]
 
-# Large = 20K
+# Large = 21K
 mlpL:
   type: 'mlp'
   min_epochs: 30000
-  hidden_layer: [98,98,98]
+  hidden_layer: [100,100,100]
 moeL:
   type: 'moe'
   min_epochs: 30000
   nex : 32
   expert_hidden_layer: [16,16,16]
-  gate_hidden_layer: [8]
+  gate_hidden_layer: [16]

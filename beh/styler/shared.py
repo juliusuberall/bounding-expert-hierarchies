@@ -161,6 +161,9 @@ def export_plot_model_comparison_graph (
     '''
     Creates performance plot which shows FP rate in relation to inference speed.
     '''
+    # Skip for 9D as we dont run benchmarks
+    if dimension == 9 : return
+
     # Get results
     ## MLP
     mlps_speed, mlps_fp = [], []

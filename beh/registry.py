@@ -11,7 +11,7 @@ model_config_registry = {
     2 : "./configs/models-2D.yaml", 
     3 : "./configs/models-3D.yaml", 
     4 : "./configs/models-4D.yaml", 
-    9 : "./configs/models-4Dplus.yaml",
+    9 : "./configs/models-4D_plus.yaml",
 }
 
 # Result data directory managment 

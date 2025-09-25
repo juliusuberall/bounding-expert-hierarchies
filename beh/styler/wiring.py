@@ -4,6 +4,7 @@ from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
 from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_internal_comparison, export_plot_2D_binary_comparison_paper_row
 from beh.styler.dim3 import prep_openVDB, marching_cube
+from beh.styler.dim4plus import pose_marching_cube
 from beh.gsheets_registry import gsheet_log_results
 
 def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
@@ -57,7 +58,7 @@ def format_export_results(
         elif dimension == 4:
             pass
         elif dimension == 9:
-            pass
+            pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")
     

@@ -94,5 +94,6 @@ def load_samples(path : str, reg : CoreRegistry,):
 
     # Store sample size per dimension 
     reg.add(core_keys['data_size_key'], size)
+    reg.add(core_keys['data_bounds_key'], bounds)
 
     return reg, x ,y

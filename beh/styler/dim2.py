@@ -168,6 +168,7 @@ def color_by_expert(nex : int, yp : jax.Array, top1_activation : jax.Array):
 #------------------------------------------------------------------------------------
 
 def export_plot_2D_mlp_internal (
+    data_name : str,
     model_key : str,
     y : jax.Array,
     reg : CoreRegistry,

@@ -12,25 +12,25 @@ general:
 mlpS:
   type: 'mlp'
   min_epochs: 15000
-  hidden_layer: [12,12]
+  hidden_layer: [11,11]
 moeS:
   type: 'moe'
   min_epochs: 15000
   nex : 4
   expert_hidden_layer: [4,4]
-  gate_hidden_layer: [4,4]
+  gate_hidden_layer: [4]
 
 # Medium = 6K
 mlpM:
   type: 'mlp'
   min_epochs: 20000
-  hidden_layer: [54,54,54]
+  hidden_layer: [53,53,53]
 moeM:
   type: 'moe'
   min_epochs: 20000
   nex : 16
   expert_hidden_layer: [12,12,12]
-  gate_hidden_layer: [4,8]
+  gate_hidden_layer: [8]
 
 # Large = 21K
 mlpL:
@@ -42,4 +42,4 @@ moeL:
   min_epochs: 30000
   nex : 32
   expert_hidden_layer: [16,16,16]
-  gate_hidden_layer: [8,16]
+  gate_hidden_layer: [16]

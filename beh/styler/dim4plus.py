@@ -4,6 +4,7 @@ from skimage.measure import marching_cubes
 from beh.core.registry import *
 from beh.core.shared import batch_data
 from beh.core.moe import batch_query_moe_OOM
+from beh.core.mlp import batch_query_mlp_OOM
 from beh.core.moe_sparse import *
 
 inf_batch_size = 2048 # Important to ensure no query swalloing when sampling full MoE
@@ -26,6 +27,7 @@ def marching_cube_9D(
     threshold = configs['general']['boundary_threshold']
     dim = reg.get(core_keys['data_size_key'])
     bounds = reg.get(core_keys['data_bounds_key'])
+    model_type = configs[model_key]['type']
 
     # Define sampling grid for marching cubes
     ## Defines mesh resolution
@@ -38,7 +40,10 @@ def marching_cube_9D(
 
     # Evaluate the function over grid
     mc_x = batch_data(mc_x, inf_batch_size)
-    values = batch_query_moe_OOM(mc_x, model, sparse_funcs_2048[model_key], 50)
+    if model_type == 'moe':
+        values = batch_query_moe_OOM(mc_x, model, sparse_funcs_2048[model_key], 50)
+    else:
+        values = batch_query_mlp_OOM(mc_x, model, 50)
     values = np.array(values).reshape((mc_res,mc_res,mc_res))
 
     # Extract mesh at with threshold of SDF
@@ -72,6 +77,15 @@ def pose_marching_cube (
         [3.22525375718,-1.44616173088,2.24267958040,-2.36731417631,-1.57079632679,1.65445743038], # frame 12
         [2.65759882087,-1.42482560108,2.25287529317,-2.39884601889,-1.57079632679,1.08680249408] # frame 16
     ])
+    ## Joint normalisation to -1.0 to 1.0 - expects joint to have an initial range of -2*Pi to 2*Pi
+    poses = remap(
+        poses,
+        -2*np.pi,
+        2*np.pi,
+        0,
+        1
+    )
+    poses = poses * 2 - 1
 
     # Extract mesh for poses
     for i in range(poses.shape[0]):

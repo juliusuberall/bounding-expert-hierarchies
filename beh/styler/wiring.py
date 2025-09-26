@@ -71,7 +71,7 @@ def format_export_results(
         elif dimension == 4:
             pass
         elif dimension == 9:
-            pass
+            pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")
 

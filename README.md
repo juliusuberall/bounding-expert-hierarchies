@@ -1,14 +1,36 @@
 # Bounding Expert Hierarchies
 > [Julius Überall](https://juliusuberall.com/), [Tobias Ritschel](https://www.homepages.ucl.ac.uk/~ucactri/) <br>
-> University College London <br>
-> X (__X__), September 2025 <br>
+> University College London, UK
+Meta Reality Labs, USA <br>
+> September 2025 <br>
 > [Project page]() | [Paper]() | [Video]() | [Presentation]() | [BibTeX]()
 
-Python/JAX implementation of Bounding Expert Hierarchies, using neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 4D+ spaces. Using Mixture of Experts (MoE) the data is distributed and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the data and collectivly learn the whole data.
+Python/JAX implementation of Bounding Expert Hierarchies, using neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 4D+ spaces. Using Mixture of Experts (MoE) the implict representation is distributed with a gate network and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the scene and collectivly learn the entire scene.
 
-![Paper thumbnail](docs/4D_thumbnail.png)
+![Paper thumbnail](docs/beh_2D_results.png)
 
 ## Getting Started
+<details>
+<summary><strong>Repository Overview</strong></summary>
+Below is an outline of our repository. Our beh implementation, which is likley what you are looking for, is divided into adapter, core and styler.
+
+```
+bounding-expert-hierarchies/
+│── .vscode/                  # Visual Studio Code Launch settings
+│   ├── launch.json           # Task definition for full pipeline execution and debugging profiles
+│── beh/                      # Our implementation 
+│   ├── adapter/              # Data sampling and training data loading and preprocessing
+│   ├── core/                 # Model implementations, training procedures and benchmarking
+│   ├── styler/               # Result plotting and visualization
+│── configs/...               # Stores YAML configurations for all dimensions including training hyperparameters and model architectures
+│── data/...                  # Example data for 2D, 3D, 4D and 4D+ e.g. images, geometries, samples as .npz 
+│── scripts/                  # All main scripts for execution
+│   ├── preprocess.py         # Preprocess data into correct pipeline format or sample in 3D
+│   ├── train_evaluate.py     # Train models and evaluate for specified dimension
+│── tools/                    # Additional tools like extracing mesh from .npz 3D samples
+│── requirements.txt          # pip environment freeze
+```    
+</details>
 <details>
   <summary><strong>Clone</strong></summary>
 
@@ -49,13 +71,11 @@ pip install -r requirements.txt
 &nbsp;<br>
 This section will focus on running the implemented experiments from the project. It introduces the experiment and implementation flow used in this repository and may help for setting up custom studies. 
 
-### Local terminal
-```
-Execute some shell script triggering all python code and producing numerical and visual results
-```
-
 ### VS Code
-Use the pre-defined launch profiles to run the experiments and debug any arising issues.
+The easiest way is to simply use the pre-defined launch and debugging profiles to run the experiments or trace any arising issues. This is the workflow we use when implementing our codebase and running the experiments.
+
+### Local terminal
+Check out our .vscode profiles shipped with this repo and invoke the python scripts with the respective arguments using shell.
 
 ### Google Collab
 Clone the repo using google collab and change the directory to the repo folder.
@@ -74,6 +94,12 @@ Trigger the train and evaluation experiment pipeline with the respective argumen
 ```
 !python scripts/train_evaluate.py --data_name dwarfumbrella --query point --dim 2
 ```
+### Google Spread Results Sync
+The pipeline allows to store results in a google spreadsheet, storing benchmarking results and hyperparameters in an organized fahsion. If this is of interest for your workflows, check out the following file and add the required gspread api arguments for your spreadsheet.
+```
+beh/gsheets_registry.py
+```
+This synchronisation is called as a final procedure of an experiment for a single model.
 </details>
 
 <details>
@@ -83,54 +109,33 @@ Trigger the train and evaluation experiment pipeline with the respective argumen
 This section will focus on setting up your own experiments and / or replacing the experiment data.
 </details>
 
-<details>
-  <summary><strong>Repository Structure</strong></summary>
-    
-```
-bounding-expert-hierarchies/
-│── .vscode/                  # Visual Studio Code Launch settings
-│   ├── launch.json           # Debugging profiles
-│   ├── tasks.json            # Task definition for full pipeline execution
-│── configs/...               # Stores YAML configurations for all model architectures
-│── data/...                  # 2D, 3D, 4D and 4D+ data e.g. image, geometry, samples 
-│── docs/...                  # Github and project page content 
-│── scripts/                  # All main scripts for execution
-│   ├── analyze_inference.py  # Analyzes inference of models e.g. speed, accuracy 
-│   ├── format_results.py     # Processes and visualizes analysis results
-│   ├── train_models.py       # Instantiates models and trains until saturation
-│── src/                      # Core source code and python module 
-│   ├── dataloader.py         # Data loader 
-│   ├── moe.py                # Mixture of Experts (MoE) Implementation 
-│   ├── mlp.py                # Multilayer Perceptron (MLP) Implementation
-│── .gitignore
-│── requirements.txt
-│── README.md 
-```    
-</details>
-
 ## Data
 <details>
   <summary><strong>2D</strong></summary>
 
 &nbsp;<br>
+We use RGBA images and all 2D data was produced using image generation models.
 </details>
 
 <details>
   <summary><strong>3D</strong></summary>
 
 &nbsp;<br>
+We use a collection of self-modeled meshes and other models from the web.
 </details>
 
 <details>
   <summary><strong>4D</strong></summary>
 
 &nbsp;<br>
+We did a fluid simulation in Blender and also sampled the mesh of such during each keyframe in Blender. We store positive and negative samples in .npy arrays for each frame and preprocess those into a joint .npz training data file with the experiment pipelines.
 </details>
 
 <details>
   <summary><strong>4D+</strong></summary>
 
 &nbsp;<br>
+We did a toolpath simualtion for a Universal Robot UR10 robot in Rhino3D and Grasshopper3D using the Robots plugin. For each simulation frame we store positive and negative samples in .txt file and preprocess those into a joint .npz training data file with the experiment pipelines.
 </details>
 
 ## Citation

@@ -3,7 +3,6 @@
 > University College London, UK
 Meta Reality Labs, USA <br>
 > September 2025 <br>
-> [Project page]() | [Paper]() | [Video]() | [Presentation]() | [BibTeX]()
 
 Python/JAX implementation of Bounding Expert Hierarchies, using neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 4D+ spaces. Using Mixture of Experts (MoE) the implict representation is distributed with a gate network and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the scene and collectivly learn the entire scene.
 
@@ -125,19 +124,3 @@ We did a fluid simulation in Blender and also sampled the mesh of such during ea
 &nbsp;<br>
 We did a toolpath simualtion for a Universal Robot UR10 robot in Rhino3D and Grasshopper3D using the Robots plugin. For each simulation frame we store positive and negative samples in .txt file and preprocess those into a joint .npz training data file with the experiment pipelines.
 </details>
-
-## Citation
-
-```bibtex
-@article{something_interesting,
-   author = {xxx, XXX},
-   title = {xxx},
-   booktitle = {xxx},
-   year = {xxx},
-   location = {xxx},
-   publisher = {xxx},
-   address = {xxx},
-   pages = {xxx},
-   doi = {xxx}
-}
-```

@@ -9,8 +9,6 @@ from beh.config_parser import *
 from beh.core.wiring import *
 from beh.shared import setup_dirs
 
-from beh.styler.shared import export_plot_model_comparison_graph
-
 def main():
 
     key = jax.random.PRNGKey(28)
@@ -75,11 +73,6 @@ def main():
         #     configs = configs,
         #     model = model
         # )
-
-    export_plot_model_comparison_graph(
-        reg = reg,
-        configs = configs,
-        dimension = args.dim)
 
 if __name__ == '__main__':
     main()

@@ -7,7 +7,7 @@ from beh.core.moe import batch_query_moe_OOM
 from beh.core.mlp import batch_query_mlp_OOM
 from beh.core.moe_sparse import *
 
-inf_batch_size = 2048 # Important to ensure no query swalloing when sampling full MoE
+inf_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
 
 #------------------------------------------------------------------------------------
 
@@ -69,8 +69,7 @@ def pose_marching_cube (
     '''Loop over specified 6D poses and extract the decision boundary in a MoE.'''
     
     # Select poses to query
-    ## This hardcoded and specific to the dataset. If creating new
-    ## dataset for a robot this needs to be updated.
+    ## This is hardcoded and specific to the dataset. If creating new dataset for a robot this needs to be updated.
     poses = np.array([
         [2.27260541021,-1.61643156397,2.16519718803,-2.11956195086,-1.57079632679,0.701809083412], # frame 4
         [2.84013220260,-1.31661436222,1.82411728984,-2.07829925441,-1.57079632679,1.26933587580], # frame 8

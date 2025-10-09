@@ -13,10 +13,9 @@ def preprocess_4Dplus(args):
     4D plus 
     \nLoads the positive and negative samples for a universal robot 10 created with Grasshopper. 
     \nCreates labels (y) and 9D coordinates (X ,Y ,Z ,RJ1 ,RJ2 ,RJ3 ,RJ4 ,RJ5 ,RJ6 ). 
-    \nSaves the mesh dimension and bounds to the core registry.
     '''
 
-    # Expects a certain folder structure to pre process the 4D samples
+    # Expects a certain folder structure to pre process the 4D+ samples
     folder = data_dir_registry[9]
     folderN = folder + f"/{args.data_name}/negative"
     folderP = folder + f"/{args.data_name}/positive"
@@ -54,7 +53,6 @@ def preprocess_4Dplus(args):
 
     # Get total bounding box dimensions
     # -> to translate the samples correct after normalization
-    # -> hint at sample density 
     cloud = tm.PointCloud(x[...,:3])
     size = np.array((
         cloud.bounds[1,0] - cloud.bounds[0,0],
@@ -68,7 +66,7 @@ def preprocess_4Dplus(args):
 def load_samples(path : str, reg : CoreRegistry,):
     '''
     4D plus
-    Load samples from a .npz formatted file with the expected content.
+    Load samples from a .npz formatted file with the expected content and update core registry.
     '''
     # Load moe .npz file 
     loaded = np.load(path)

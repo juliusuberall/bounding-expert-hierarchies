@@ -63,6 +63,9 @@ def export_plot_training_metrics (
     Create a training metrics plot, showing the trend throughout training inlcuding:
     \n- False-Negative Rate
     \n- False-Positive Rate
+    \n- Gate Confidence
+    \n- Active Experts
+    \n- Conservative Experts
     '''
 
     # Retrieve model specific key for results and type

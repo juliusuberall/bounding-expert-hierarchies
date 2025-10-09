@@ -9,7 +9,6 @@ def sample_obj_random (args):
     '''
     3D 
     \nLoads OBj mesh and samples the mesh within its bounding box randomly uniform. Creates labels (y) and 3D coordinates (x). 
-    \nSaves the mesh dimension to the core registry.
     '''
     # Load OBJ mesh
     path = data_dir_registry[args.dim] + f"/{args.data_name}.obj"
@@ -17,7 +16,6 @@ def sample_obj_random (args):
 
     # Get bounding box dimensions
     # -> to generate uniform samples in the bounding box
-    # -> hint at sampling density 
     size = np.array((
         mesh.bounds[1,0] - mesh.bounds[0,0],
         mesh.bounds[1,1] - mesh.bounds[0,1],
@@ -35,7 +33,6 @@ def sample_obj_grid (args):
     '''
     3D 
     \nLoads OBj mesh and samples the mesh within its bounding box in a grid. Creates labels (y) and 3D coordinates (x). 
-    \nSaves the mesh dimension and bounds to the core registry.
     '''
     # Load OBJ mesh
     path = data_dir_registry[args.dim] + f"/{args.data_name}.obj"
@@ -43,7 +40,6 @@ def sample_obj_grid (args):
 
     # Get bounding box dimensions
     # -> to generate uniform samples in the bounding box
-    # -> hint at sampling density 
     size = np.array((
         mesh.bounds[1,0] - mesh.bounds[0,0],
         mesh.bounds[1,1] - mesh.bounds[0,1],
@@ -64,7 +60,7 @@ def sample_obj_grid (args):
 def load_samples(path : str, reg : CoreRegistry,):
     '''
     3D
-    Load samples from a .npz formatted file with the expected content.
+    Load samples from a .npz formatted file with the expected content and update core registry.
     '''
     # Load moe .npz file 
     loaded = np.load(path)

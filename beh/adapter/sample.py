@@ -6,7 +6,7 @@ from beh.registry import *
 
 def checkpoint_samples(x, y, size):
     '''
-    Prints a collection of relevant metrics about the training data such as datatype, range, number of samples etc.
+    Prints a collection of relevant metrics about the sampled samples such as datatype, range, number of samples etc.
     '''
     # Checkpoint to catch numeric and type missmatches which are
     # difficult to debug on lower levels
@@ -20,7 +20,7 @@ def checkpoint_samples(x, y, size):
 
 def save_samples(args, x, y, size, bounds):
     '''
-    Saves the samples as .npz file with keywords x, y and size.
+    Saves the samples as .npz file with keywords x, y, size, bounds and strategyt(sampling).
     '''
     if x.shape[0] < 1e+3 :
         n_samples = x.shape[0]

@@ -11,7 +11,6 @@ def preprocess_4D(args):
     '''
     4D 
     \nLoads the positive and negative sample created with Blender. Creates labels (y) and 4D coordinates (X, Y, Z, time). 
-    \nSaves the mesh dimension and bounds to the core registry.
     '''
 
     # Expects a certain folder structure to pre process the 4D samples
@@ -53,8 +52,7 @@ def preprocess_4D(args):
     x[...,1:4] = blenderXYZ_to_trimeshXYZ(x[...,1:4]).astype(jnp.float32)
 
     # Get total bounding box dimensions
-    # -> to translate the samples correct after normalization
-    # -> hint at sample density 
+    # -> to translate the samples correct after normalization for the model
     cloud = tm.PointCloud(x[...,1:4])
     size = np.array((
         cloud.bounds[1,0] - cloud.bounds[0,0],
@@ -67,7 +65,7 @@ def preprocess_4D(args):
 def load_samples(path : str, reg : CoreRegistry,):
     '''
     4D
-    Load samples from a .npz formatted file with the expected content.
+    Load samples from a .npz formatted file with the expected content and update core registry.
     '''
     # Load moe .npz file 
     loaded = np.load(path)

@@ -10,7 +10,7 @@ from beh.core.shared import batch_data
 from beh.core.moe_benchmarking import gating_confidence
 from skimage.measure import marching_cubes
 
-inf_batch_size = 2048 # Important to ensure no query swalloing when sampling full MoE
+inf_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
 
 #------------------------------------------------------------------------------------
 

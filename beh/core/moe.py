@@ -18,7 +18,10 @@ def moe_forward_expert(p : list, x : jax.Array):
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
         x = jax.nn.tanh(x @ e)
     x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-    return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 # 3D jax.nn.tanh((x @ p[-1]) * 0.01) * 10.0
+    # We found that these additional factors improved the accurarcy as well as the "double" activation with tanh() and sigmoid() in the final layer.
+    # The sigmoid is not defined here, because OPTAX does this for numerical stability in their BCE implementation. Therefore the regualr model output
+    # needs to be additionally transformed with sigmoid()
+    return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 
 
 @jax.jit
 def moe_forward_expert_INF(p : dict, x : jax.Array):
@@ -90,7 +93,7 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
     '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
     \nPassing all batches at once can be done with batch_query_moe().'''
 
-    # Forward batch subsets WITHOUT remapping the subsets already to 0.0 - 1.0
+    # Forward batch subsets WITHOUT remapping the subsets model output already to 0.0 - 1.0
     yp_all = []
     for i in range(0, len(x_batches), at_once):
         yp, _ = batch_query_moe(x_batches[i:i+at_once], moe, func, remap_flag=False)
@@ -108,6 +111,8 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
     return yp_all
 
 #------------------------------------------------------------------------------------
+
+# Not tested in a while - requires potentially to be updated
 
 def export_moe( moe : dict, model_key : str) -> str:
     # Convert to NumPy and save parameters as dictionary of numpy arrays

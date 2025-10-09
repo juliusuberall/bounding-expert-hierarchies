@@ -16,7 +16,7 @@ def init_layer(layer_dims, key):
     p = []
     keys = jax.random.split(key, len(layer_dims))
     for k, (n_in, n_out) in zip(keys, zip(layer_dims[:-1], layer_dims[1:])):
-        # ReLU, LeCun initialization
+        # LeCun initialization
         w = jax.random.normal(k, (n_in + 1, n_out)) * jnp.sqrt(1 / n_in)
         # Zero all bias weights for legit initialization 
         w = w.at[n_in, ...].set(0)
@@ -61,7 +61,7 @@ def init_moe(g_arch, e_arch, n_experts, key):
     keys = jax.random.split(subkey, len(g_arch))
     for k, (n_in, n_out) in zip(keys, zip(g_arch[:-1], g_arch[1:])):
       # Account for bias by +1 input dim
-      super_layer = jax.random.normal(k, (n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # ReLU, LeCun initialization
+      super_layer = jax.random.normal(k, (n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # LeCun initialization
       # Zero all bias weights for legit initialization 
       super_layer = super_layer.at[n_in, ...].set(0)
       g.append(super_layer)
@@ -72,7 +72,7 @@ def init_moe(g_arch, e_arch, n_experts, key):
     keys = jax.random.split(subkey, len(e_arch))
     for k, (n_in, n_out) in zip(keys, zip(e_arch[:-1], e_arch[1:])):
       # Account for bias by +1 input dim
-      super_layer = jax.random.normal(k, (n_experts, n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # ReLU, LeCun initialization
+      super_layer = jax.random.normal(k, (n_experts, n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # LeCun initialization
       # Zero all bias weights for legit initialization 
       super_layer = super_layer.at[jnp.arange(n_experts), n_in, ...].set(0)
       e.append(super_layer)

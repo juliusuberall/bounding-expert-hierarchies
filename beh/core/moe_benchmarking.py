@@ -19,7 +19,7 @@ def register_accuracy(
     ):
     '''
     Computes and registers the accuracy with the provided training data batches.
-    \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in %.
+    \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in % of max FN or FP that could be reached.
     '''
     # Dense MoE inference
     dense_yp, dense_yp_raw = batch_query_moe(x_batches, moe, moe_forward_dense_INF)
@@ -72,7 +72,7 @@ def register_inference_speed (
     '''
     \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
     \nRegisters the measured inference speed over N iterations.
-    \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
+    \nWe compute the median instead of average, since the average is more prone and unstable due to noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
     '''
     print(f"\nInference Speed MoE:")
 

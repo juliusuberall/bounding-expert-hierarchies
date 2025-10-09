@@ -52,7 +52,7 @@ def benchmark_inference_speed(
         _ = fori().block_until_ready()
     except jaxlib.xla_extension.XlaRuntimeError as e:
         print(f"XLA Runtime Error - Device out of memory. Inference benchmark skipped.")
-        # Ensure GPU memory is cleaned after OOM and return -1
+        # Ensure GPU memory is cleaned after OOM and return -1 as benchmark result
         jax.clear_caches()
         gc.collect()
         return jnp.array(-1.0)
@@ -61,9 +61,10 @@ def benchmark_inference_speed(
     for i in range(reps):
         # Measure speed and convert nano to miliseconds
         start = time.perf_counter_ns()
-        _ = fori().block_until_ready()
+        # .block_until_ready() is essential here to measure the true computation time to account for JAX's asynchronous dispatch:
+        # https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html#just-in-time-compilation-with-jax-jit
+        _ = fori().block_until_ready() 
         end = time.perf_counter_ns()
-        #print("-> One time sample measure completed")
         speed.append((end - start) * 1e-6)
 
         if print_updates:

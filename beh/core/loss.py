@@ -12,6 +12,7 @@ from beh.core.mlp import mlp_forward
 def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
     '''
     Neural bounding asymmetric BCE for achieving conservativness (https://dl.acm.org/doi/abs/10.1145/3641519.3657442).
+    With additional focal term to cover outlier based on "Focal Loss for Dense Object Detection (Lin et al., ICCV 2017)"
     Based on optax.sigmoid_binary_cross_entropy() implementation.
     '''
     chex.assert_type([logits], float)

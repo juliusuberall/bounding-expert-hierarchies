@@ -1,4 +1,3 @@
-import jax
 import numpy as np
 
 def remap(value, low1, high1, low2, high2):

@@ -29,7 +29,7 @@ def expert_conservativness(yp : jax.Array, y : jax.Array, e_idx : jax.Array, thr
 #------------------------------------------------------------------------------------
 
 def mask_grads(grads : dict, frozen_ids : jax.Array):
-    '''Freeze parameters of conservative experts by setting the zero to 0 at those.
+    '''Freeze parameters of conservative experts.
     Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
     expert_grads = []
     for layer in grads["experts"]:
@@ -120,12 +120,11 @@ def train_moe(
     # Dont stop training until:
     # -> Min epochs trained
     # -> FN == 0
-    # -> FP plateaus
     while i < min_epochs or fn != 0.0:
 
         # Using numpy for random sampling because we dont need random
-        # determinism and numpy runs therefor much faster than jax
-        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace true makes this much faster
+        # determinism and numpy runs much faster than jax for random sampling
+        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
         moe, opt_state, gradient = update(moe, opt_state, xB, yB, negative_class_weight)
         

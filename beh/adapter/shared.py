@@ -7,7 +7,7 @@ from beh.core.shared import remap
 
 def checkpoint_training_data(x : jax.Array, y : jax.Array):
     '''
-    Prints a collection of relevant metrics about the training data such as datatype, range, number of samples etc.
+    Prints a collection of relevant metrics about the training data such as datatype, range, number of samples etc. and throws error if out of range.
     '''
     # Checkpoint to catch numeric and type missmatches which are
     # difficult to debug on lower levels

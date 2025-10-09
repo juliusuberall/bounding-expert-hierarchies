@@ -13,7 +13,7 @@ from beh.core.moe import moe_forward_gate, moe_forward_expert
 # a jitted function as an argument to another jitted function. We would need to pass the 
 # JIT minibatch function to the inference function as we require the gate indicies to
 # divide the query into the minibatch.
-# Could not think of a clean solution for this, but happy to hear good alternatives.
+# Could not think of a cleaner solution for this, but happy to hear good alternatives.
 #------------------------------------------------------------------------------------
 
 args, configs = parse_train()
@@ -24,7 +24,7 @@ args, configs = parse_train()
 def moe_forward_sparse_200K_L(p : dict, x : jax.Array):
     logits = moe_forward_gate(p['gate'], x)
     x, unpack_mini = minibatch_200K_L(x, logits)
-    # Since PyTree hold layer with leading axis == number of experts and
+    # Since PyTree holds layer with leading axis == number of experts and
     # we minibatch the queries for each expert, assuming uniformity we 
     # can vmap along PyTree and minibatched queries. Essential for sparsity.
     out = jax.vmap(lambda p, x: moe_forward_expert(p, x))(p['experts'], x)
@@ -215,7 +215,6 @@ def moe_forward_sparse_INF_2048_S(p : dict, x : jax.Array):
 
 @jax.jit
 def minibatch_2048_S(x, logits):
-    # Constants from config
     nex = configs['moeS']['nex']
     in_dim = args.dim
     minibatch_size = 2048

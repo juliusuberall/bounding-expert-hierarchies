@@ -1,7 +1,7 @@
 import jax
 import numpy as np
 
-# Class to register all relevant experiment data
+# Class to register all relevant experiment results and data
 class CoreRegistry:
     def __init__(self):
         self.registry = {}

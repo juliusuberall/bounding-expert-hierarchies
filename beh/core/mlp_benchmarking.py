@@ -18,7 +18,7 @@ def register_accuracy(
     ):
     '''
     Computes and registers the accuracy with the provided training data batches.
-    \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in %.
+    \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in % of max FN or FP that could be reached.
     '''
     
     # MLP inference
@@ -52,8 +52,8 @@ def register_inference_speed (
         inf_batch_size : int) -> CoreRegistry:
     '''
     \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
-    \nRegisters the measured minimum inference speed over N iterations.
-    \nWe compute the minimum instead of average, since the average is more prone and unstable due to background noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
+    \nRegisters the measured median inference speed over N iterations.
+    \nWe compute the median instead of average, since the average is more prone and unstable due to noise, which arise naturally from backrgound processes on the machine such as Thermal throtteling, Garbage collection, background tasks etc.
     '''
     print(f"\nInference Speed MLP:")
 
@@ -74,7 +74,6 @@ def register_inference_speed (
         cache.append([0, 0])
         print('Skipped Benchmarking')
 
-    
     # Save all speeds paired with their batchsize
     reg.add( model_key + core_keys['inf_speed_key'], cache)
 

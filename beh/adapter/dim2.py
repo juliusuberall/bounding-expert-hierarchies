@@ -16,7 +16,8 @@ def preprocess_rgba (path : str, reg : CoreRegistry, downsample : bool = True):
         img = img.resize((300, 300), resample=Image.BILINEAR) 
     img = np.asarray(img, dtype=np.float32)
     assert img.shape[1] != 4, f"2D data is expected to have 4 channel but has {img.shape[1]}."
-    y = ((img / 255.0) > 0.1).astype(int)
+    # If not already binary, convert alpha channel to binary
+    y = ((img / 255.0) > 0.1).astype(int) 
     y = jnp.array(y, dtype=jnp.float32)[...,3].flatten()
     x = jnp.indices(img[...,3].shape).reshape(2,-1).T.astype(jnp.float32)
 

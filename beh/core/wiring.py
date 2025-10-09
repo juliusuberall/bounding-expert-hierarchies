@@ -74,7 +74,8 @@ def get_benchmarks(
     # Dimensions
     img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
 
-    # Define the different batchsizes to test and their sparse MoE inference functions
+    # Define the inference speed batchsizes to test sparse MoE inference functions
+    # This value is somewhat static, as sparse moe forward passes require an implementation per batch size due to JIT minibatching
     inf_batch_size = 200000  
 
     # Batch data

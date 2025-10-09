@@ -8,10 +8,10 @@ from beh.shared import setup_dirs
 # We want to sample 3D geometry ourselfs and not pass right away normalized 
 # and training-ready data to be able to unstretch the model output again for
 # result visualization. If sampled without this script ensure all info is 
-# contained in the sample file.
+# contained in the sample .npz file.
 
 # We only need to preprocess everything 3D and higher. 2D data can be passed 
-# directly as RGBA images.
+# directly as RGBA images and is handled by the pipeline.
 
 def main():
 

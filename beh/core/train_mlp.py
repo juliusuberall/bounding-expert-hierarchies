@@ -9,10 +9,8 @@ from beh.core.registry import *
 from beh.core.shared import *
 from beh.core.benchmarking import *
 from beh.core.loss import mlp_bce_loss
-from beh.core.mlp_benchmarking import register_accuracy
 
 from beh.styler.shared import *
-from beh.styler.dim2 import export_plot_2D_mlp_internal
 
 def train_mlp(
     model_key : str,
@@ -75,12 +73,11 @@ def train_mlp(
     # Dont stop training until:
     # -> Min epochs trained
     # -> FN == 0
-    # -> FP plateaus
     while i < min_epochs or fn != 0.0:
 
         # Using numpy for random sampling because we dont need random
-        # determinism and numpy runs therefor much faster than jax
-        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace true makes this much faster
+        # determinism and numpy runs much faster than jax for random sampling
+        idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
         mlp, opt_state, gradient = update(mlp, opt_state, xB, yB, negative_class_weight)
         

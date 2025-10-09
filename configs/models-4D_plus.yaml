@@ -9,9 +9,13 @@ general:
   inf_benchmark : False # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
 
 # Medium = 20K
+mlpL:
+  type: 'mlp'
+  min_epochs: 30000
+  hidden_layer: [110,110,110]
 moeL:
   type: 'moe'
   min_epochs: 30000
   nex : 32
   expert_hidden_layer: [16,16,16]
-  gate_hidden_layer: [16]
+  gate_hidden_layer: [64]

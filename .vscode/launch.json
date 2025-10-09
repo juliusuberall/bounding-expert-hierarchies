@@ -9,7 +9,7 @@
             "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "dwarfumbrella",
+                "--data_name", "monstera",
                 "--query", "point",
                 "--dim", "2",
             ],
@@ -24,7 +24,7 @@
             "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "jade_1M_grid_samples",
+                "--data_name", "deer_1M_grid_samples",
                 "--query", "point",
                 "--dim", "3",
             ],
@@ -39,7 +39,7 @@
             "program": "${workspaceFolder}/scripts/train_evaluate.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "fluid_9M_samples",
+                "--data_name", "fluid_81to100_2f_1M_samples",
                 "--query", "point",
                 "--dim", "4",
             ],
@@ -69,10 +69,13 @@
             "program": "${workspaceFolder}/scripts/preprocess.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_name", "jade",
+                "--data_name", "apple",
                 "--dim", "3",
                 "--res", "100",
-                "--strategy", "grid"
+                "--strategy", "grid",
+                "--start", "81",
+                "--end", "100",
+                "--frame_rate", "2"
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
@@ -83,6 +86,16 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/tools/gsheet_formatting.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "3D samples to mesh",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/tools/3D_sampled_data_to_mesh.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"

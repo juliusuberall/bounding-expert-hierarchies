@@ -109,7 +109,7 @@ We use RGBA images and all 2D data was produced using image generation models.
   <summary><strong>3D</strong></summary>
 
 &nbsp;<br>
-We use a collection of self-modeled meshes and other models from the web.
+We use a collection of self-modeled meshes and other models from the web. We sample and preprocess those such into a .npz training data file with the experiment pipelines.
 </details>
 
 <details>

@@ -10,6 +10,10 @@ Python/JAX implementation of Bounding Expert Hierarchies, using neural networks 
 ![Paper thumbnail](docs/beh_2D_results.png)
 
 ## Getting Started
+Download or simply clone this repository using the command line:
+```
+git clone https://github.com/juliusuberall/bounding-expert-hierarchies.git
+```
 <details>
 <summary><strong>Repository Overview</strong></summary>
 Below is an outline of our repository. Our beh implementation, which is likley what you are looking for, is divided into adapter, core and styler.
@@ -30,15 +34,6 @@ bounding-expert-hierarchies/
 │── tools/                    # Additional tools like extracing mesh from .npz 3D samples
 │── requirements.txt          # pip environment freeze
 ```    
-</details>
-<details>
-  <summary><strong>Clone</strong></summary>
-
-&nbsp;<br>
-Clone this repository using the command line:
-```
-git clone https://github.com/juliusuberall/bounding-expert-hierarchies.git
-```
 </details>
 <details>
   <summary><strong>Install Dependencies</strong></summary>
@@ -72,7 +67,7 @@ pip install -r requirements.txt
 This section will focus on running the implemented experiments from the project. It introduces the experiment and implementation flow used in this repository and may help for setting up custom studies. 
 
 ### VS Code
-The easiest way is to simply use the pre-defined launch and debugging profiles to run the experiments or trace any arising issues. This is the workflow we use when implementing our codebase and running the experiments.
+The easiest way is simply using the pre-defined launch and debugging profiles to run the experiments or trace any arising issues. This is the workflow we useed when implementing our codebase and running the experiments.
 
 ### Local terminal
 Check out our .vscode profiles shipped with this repo and invoke the python scripts with the respective arguments using shell.
@@ -100,13 +95,6 @@ The pipeline allows to store results in a google spreadsheet, storing benchmarki
 beh/gsheets_registry.py
 ```
 This synchronisation is called as a final procedure of an experiment for a single model.
-</details>
-
-<details>
-  <summary><strong>Custom Experiments</strong></summary>
-
-&nbsp;<br>
-This section will focus on setting up your own experiments and / or replacing the experiment data.
 </details>
 
 ## Data

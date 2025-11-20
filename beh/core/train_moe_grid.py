@@ -3,16 +3,18 @@ import jax.numpy as jnp
 import numpy as np
 import optax
 
-from beh.core.mlp import *
 from beh.core.params import *
 from beh.core.registry import *
-from beh.core.shared import *
-from beh.core.benchmarking import *
-from beh.core.loss import mlp_bce_loss
+from beh.core.moe_benchmarking import *
+from beh.core.loss import moe_grid_train_loss
+from beh.core.moe_grid import moe_grid_select, moe_grid_forward, batch_query_moe_grid
+from beh.core.train_moe import expert_conservativness
 
 from beh.styler.shared import *
 
-def train_mlp(
+#------------------------------------------------------------------------------------
+
+def train_moe_grid(
     model_key : str,
     key : jax.Array,
     x : jax.Array,
@@ -23,7 +25,9 @@ def train_mlp(
     dimension : int):
 
     # Extract model configurations
-    hid_lay = configs[model_key]['hidden_layer']
+    grid_dim = configs[model_key]['grid_dim']
+    nex = grid_dim ** dimension
+    expert_hid_lay = configs[model_key]['expert_hidden_layer']
 
     # Set training hyperparameters
     batch_size = configs['general']['batch_size']
@@ -35,34 +39,35 @@ def train_mlp(
     # Create validation loss batches
     x_batches = batch_data(x, batch_size)
     
-    # Initalize MLP and optimizer
-    mlp_arch = [dimension] + hid_lay + [1]
-    mlp = init_network(
-        mlp_arch,
+    # Initalize MoE and optimizer
+    expert_arch = [dimension] + expert_hid_lay + [1]
+    moe_grid = init_experts(
+        expert_arch,
+        nex,
         key
     )
     opt = optax.adam(learning_rate)
-    opt_state = opt.init(mlp)
+    opt_state = opt.init(moe_grid)
 
     # Count total parameter and store
-    total_p = count_parameter(mlp_arch)
+    total_p = count_parameter(expert_arch) * nex
     reg.add( model_key + core_keys['total_parameters_key'],
             total_p)
     reg.add( model_key + core_keys['active_parameters_key'],
             total_p)
 
     @jax.jit
-    def update(p, opt_state, xB, yB, negative_class_weight):
-        grads = jax.grad(mlp_bce_loss)(p, xB, yB, negative_class_weight)
+    def update(p, opt_state, xB, yB, iB, negative_class_weight):
+        grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads
-
+    
     # Training loop
     print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
-    print(f"MLP: {mlp_arch} | Total P: {total_p}")
+    print(f"{nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
-    fn_cache, fp_cache, slope_cache, epoch_cache = [], [], [], []
+    fn_cache, fp_cache, slope_cache, epoch_cache, con_experts_cache = [], [], [], [], []
     ## Initalize asymmetry factor for BCE
     negative_class_weight = jnp.array(1.0)
 
@@ -70,6 +75,8 @@ def train_mlp(
     fn = jnp.array(1.0)
     train_time_t0 = time.perf_counter_ns()
     making_conservative = False
+    con_experts = jnp.array([])
+    flip = 0
     # Dont stop training until:
     # -> Min epochs trained
     # -> FN == 0
@@ -79,28 +86,44 @@ def train_mlp(
         # determinism and numpy runs much faster than jax for random sampling
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
-        mlp, opt_state, gradient = update(mlp, opt_state, xB, yB, negative_class_weight)
+        iB = moe_grid_select(xB, dimension, grid_dim)
+        moe_grid, opt_state, gradient = update(moe_grid, opt_state, xB, yB, iB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            yp  = batch_query_mlp(x_batches, mlp)  
+            yp , e_idx , __  = batch_query_moe_grid(x_batches, moe_grid, moe_grid_forward, dimension, grid_dim)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
             fn_cache.append(fn) 
-            fp_cache.append(fp) 
-            slope_cache.append(fp) 
+            fp_cache.append(fp)
+            slope_cache.append(fp)  
+
+            # Track number of conservative experts
+            con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
+            con_experts_cache.append(con_experts.size / nex)
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f}")
-            checkpoint_mlp_export_plot_gradient(gradient, dimension, i)
-        
+            print(f"Epoch {i:05d} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Con Experts: {con_experts.size}/{nex}")
+
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
+                if not making_conservative:
+                    # Lower LR and remove Adam decay on gradient.
+                    opt = optax.adam(0.0001)
+                    opt_state = opt.init(moe_grid)
+
+                    @jax.jit
+                    def update(p, opt_state, xB, yB, iB, negative_class_weight):
+                        grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)
+                        updates, opt_state = opt.update(grads, opt_state)
+                        p = optax.apply_updates(p, updates)
+                        return p, opt_state, grads
+
                 making_conservative = True
-                negative_class_weight /= 1.5
                 slope_cache = []
+                negative_class_weight /= 1.5
                 print(f"Decreasing negative weight to {negative_class_weight}")
         i += 1
     
@@ -119,5 +142,8 @@ def train_mlp(
 
     reg_key = model_key + core_keys['train_epoch_key']
     reg.add( reg_key, np.array(epoch_cache))
+
+    reg_key = model_key + core_keys['train_conservative_experts_key']
+    reg.add( reg_key, np.array(con_experts_cache))
     
-    return mlp, reg
+    return moe_grid, reg

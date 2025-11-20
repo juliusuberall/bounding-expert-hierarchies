@@ -9,6 +9,7 @@ from beh.adapter.shared import *
 from beh.registry import *
 from beh.core.registry import *
 from beh.core.train_moe import train_moe
+from beh.core.train_moe_grid import train_moe_grid
 from beh.core.train_mlp import train_mlp
 from beh.core.shared import create_queries
 
@@ -27,6 +28,17 @@ def train_model(
 
     if model_type == 'moe':
         return train_moe(
+            model_key = model_key,
+            key = key,
+            x = x,
+            y = y,
+            reg = reg,
+            configs = configs,
+            query = query,
+            dimension = dimension
+        )
+    elif model_type == 'moe_grid':
+        return train_moe_grid(
             model_key = model_key,
             key = key,
             x = x,

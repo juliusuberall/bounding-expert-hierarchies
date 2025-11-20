@@ -10,7 +10,6 @@ from beh.core.moe_benchmarking import *
 from beh.core.loss import moe_train_loss
 
 from beh.styler.shared import *
-from beh.styler.dim2 import export_plot_2D_moe_internal
 
 #------------------------------------------------------------------------------------
 
@@ -108,7 +107,7 @@ def train_moe(
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache, con_experts_cache = [], [], [], [], [], [], []
-    ## Initalize self balancing factor for BCE
+    ## Initalize asymmetry factor for BCE
     negative_class_weight = jnp.array(1.0)
     
     i = 1

@@ -5,6 +5,7 @@ import jax.numpy as jnp
 
 from beh.core.moe import moe_forward_gate, moe_forward_dense
 from beh.core.mlp import mlp_forward
+from beh.core.moe_grid import moe_grid_forward
 
 #------------------------------------------------------------------------------------
 
@@ -79,6 +80,14 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 1)
 
     return kl_loss + bce_loss + ae_loss
+
+#------------------------------------------------------------------------------------
+
+@jax.jit
+def moe_grid_train_loss(p : list, x : jax.Array, y : jax.Array, idx : jax.Array, negative_class_weight : jax.Array):
+    yp = moe_grid_forward(p, x, idx)
+    loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
+    return loss
 
 #------------------------------------------------------------------------------------
 

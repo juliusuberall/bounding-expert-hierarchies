@@ -2,7 +2,16 @@ import jax
 import jax.numpy as jnp
 
 
-def init_layer(layer_dims, key):
+def count_parameter(layer):
+    """Count single networks parameter. Expects parameters to use bias trick"""
+    p = 0
+    for i in range(1, len(layer)):
+        p += layer[i] * layer[i-1] + layer[i]
+    return p
+
+#------------------------------------------------------------------------------------
+
+def init_network(layer_dims, key):
     """
     Initalize parameters of network (weights and biases)
 
@@ -25,12 +34,19 @@ def init_layer(layer_dims, key):
 
 #------------------------------------------------------------------------------------
 
-def count_parameter(layer):
-    """Count single networks parameter. Expects parameters to use bias trick"""
-    p = 0
-    for i in range(1, len(layer)):
-        p += layer[i] * layer[i-1] + layer[i]
-    return p
+def init_experts(e_arch, n_experts, key):
+    """Initialize expert networks parameters."""
+    # Init Experts parameters
+    key, subkey = jax.random.split(key)
+    e = []
+    keys = jax.random.split(subkey, len(e_arch))
+    for k, (n_in, n_out) in zip(keys, zip(e_arch[:-1], e_arch[1:])):
+      # Account for bias by +1 input dim
+      super_layer = jax.random.normal(k, (n_experts, n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # LeCun initialization
+      # Zero all bias weights for legit initialization 
+      super_layer = super_layer.at[jnp.arange(n_experts), n_in, ...].set(0)
+      e.append(super_layer)
+    return e
 
 #------------------------------------------------------------------------------------
 
@@ -65,16 +81,7 @@ def init_moe(g_arch, e_arch, n_experts, key):
       # Zero all bias weights for legit initialization 
       super_layer = super_layer.at[n_in, ...].set(0)
       g.append(super_layer)
-
-    # Init Experts parameters
-    key, subkey = jax.random.split(key)
-    e = []
-    keys = jax.random.split(subkey, len(e_arch))
-    for k, (n_in, n_out) in zip(keys, zip(e_arch[:-1], e_arch[1:])):
-      # Account for bias by +1 input dim
-      super_layer = jax.random.normal(k, (n_experts, n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # LeCun initialization
-      # Zero all bias weights for legit initialization 
-      super_layer = super_layer.at[jnp.arange(n_experts), n_in, ...].set(0)
-      e.append(super_layer)
+    
+    e = init_experts(e_arch, n_experts, key)
     
     return {'gate': g, 'experts': e}

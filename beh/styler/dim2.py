@@ -36,6 +36,89 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
 
 #------------------------------------------------------------------------------------
 
+def export_plot_2D_moe_grid_internal (
+    data_name : str, 
+    model_key : str,
+    y : jax.Array,
+    reg : CoreRegistry,
+    configs : dict,
+    dimension : int,
+    threshold : float,
+    model_detail_str : str,
+    id : str = ''):
+    '''
+    2D
+    \nCreate grid based MoE internal state overview plot independtly of number of experts inlcuding:
+    \n- Topk activtion map
+    \n- MoE architecture details 
+    '''
+
+    # Dimension
+    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
+
+    # Get model configuration
+    grid_dim = configs[model_key]['grid_dim']
+    nex = grid_dim ** dimension
+    topk = 1
+
+    # Get results from registry
+    yp_raw = reg.get(model_key + core_keys['y_prediciton_RAW_key'])
+    yp = reg.get(model_key + core_keys['y_prediciton_key'])
+    fp = reg.get(model_key + core_keys['fp_key'])
+    fn = reg.get(model_key + core_keys['fn_key'])
+    idx = reg.get(model_key + core_keys['gate_top1_activation_key'])
+
+    # Color prediction based on top-1 expert colors
+    yp_col = color_by_expert(nex, yp, idx)
+
+    background_col = mplt.colors.to_rgba(back_col)
+    mask = np.expand_dims(((yp > threshold) * ( y == 0)), axis=1)
+    yp_col_fp = color_by_expert(nex, mask.flatten().astype(jnp.float32), idx)
+    yp_col_fp = yp_col * mask + ~mask * background_col
+
+    # FN
+    mask = np.expand_dims(((yp <= threshold) * ( y == 1)), axis=1)
+    yp_col_fn = color_by_expert(nex, mask.flatten().astype(jnp.float32), idx)
+    yp_col_fn = yp_col_fn * mask + ~mask * background_col
+    
+    # Create plot 
+    r, c = 2, 3
+    fig, ax = plt.subplots(r,c, figsize=(16,9.2))
+    
+    ## Original
+    ax[0,0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
+    ax[0,0].set_title("Original", fontsize=9)
+
+    ## Activation map
+    ax[0,1].imshow(idx.reshape((img_dim_0,img_dim_1)), vmin=0, cmap=expert_cmap, vmax=nex-1)
+    ax[0,1].set_title(f"Expert Grid", fontsize=9)
+
+    ## Predicitions
+    ax[0,2].imshow(yp_col.reshape((img_dim_0,img_dim_1, -1)))
+    ax[0,2].set_title(f"Model output with\n{round(float(jnp.min(yp_raw)),2)} - {round(float(jnp.max(yp_raw)),2)} remapped to {round(float(jnp.min(yp)),2)} - {round(float(jnp.max(yp)),2)}", fontsize=9)
+    
+    ## FN
+    ax[1,1].imshow((yp_col_fn).reshape((img_dim_0,img_dim_1, -1)))
+    ax[1,1].set_title(f"FN {round(float(fn),8)}", fontsize=9)    
+
+    ## Conservativness
+    ax[1,2].imshow((yp_col_fp).reshape((img_dim_0,img_dim_1, -1)))
+    ax[1,2].set_title(f"FP {round(float(fp),8)}", fontsize=9)
+
+    for i in range(r):
+        for j in range(c):
+            ax[i,j].axis('off')
+
+    fig.text(0.01, 0.05, model_detail_str, fontsize=9)
+    plt.tight_layout()
+
+    # Export plot
+    path = result_dir_registry[dimension] + f"/{data_name}_{model_key}{id}_2D_internal.png"
+    plt.savefig(path)
+    plt.close()
+
+#------------------------------------------------------------------------------------
+
 def export_plot_2D_moe_internal (
     data_name : str, 
     model_key : str,
@@ -196,7 +279,7 @@ def export_plot_2D_mlp_internal (
     ax[0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
     ax[0].set_title("Original", fontsize=9)
     ax[1].imshow(yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
-    ax[1].set_title(f"Model Output", fontsize=9)
+    ax[1].set_title(f"Model output with\n{round(float(jnp.min(yp)),2)} - {round(float(jnp.max(yp)),2)} ", fontsize=9)
     
     # Conservativness
     binary_yp = ((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1))

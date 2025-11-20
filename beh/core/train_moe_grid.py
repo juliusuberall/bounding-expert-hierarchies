@@ -14,6 +14,20 @@ from beh.styler.shared import *
 
 #------------------------------------------------------------------------------------
 
+def mask_grads(grads : list, frozen_ids : jax.Array):
+    '''Freeze parameters of conservative experts.
+    Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
+    expert_grads = []
+    for layer in grads:
+        mask = jnp.ones(layer.shape[0], dtype=layer.dtype)
+        mask = mask.at[frozen_ids].set(0.0)   # 0 for frozen, 1 otherwise
+        # Broadcast mask to match grads shape
+        layer = layer * mask[:, None, None]
+        expert_grads.append(layer)
+    return expert_grads
+
+#------------------------------------------------------------------------------------
+
 def train_moe_grid(
     model_key : str,
     key : jax.Array,
@@ -76,7 +90,6 @@ def train_moe_grid(
     train_time_t0 = time.perf_counter_ns()
     making_conservative = False
     con_experts = jnp.array([])
-    flip = 0
     # Dont stop training until:
     # -> Min epochs trained
     # -> FN == 0
@@ -92,7 +105,7 @@ def train_moe_grid(
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            yp , e_idx , __  = batch_query_moe_grid(x_batches, moe_grid, moe_grid_forward, dimension, grid_dim)  
+            yp , e_idx , yp_raw  = batch_query_moe_grid(x_batches, moe_grid, dimension, grid_dim)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
@@ -106,25 +119,26 @@ def train_moe_grid(
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Con Experts: {con_experts.size}/{nex}")
+            print(f"Epoch {i:05d} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f} | Con Experts: {con_experts.size}/{nex} | yp Range: {jnp.min(yp_raw):04f} to {jnp.max(yp_raw):04f}")
+            checkpoint_moe_grid_export_plot_gradient(gradient, dimension, i)
 
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
-                if not making_conservative:
-                    # Lower LR and remove Adam decay on gradient.
-                    opt = optax.adam(0.0001)
-                    opt_state = opt.init(moe_grid)
-
-                    @jax.jit
-                    def update(p, opt_state, xB, yB, iB, negative_class_weight):
-                        grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)
-                        updates, opt_state = opt.update(grads, opt_state)
-                        p = optax.apply_updates(p, updates)
-                        return p, opt_state, grads
-
                 making_conservative = True
                 slope_cache = []
                 negative_class_weight /= 1.5
                 print(f"Decreasing negative weight to {negative_class_weight}")
+
+                # Change update function to freeze conservative experts.
+                # Since all experts are part of each leaf as we store them combined we
+                # have to do it like this to maintain speed.
+                @jax.jit
+                def update(p, opt_state, xB, yB, iB, negative_class_weight):
+                    grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)
+                    # Freeze conservative experts
+                    grads = mask_grads(grads, con_experts)
+                    updates, opt_state = opt.update(grads, opt_state)
+                    p = optax.apply_updates(p, updates)
+                    return p, opt_state, grads
         i += 1
     
     # Register training metrics

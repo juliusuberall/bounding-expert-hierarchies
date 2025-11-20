@@ -31,6 +31,26 @@ def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
     plt.close()
     pass
 
+# Plot the gradient of a neural network training
+def checkpoint_moe_grid_export_plot_gradient(gradient, dimension, epoch):
+    '''Visualize the MoE gradient during training and export as plot.'''
+  
+    # Create plot
+    plt.title(f"Learning Signal {dimension}D MoE Grid | Epoch {epoch}")
+    for l in gradient:
+        plt.plot(l.flatten(), linewidth=0.5)
+        v, i = jax.lax.top_k(l.flatten(), 1)
+        plt.scatter(i, v, label='EL')
+    plt.xlabel('Weights')
+    plt.ylabel('Signal Strength')
+    plt.legend()
+
+    # Export
+    path = result_dir_registry[dimension] + f"/training_gradient.png"
+    plt.savefig(path)
+    plt.close()
+    pass
+
 def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
     '''Visualize the MLP gradient during training and export as plot.'''
   
@@ -92,6 +112,9 @@ def export_plot_training_metrics (
         ax.plot(epochs, active_experts, label='Active Experts')
         con_experts = reg.get(model_key + core_keys['train_conservative_experts_key'])
         ax.plot(epochs, con_experts, label='Conservative Experts')
+    elif model_type == 'moe_grid':
+        con_experts = reg.get(model_key + core_keys['train_conservative_experts_key'])
+        ax.plot(epochs, con_experts, label='Conservative Experts')
     elif model_type == 'mlp':
         pass
     else:
@@ -139,6 +162,21 @@ def create_model_details_string (
         d = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
         e = f"\nTop1 activation mean: {round(float(confidence),2)}"
         return a + b + c + d + e
+    
+    elif model_type == 'moe_grid':
+        # Get model configurations
+        e_arch = [dimension] + configs[model_key]['expert_hidden_layer'] + [1]
+        nex = configs[model_key]['grid_dim'] ** dimension
+
+        # Get results
+        total_p = reg.get(model_key + core_keys['total_parameters_key'])
+
+        # Create string
+        a = f"Grid with {nex} Experts: {e_arch}"
+        b = f"\nTotal Parameters:{total_p}"
+        c = f"\nEpochs: {epochs}, Batchsize: {batch_size}"
+
+        return a + b + c
     
     elif model_type == 'mlp':
         # Get model configurations

@@ -1,4 +1,5 @@
 import beh.core.moe_benchmarking as moe_B
+import beh.core.moe_grid_benchmarking as moeG_B
 import beh.core.mlp_benchmarking as mlp_B
 
 from beh.core.moe import export_moe
@@ -108,10 +109,15 @@ def get_benchmarks(
         reg = moe_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, inf_batch_size)
         return reg
     
+    elif model_type == 'moe_grid':
+        reg = moeG_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold, dimension, configs[model_key]['grid_dim'])
+        return reg
+
     elif model_type == 'mlp':
         reg = mlp_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
         reg = mlp_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, inf_batch_size)
         return reg
+    
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 

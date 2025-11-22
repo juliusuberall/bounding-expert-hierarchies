@@ -2,13 +2,10 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from datetime import datetime
-
 from beh.adapter.shared import *
 from beh.core.shared import remap
 from beh.registry import *
 from beh.config_parser import *
-from beh.core.moe import moe_forward_expert, moe_forward_expert_INF
 
 @jax.jit
 def moe_grid_forward(experts : list, x : jax.Array, idx : jax.Array):
@@ -16,12 +13,16 @@ def moe_grid_forward(experts : list, x : jax.Array, idx : jax.Array):
     for e in experts[:-1]:
         # Bias Trick
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
+        #x = jax.nn.relu(jnp.einsum('bi,bij->bj', x, e[idx]))
         x = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, e[idx]))
     x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-    # We found that these additional factors improved the accurarcy as well as the "double" activation with tanh() and sigmoid() in the final layer.
-    # The sigmoid is not defined here, because OPTAX does this for numerical stability in their BCE implementation. Therefore the regualr model output
-    # needs to be additionally transformed with sigmoid()
-    return jax.nn.tanh(jnp.einsum('bi,bij->bj', x, experts[-1][idx])* 0.5) * 3.0 
+    out = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, experts[-1][idx])* 0.5) * 3.0 
+    #out = jnp.einsum('bi,bij->bj', x, experts[-1][idx])
+    return out
+
+@jax.jit
+def moe_grid_forward_INF(experts : list, x : jax.Array, idx : jax.Array):
+    return jax.nn.sigmoid(moe_grid_forward(experts, x, idx))
 
 #------------------------------------------------------------------------------------
 

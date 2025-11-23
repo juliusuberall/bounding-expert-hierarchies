@@ -1,4 +1,6 @@
 import numpy as np
+import jax.numpy as jnp
+import jax
 
 def remap(value, low1, high1, low2, high2):
     # Remap values from one domain to another
@@ -19,3 +21,15 @@ def create_queries(width : int, height : int):
     xx, yy = np.meshgrid(xs, ys)
     q = np.stack([xx, yy], axis=-1).reshape(-1, 2).astype(np.float32)
     return q
+
+def positional_encoding(x, num_frequencies):
+    ''' 
+    \nx: [..., D] input coordinates
+    \nreturns [..., D * 2 * num_frequencies]
+    '''
+    enc = [x]
+    for i in range(num_frequencies):
+        freq = 2.0 ** i
+        enc.append(jnp.sin(freq * x))
+        enc.append(jnp.cos(freq * x))
+    return jnp.concatenate(enc, axis=-1)

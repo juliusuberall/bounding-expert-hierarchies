@@ -1,4 +1,3 @@
-from beh.adapter.dim3 import *
 from beh.adapter.dim2 import *
 from beh.adapter.shared import *
 from beh.registry import *
@@ -9,6 +8,7 @@ import beh.adapter.dim4 as dim4
 import beh.adapter.dim4plus as dim4plus
 
 def get_traininig_data(
+    query : str,
     data_name : str , 
     dimension : int ,
     reg : CoreRegistry = CoreRegistry()
@@ -20,7 +20,7 @@ def get_traininig_data(
     if dimension == 2:
         return preprocess_rgba(data_dir_registry[dimension] + f"/{data_name}.png", reg, False)
     elif dimension == 3:
-        return dim3.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
+        return dim3.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg, query)
     elif dimension == 4:
         return dim4.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
     elif dimension == 9:
@@ -33,14 +33,22 @@ def pre_process(dimension : int , args):
     Sample data.
     \nDelegation based on dimensionalty to ensure correct data sampling procedure.
     '''
-    if dimension == 3:
-        if args.strategy == 'grid':
-            return sample_obj_grid(args)
+    if args.query == 'point':
+        if dimension == 3:
+            if args.strategy == 'grid':
+                return dim3.sample_pts_grid(args)
+            else:
+                return dim3.sample_pts_random(args)
+        elif dimension == 4:
+            return dim4.preprocess_4D(args)
+        elif dimension == 9:
+            return dim4plus.preprocess_4Dplus(args)
         else:
-            return sample_obj_random(args)
-    elif dimension == 4:
-        return dim4.preprocess_4D(args)
-    elif dimension == 9:
-        return dim4plus.preprocess_4Dplus(args)
-    else:
-        raise ValueError(f"Unsupported data dimensionality: {dimension}")
+            raise ValueError(f"Unsupported data dimensionality: {dimension}")
+    elif args.query == 'ray':
+        if dimension == 3:
+            return dim3.sample_rays_random(args)
+        elif dimension in [2,4,9]:
+            pass
+        else:
+            raise ValueError(f"Unsupported data dimensionality: {dimension}")

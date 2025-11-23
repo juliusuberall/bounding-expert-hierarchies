@@ -5,10 +5,10 @@ import trimesh as tm
 from beh.registry import *
 from beh.core.registry import *
 
-def sample_obj_random (args):
+def sample_pts_random (args):
     '''
     3D 
-    \nLoads OBj mesh and samples the mesh within its bounding box randomly uniform. Creates labels (y) and 3D coordinates (x). 
+    \nLoads OBj mesh and point samples the mesh within its bounding box randomly uniform. Creates labels (y) and 3D coordinates (x). 
     '''
     # Load OBJ mesh
     path = data_dir_registry[args.dim] + f"/{args.data_name}.obj"
@@ -24,12 +24,39 @@ def sample_obj_random (args):
 
     # Sample
     n_samples = args.res**3
-    x = np.random.uniform(size=(n_samples ,3)) * size + bounds[0]
-    y = mesh.contains(x).astype(np.float32)
+    x = np.random.uniform(size=(n_samples ,3))
+    x_absolut = x * size + bounds[0]
+    y = mesh.contains(x_absolut).astype(np.float32)
 
     return x, y, size, bounds
 
-def sample_obj_grid (args):
+def sample_rays_random (args):
+    '''
+    3D 
+    \nLoads OBj mesh and ray samples the mesh within its bounding box randomly uniform. 
+    \nCreates labels (y) and 6D encoding of ray (x) using 3D origin and 3D direction vector as in NeuralBounding (Liu et al. 2024). 
+    '''
+    # Load OBJ mesh
+    path = data_dir_registry[args.dim] + f"/{args.data_name}.obj"
+    mesh = tm.load_mesh(path)
+
+    # Get random points for ray origin
+    x, y, size, bounds = sample_pts_random(args)
+
+    # Get random directions for rays 
+    n = x.shape[0]
+    d = np.random.normal(size=(n,3))
+    d = d / np.linalg.norm(d, axis=1)[:,None]
+
+    # Sample object with ray
+    y = mesh.ray.intersects_any(x, d).astype(np.float32)
+
+    # Create ray encodings
+    x = np.concatenate((x, d), axis=1)
+
+    return x, y, size, bounds
+
+def sample_pts_grid (args):
     '''
     3D 
     \nLoads OBj mesh and samples the mesh within its bounding box in a grid. Creates labels (y) and 3D coordinates (x). 
@@ -57,12 +84,12 @@ def sample_obj_grid (args):
 
     return x, y, size, bounds
 
-def load_samples(path : str, reg : CoreRegistry,):
+def load_samples(path : str, reg : CoreRegistry, query : str):
     '''
     3D
     Load samples from a .npz formatted file with the expected content and update core registry.
     '''
-    # Load moe .npz file 
+    # Load .npz file 
     loaded = np.load(path)
     
     # Unpack file
@@ -72,9 +99,11 @@ def load_samples(path : str, reg : CoreRegistry,):
     bounds = jnp.array(loaded['bounds'])
 
     # Normalize coordinates to range -1.0 to 1.0 
-    if loaded['strategy'] != "grid":
-        x = (x - bounds[0]) / size
-    x = x * 2 - 1 
+    if query == "ray":
+        d = x[...,3:6]
+        x = x.at[...,:3].multiply(2).at[...,:3].subtract(1) 
+    else :
+        x = x * 2 - 1 
 
     # Store sample size per dimension 
     reg.add(core_keys['data_size_key'], size)

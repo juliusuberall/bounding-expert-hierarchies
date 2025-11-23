@@ -20,7 +20,7 @@ def train_model(
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    query : str,
+    query_dim : int,
     configs : dict,
     dimension : int):
 
@@ -35,7 +35,7 @@ def train_model(
             y = y,
             reg = reg,
             configs = configs,
-            query = query,
+            query_dim = query_dim,
             dimension = dimension
         )
     elif model_type == 'moe_grid':
@@ -46,7 +46,7 @@ def train_model(
             y = y,
             reg = reg,
             configs = configs,
-            query = query,
+            query_dim = query_dim,
             dimension = dimension
         )
     elif model_type == 'mlp':
@@ -57,7 +57,7 @@ def train_model(
             y = y,
             reg = reg,
             configs = configs,
-            query = query,
+            query_dim = query_dim,
             dimension = dimension
         )
     else:

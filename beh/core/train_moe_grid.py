@@ -34,7 +34,7 @@ def train_moe_grid(
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    query : str,
+    query_dim : int,
     configs : dict,
     dimension : int):
 
@@ -54,7 +54,7 @@ def train_moe_grid(
     x_batches = batch_data(x, batch_size)
     
     # Initalize MoE and optimizer
-    expert_arch = [dimension] + expert_hid_lay + [1]
+    expert_arch = [query_dim] + expert_hid_lay + [1]
     moe_grid = init_experts(
         expert_arch,
         nex,

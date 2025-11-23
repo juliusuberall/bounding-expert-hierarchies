@@ -21,10 +21,12 @@ def main():
 
     # Load, preprocess and check data once before trained with all models
     reg, x, y = get_traininig_data(
+        query = args.query,
         data_name = args.data_name,
         dimension = args.dim,
         reg = reg
     )
+    query_dim = x.shape[-1]
     checkpoint_training_data(x, y)
     checkpoint_plot_training_data(x, y, args.dim)
 
@@ -44,7 +46,7 @@ def main():
             y = y,
             reg = reg,
             configs = configs,
-            query = args.query,  # Currently not used but ideally for point and ray queries
+            query_dim = query_dim, 
             dimension = args.dim
         )
     

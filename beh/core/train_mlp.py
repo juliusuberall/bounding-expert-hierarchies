@@ -18,7 +18,7 @@ def train_mlp(
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    query : str,
+    query_dim : int,
     configs : dict,
     dimension : int):
 
@@ -36,7 +36,7 @@ def train_mlp(
     x_batches = batch_data(x, batch_size)
     
     # Initalize MLP and optimizer
-    mlp_arch = [dimension] + hid_lay + [1]
+    mlp_arch = [query_dim] + hid_lay + [1]
     mlp = init_network(
         mlp_arch,
         key

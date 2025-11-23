@@ -18,7 +18,7 @@ def parse_train():
     parser.add_argument(
         "--query",
         required=True, 
-        choices = ["point"],
+        choices = ["point", "ray"],
         type = str,
         default = None,
         help = "Query type") 
@@ -49,6 +49,13 @@ def parse_sample():
         type = str,
         default = None,
         help ='Name of data to sample')
+    parser.add_argument(
+        '--query',
+        required=True, 
+        choices = ["point", "ray"],
+        type = str,
+        default = None,
+        help ='Type of query to sample or pre-process')
     parser.add_argument(
         "--dim",
         required=True, 

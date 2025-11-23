@@ -48,7 +48,7 @@ def train_moe(
     x : jax.Array,
     y : jax.Array,
     reg : CoreRegistry,
-    query : str,
+    query_dim : int,
     configs : dict,
     dimension : int):
 
@@ -68,8 +68,8 @@ def train_moe(
     x_batches = batch_data(x, batch_size)
     
     # Initalize MoE and optimizer
-    gate_arch = [dimension] + gate_hid_lay + [nex]
-    expert_arch = [dimension] + expert_hid_lay + [1]
+    gate_arch = [query_dim] + gate_hid_lay + [nex]
+    expert_arch = [query_dim] + expert_hid_lay + [1]
     moe = init_moe(
         gate_arch,
         expert_arch,

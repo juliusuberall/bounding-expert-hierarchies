@@ -13,41 +13,51 @@ def moe_grid_forward(experts : list, x : jax.Array, idx : jax.Array):
     for e in experts[:-1]:
         # Bias Trick
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-        #x = jax.nn.relu(jnp.einsum('bi,bij->bj', x, e[idx]))
         x = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, e[idx]))
     x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
     out = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, experts[-1][idx])* 0.5) * 3.0 
-    #out = jnp.einsum('bi,bij->bj', x, experts[-1][idx])
     return out
 
 @jax.jit
-def moe_grid_forward_INF(experts : list, x : jax.Array, idx : jax.Array):
+def moe_grid_forward_INF(experts : list, x : jax.Array):
+    idx = moe_grid_select(x)
     return jax.nn.sigmoid(moe_grid_forward(experts, x, idx))
 
 #------------------------------------------------------------------------------------
 
-def moe_grid_select(x : jax.Array, dimension: int, grid_dim : int):
-    """Map the queries to the networks. This simply checks the grid and assigns based on this grid."""
-    if dimension == 2:
-        # Map training data (normalised in range -1 to 1) to grid cells
-        grid_mapping = jnp.floor(remap(x, -1, 1, 0, grid_dim - 1e-4))
-        # Convert mapping to grid cell index used for selecting NN
-        idx = (grid_mapping[...,0] * grid_dim + grid_mapping[...,1]).astype(jnp.int32)
-        return idx
+@jax.jit
+def moe_grid_select(x : jax.Array):
+    """Map queries to networks by computing networks index in grid for any query dimension.
+    \nFor 4D+ dimensions this may seem non-trivial but can be generated. 
+    \nIt essentially checks a grid and assigns based on this grid cell index.
+    \nFOR JIT we hardcode a fixed number of 4 grid cells per dimension. This means we have 4^dimensions cells."""
+    ## Hardcoded for JIT
+    grid_dim = 4
+
+    # Map training data (normalised in range -1 to 1) to grid cells
+    dimension = x.shape[-1]
+    grid_mapping = jnp.floor(remap(x, -1, 1, 0, grid_dim - 1e-4))
+
+    # Convert mapping to grid cell index used for selecting NN
+    idx = jnp.zeros(grid_mapping.shape[:-1])
+    for i in range(dimension):
+        idx += grid_mapping[..., i] * grid_dim ** i
+    
+    return idx.astype(jnp.int32)
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moe_grid(x_batches : list, experts : list, dimension: int, grid_dim : int, remap_flag : bool = True):
+def batch_query_moe_grid(x_batches : list, experts : list, remap_flag : bool = True):
     '''List of batched queries that will be passed through the model at once. Be aware of device OOM.'''
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
     
-    idx = moe_grid_select(x_batched, dimension, grid_dim)
-    yp = jax.vmap(lambda x, i: moe_grid_forward_INF(experts, x, i))(x_batched, idx).flatten()
-
-    idx_tail = moe_grid_select(x_batches[-1], dimension, grid_dim)
-    yp_tail = moe_grid_forward_INF(experts, x_batches[-1], idx_tail).flatten()
+    yp = jax.vmap(lambda x: moe_grid_forward_INF(experts, x))(x_batched).flatten()
+    yp_tail = moe_grid_forward_INF(experts, x_batches[-1]).flatten()
     yp = jnp.concatenate((yp, yp_tail), axis=0)
+
+    idx = moe_grid_select(x_batched)
+    idx_tail = moe_grid_select(x_batches[-1])
     idx = jnp.concatenate((idx.flatten(), idx_tail), axis=0)
 
     # Remap
@@ -64,14 +74,14 @@ def batch_query_moe_grid(x_batches : list, experts : list, dimension: int, grid_
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moe_grid_OOM(x_batches : list, experts : list, at_once : int,  dimension: int, grid_dim : int):
+def batch_query_moe_grid_OOM(x_batches : list, experts : list, at_once : int):
     '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
     \nPassing all batches at once can be done with batch_query_moe().'''
 
     # Forward batch subsets WITHOUT remapping the subsets model output already to 0.0 - 1.0
     yp_all = []
     for i in range(0, len(x_batches), at_once):
-        yp, _ , _ = batch_query_moe_grid(x_batches[i:i+at_once], experts, dimension, grid_dim, remap_flag=False)
+        yp, _ , _ = batch_query_moe_grid(x_batches[i:i+at_once], experts, remap_flag=False)
         yp_all.append(np.array(yp)) # unload from GPU
     yp_all = np.concatenate(yp_all, axis=0)
 

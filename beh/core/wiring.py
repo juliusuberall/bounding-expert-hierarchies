@@ -110,7 +110,8 @@ def get_benchmarks(
         return reg
     
     elif model_type == 'moe_grid':
-        reg = moeG_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold, dimension, configs[model_key]['grid_dim'])
+        reg = moeG_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
+        reg = moeG_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, inf_batch_size)
         return reg
 
     elif model_type == 'mlp':

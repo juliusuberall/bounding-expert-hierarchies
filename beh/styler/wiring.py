@@ -66,6 +66,8 @@ def format_export_results(
     if model_type == 'moe_grid':
         if dimension == 2:
             export_plot_2D_moe_grid_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
+        elif dimension in [3,4,9]:
+            pass
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")
     
@@ -84,4 +86,4 @@ def format_export_results(
         raise ValueError(f"Unsupported model type: {model_type}")
     
     # Google sheet sync results
-    # gsheet_log_results(model_key, dimension,  reg, configs, data_name)
+    gsheet_log_results(model_key, dimension,  reg, configs, data_name)

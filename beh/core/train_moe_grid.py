@@ -99,13 +99,13 @@ def train_moe_grid(
         # determinism and numpy runs much faster than jax for random sampling
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
-        iB = moe_grid_select(xB, dimension, grid_dim)
+        iB = moe_grid_select(xB)
         moe_grid, opt_state, gradient = update(moe_grid, opt_state, xB, yB, iB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            yp , e_idx , yp_raw  = batch_query_moe_grid(x_batches, moe_grid, dimension, grid_dim)  
+            yp , e_idx , yp_raw  = batch_query_moe_grid(x_batches, moe_grid)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)

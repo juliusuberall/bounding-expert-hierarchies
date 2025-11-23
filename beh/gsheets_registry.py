@@ -73,11 +73,21 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         gate_arch = [dimension] + gate_hid_lay + [nex]
         expert_arch = [dimension] + expert_hid_lay + [1]
         arch = f'G {str(gate_arch).replace(" ", "")}    {nex}x E {str(expert_arch).replace(" ", "")}'
-    
+        pattern = 'Dense'
+
+    elif model_type == 'moe_grid':
+        m_key = model_key
+        nex = configs[model_key]['grid_dim'] ** dimension
+        expert_hid_lay = configs[m_key]['expert_hidden_layer']
+        expert_arch = [dimension] + expert_hid_lay + [1]
+        arch = f'{nex}x E {str(expert_arch).replace(" ", "")}'
+        pattern = 'Sparse'
+
     elif model_type == 'mlp':
         m_key = model_key
         hid_lay = configs[m_key]['hidden_layer']
         arch = str([dimension] + hid_lay + [1]).replace(" ", "")
+        pattern = 'Dense'
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
@@ -89,7 +99,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         accelerator,
         m_key.split("_")[0]  + "D",
         model_type,
-        'Dense',
+        pattern,
         "".join(c for c in m_key if c.isdigit()),
         arch,
         float(reg.get(m_key + core_keys['total_parameters_key'])),

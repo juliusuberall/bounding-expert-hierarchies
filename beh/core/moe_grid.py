@@ -7,6 +7,10 @@ from beh.core.shared import remap
 from beh.registry import *
 from beh.config_parser import *
 
+args, configs = parse_train()
+
+#------------------------------------------------------------------------------------
+
 @jax.jit
 def moe_grid_forward(experts : list, x : jax.Array, idx : jax.Array):
     # Select parameters on per query basis
@@ -29,10 +33,9 @@ def moe_grid_forward_INF(experts : list, x : jax.Array):
 def moe_grid_select(x : jax.Array):
     """Map queries to networks by computing networks index in grid for any query dimension.
     \nFor 4D+ dimensions this may seem non-trivial but can be generated. 
-    \nIt essentially checks a grid and assigns based on this grid cell index.
-    \nFOR JIT we hardcode a fixed number of 4 grid cells per dimension. This means we have 4^dimensions cells."""
-    ## Hardcoded for JIT
-    grid_dim = 4
+    \nIt essentially checks a grid and assigns based on this grid cell index."""
+    # Get number of grid cells per dimension
+    grid_dim = configs['moeGrid']['grid_dim']
 
     # Map training data (normalised in range -1 to 1) to grid cells
     dimension = x.shape[-1]

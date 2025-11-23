@@ -59,7 +59,6 @@ def export_plot_2D_moe_grid_internal (
     # Get model configuration
     grid_dim = configs[model_key]['grid_dim']
     nex = grid_dim ** dimension
-    topk = 1
 
     # Get results from registry
     yp_raw = reg.get(model_key + core_keys['y_prediciton_RAW_key'])

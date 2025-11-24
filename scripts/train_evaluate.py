@@ -67,7 +67,8 @@ def main():
             reg = reg,
             configs = configs,
             dimension = args.dim,
-            data_name = args.data_name
+            data_name = args.data_name,
+            query = args.query
         )
 
         # save_model(

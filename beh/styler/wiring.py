@@ -3,7 +3,7 @@ import jax
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
 from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_moe_grid_internal, export_plot_2D_internal_comparison, export_plot_2D_binary_comparison_paper_row
-from beh.styler.dim3 import prep_openVDB, marching_cube
+from beh.styler.dim3 import prep_openVDB, marching_cube, render_view
 from beh.styler.dim4 import prep_openVDB_frames
 from beh.styler.dim4plus import pose_marching_cube
 from beh.gsheets_registry import gsheet_log_results
@@ -32,7 +32,8 @@ def format_export_results(
     reg : CoreRegistry, 
     configs : dict,
     dimension : int,
-    data_name : str):
+    data_name : str,
+    query : str):
     '''
     Create result plots.
     \nDelegates to corresponding data dimensionality sub-routine.
@@ -55,8 +56,11 @@ def format_export_results(
                 #export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
                 export_plot_2D_binary_comparison_paper_row(data_name, model_key, y, reg, configs, dimension, threshold, export_binary=True)
             elif dimension == 3:
-                prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
-                marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
+                if query == 'ray':
+                    render_view(data_name, dimension, model, model_key, configs)
+                else :
+                    prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+                    marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
             elif dimension == 4:
                 prep_openVDB_frames(data_name, dimension, 100, model, model_key, configs, reg)
             elif dimension == 9:
@@ -76,8 +80,11 @@ def format_export_results(
             if dimension == 2:
                 export_plot_2D_mlp_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
             elif dimension == 3:
-                prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
-                marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
+                if query == 'ray':
+                    render_view(data_name, dimension, model, model_key, configs)
+                else :
+                    prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+                    marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
             elif dimension == 9:
                 pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
             else:

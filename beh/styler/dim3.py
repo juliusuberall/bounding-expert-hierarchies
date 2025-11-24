@@ -1,5 +1,6 @@
 import numpy as np
 import jax.numpy as jnp
+from PIL import Image
 
 from beh.registry import *
 from beh.core.registry import *
@@ -55,6 +56,46 @@ def marching_cube(
     path = result_visual_registry[dimension] + '/'+ data_name + "_" + model_key
     implicitMesh.export(f"{path}.ply")
 
+#------------------------------------------------------------------------------------
+
+def render_view(
+    data_name : str,
+    dimension : int, 
+    model ,
+    model_key : str,
+    configs : dict):
+    '''Render a view using the implicit field of ray intersections.'''
+
+    print("\nRendering View")
+
+    # Create image raster 3D points
+    width, height = 1000, 1000
+    x = np.linspace(-1,1, width)
+    y = np.linspace(-1,1, height)
+    x, y = np.meshgrid(x, y, indexing='ij')
+    o = np.zeros_like(x)
+    coords = np.stack([x, y, o], axis=-1).reshape((width*height,3))
+
+    # Extend points to rays
+    d = np.repeat(np.array((0,0,1))[None,:], o.size, axis=0)
+    rays = np.concatenate([coords, d], axis=-1)
+
+    # Query model
+    model_type = configs[model_key]['type']
+    batch_size = configs['general']['batch_size']
+    rays_batched = batch_data(rays, batch_size)
+    if model_type == 'moe':
+        y = batch_query_moe_OOM(rays_batched, model, sparse_funcs_2048[model_key], 50)
+    elif model_type == 'mlp':
+        y = batch_query_mlp_OOM(rays_batched, model, 50)
+    else :
+        raise ValueError(f"Unsupported model type: {model_type}")
+
+    # Save image
+    img = y.reshape((width, height))
+    img = Image.fromarray((img * 255).astype(np.uint8), mode="L")
+    path = result_visual_registry[dimension] + '/'+ data_name + "_" + model_key
+    img.save(f"{path}_raytraced.png")
 
 #------------------------------------------------------------------------------------
 

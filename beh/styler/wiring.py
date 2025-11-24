@@ -39,6 +39,7 @@ def format_export_results(
     '''
     # Get general configs
     threshold = configs['general']['boundary_threshold']
+    visualize_results = configs['general']['vis_results']
     model_type = configs[model_key]['type']
 
     # Create model detail string
@@ -47,43 +48,43 @@ def format_export_results(
     # Result plots relevant for all dimensions and models
     export_plot_training_metrics(data_name, model_key, model_detail_str, reg, configs, dimension)
 
-    # Create model internal state overview
-    if model_type == 'moe':
-        if dimension == 2:
-            export_plot_2D_moe_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
-            #export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
-            export_plot_2D_binary_comparison_paper_row(data_name, model_key, y, reg, configs, dimension, threshold, export_binary=True)
-        elif dimension == 3:
-            prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
-            marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
-        elif dimension == 4:
-            prep_openVDB_frames(data_name, dimension, 100, model, model_key, configs, reg)
-        elif dimension == 9:
-            pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
-        else:
-            raise ValueError(f"Unsupported data dimensionality: {dimension}")
-    
-    if model_type == 'moe_grid':
-        if dimension == 2:
-            export_plot_2D_moe_grid_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
-        elif dimension in [3,4,9]:
-            pass
-        else:
-            raise ValueError(f"Unsupported data dimensionality: {dimension}")
-    
-    elif model_type == 'mlp':
-        if dimension == 2:
-            export_plot_2D_mlp_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
-        elif dimension == 3:
-            prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
-            marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
-        elif dimension == 9:
-            pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
-        else:
-            raise ValueError(f"Unsupported data dimensionality: {dimension}")
+    if visualize_results :
+        if model_type == 'moe':
+            if dimension == 2:
+                export_plot_2D_moe_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
+                #export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
+                export_plot_2D_binary_comparison_paper_row(data_name, model_key, y, reg, configs, dimension, threshold, export_binary=True)
+            elif dimension == 3:
+                prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+                marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
+            elif dimension == 4:
+                prep_openVDB_frames(data_name, dimension, 100, model, model_key, configs, reg)
+            elif dimension == 9:
+                pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
+            else:
+                raise ValueError(f"Unsupported data dimensionality: {dimension}")
+        
+        elif model_type == 'moe_grid':
+            if dimension == 2:
+                export_plot_2D_moe_grid_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
+            elif dimension in [3,4,9]:
+                pass
+            else:
+                raise ValueError(f"Unsupported data dimensionality: {dimension}")
+        
+        elif model_type == 'mlp':
+            if dimension == 2:
+                export_plot_2D_mlp_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
+            elif dimension == 3:
+                prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+                marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
+            elif dimension == 9:
+                pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
+            else:
+                raise ValueError(f"Unsupported data dimensionality: {dimension}")
 
-    else:
-        raise ValueError(f"Unsupported model type: {model_type}")
+        else:
+            raise ValueError(f"Unsupported model type: {model_type}")
     
     # Google sheet sync results
     gsheet_log_results(model_key, dimension,  reg, configs, data_name)

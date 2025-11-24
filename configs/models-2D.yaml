@@ -7,12 +7,7 @@ general:
   inf_bench_repitions: 1000 # Number of repitions to median speed benchmark
   aa_scaling : 3 # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
   inf_benchmark : False # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
-
-moeGrid:
-  type: 'moe_grid'
-  min_epochs: 500
-  grid_dim : 4
-  expert_hidden_layer: [12,12,12]
+  vis_results : False # Visualize results or not e.g. Create plots, extract VDBs or meshes
 
 # Small = 180
 mlpS:

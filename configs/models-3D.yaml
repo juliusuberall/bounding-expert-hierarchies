@@ -6,7 +6,7 @@ general:
   inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
   inf_bench_repitions: 1000 # Number of repitions to median speed benchmark 
   inf_benchmark : False # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
-
+  vis_results : False # Visualize results or not e.g. Create plots, extract VDBs or meshes
 
 # Small = 200
 mlpS:

@@ -12,6 +12,7 @@ def checkpoint_samples(x, y, size):
     # difficult to debug on lower levels
     print("================================================== Pre-Process Checkpoint")
     print(f"Total Samples: {y.shape}")
+    print(f"Binary Ratio (pos,neg) {(np.sum(y)/y.size):02f}:{(np.sum(1-y)/y.size):02f}")
     print(f"Size: X {size[0]:04f} Y {size[1]:04f} Z {size[2]:04f}")
     print(f'X Range: {np.min(x):04f} - {np.max(x):04f} | X Dtype: {x.dtype} | X Type: {type(x)} | X Dims: {x.shape[1]}') 
     print(f'Y Range: {np.min(y):04f} - {np.max(y):04f} | Y Dtype: {y.dtype} | Y Type: {type(y)}')

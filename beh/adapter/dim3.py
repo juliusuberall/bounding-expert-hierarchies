@@ -42,6 +42,8 @@ def sample_rays_random (args):
 
     # Get random points for ray origin
     x, y, size, bounds = sample_pts_random(args)
+    ## Returns normalized coordinates and we need absolut
+    x_abs = x * size + bounds[0]
 
     # Get random directions for rays 
     n = x.shape[0]
@@ -49,7 +51,7 @@ def sample_rays_random (args):
     d = d / np.linalg.norm(d, axis=1)[:,None]
 
     # Sample object with ray
-    y = mesh.ray.intersects_any(x, d).astype(np.float32)
+    y = mesh.ray.intersects_any(x_abs, d).astype(np.float32)
 
     # Create ray encodings
     x = np.concatenate((x, d), axis=1)

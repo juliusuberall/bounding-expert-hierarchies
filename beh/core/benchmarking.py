@@ -24,7 +24,7 @@ def benchmark_inference_speed(
     batch_size : int,
     reps : int,
     query_size : int,
-    dimension : int,
+    query_dim : int,
     print_updates : bool = True):
     '''
     Measures the inference speed of a model given its forward call for N queries, median over M idedependant repitions.
@@ -35,7 +35,7 @@ def benchmark_inference_speed(
         # Dynamic slicing allows us to sub-select on the device, avoiding transfer overhead.
         # Dynamic slice handles tail if query-size and batch-size are not % == 0. In that
         # case it moves the start index as required.
-        x_slice = jax.lax.dynamic_slice(x, (start, 0), (batch_size, dimension))
+        x_slice = jax.lax.dynamic_slice(x, (start, 0), (batch_size, query_dim))
         y = func(model, x_slice)
         return val + jnp.sum(y) # Passing to make sure JIT does not ignore forward call
 

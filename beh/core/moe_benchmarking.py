@@ -88,7 +88,7 @@ def register_inference_speed (
             inf_batch_size,
             infB_reps,
             infB_qsize,
-            dimension)
+            query_dim = x.shape[-1])
         d_cache.append([inf_batch_size, dense_speed])
 
         sparse_speed = benchmark_inference_speed(
@@ -98,7 +98,7 @@ def register_inference_speed (
             inf_batch_size,
             infB_reps,
             infB_qsize,
-            dimension)
+            query_dim = x.shape[-1])
         s_cache.append([inf_batch_size, sparse_speed])
         
         print(f"Dense Inf. Speed {inf_batch_size} batch size => {round(float(dense_speed),4)}ms")

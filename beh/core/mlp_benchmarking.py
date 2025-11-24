@@ -67,7 +67,7 @@ def register_inference_speed (
             inf_batch_size,
             infB_reps,
             infB_qsize,
-            dimension)
+            query_dim = x.shape[-1])
         cache.append([inf_batch_size, speed])
         print(f"\nInf. Speed {inf_batch_size} batch size => {round(float(speed),4)}ms")
     else:

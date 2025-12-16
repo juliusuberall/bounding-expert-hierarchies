@@ -4,6 +4,7 @@ import numpy as np
 
 from beh.adapter.shared import *
 from beh.core.shared import remap
+from beh.core.moe import expert_forward_sparse
 from beh.registry import *
 from beh.config_parser import *
 
@@ -12,20 +13,9 @@ args, configs = parse_train()
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_grid_forward(experts : list, x : jax.Array, idx : jax.Array):
-    # Select parameters on per query basis
-    for e in experts[:-1]:
-        # Bias Trick
-        x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-        x = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, e[idx]))
-    x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
-    out = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, experts[-1][idx])* 0.5) * 3.0 
-    return out
-
-@jax.jit
 def moe_grid_forward_INF(experts : list, x : jax.Array):
     idx = moe_grid_select(x)
-    return jax.nn.sigmoid(moe_grid_forward(experts, x, idx))
+    return jax.nn.sigmoid(expert_forward_sparse(experts, x, idx))
 
 #------------------------------------------------------------------------------------
 

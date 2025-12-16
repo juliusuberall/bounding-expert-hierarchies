@@ -1,11 +1,12 @@
 import numpy as np
 import jax.numpy as jnp
+import trimesh as tm
 from PIL import Image
 
 from beh.registry import *
+from beh.core.shared import remap
 from beh.core.registry import *
-from beh.core.moe_sparse import *
-from beh.core.moe import batch_query_moe_OOM
+from beh.core.moe import batch_query_moe_OOM, moe_forward_sparse_INF
 from beh.core.mlp import mlp_forward_INF, batch_query_mlp_OOM
 from beh.core.shared import batch_data
 from beh.core.moe_benchmarking import gating_confidence
@@ -41,7 +42,7 @@ def marching_cube(
     # Evaluate the function over grid
     mc_x = batch_data(mc_x, inf_batch_size)
     if model_type == 'moe':
-        values = batch_query_moe_OOM(mc_x, model, sparse_funcs_2048[model_key], 50)
+        values = batch_query_moe_OOM(mc_x, model, moe_forward_sparse_INF, 50)
     else:
         values = batch_query_mlp_OOM(mc_x, model, 50)
     values = np.array(values).reshape((mc_res,mc_res,mc_res))
@@ -85,7 +86,7 @@ def render_view(
     batch_size = configs['general']['batch_size']
     rays_batched = batch_data(rays, batch_size)
     if model_type == 'moe':
-        y = batch_query_moe_OOM(rays_batched, model, sparse_funcs_2048[model_key], 50)
+        y = batch_query_moe_OOM(rays_batched, model, moe_forward_sparse_INF, 50)
     elif model_type == 'mlp':
         y = batch_query_mlp_OOM(rays_batched, model, 50)
     else :
@@ -129,7 +130,7 @@ def prep_openVDB(
     if model_type == 'moe':
         nex = configs[model_key]['nex']
         # Forward through model and compute voxel densities
-        func = sparse_funcs_2048[model_key]
+        func = moe_forward_sparse_INF
         # Originally we used vmap here but this caused for large models always OOM on a T4, 
         # which is why we swapped to a on devcice sequential compute, forward passing the batch
         # through each expert.

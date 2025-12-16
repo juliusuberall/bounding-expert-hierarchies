@@ -12,7 +12,7 @@ from beh.config_parser import *
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_expert(p : list, x : jax.Array):
+def expert_forward_dense(p : list, x : jax.Array):
     for e in p[:-1]:
         # Bias Trick
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
@@ -24,13 +24,26 @@ def moe_forward_expert(p : list, x : jax.Array):
     return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 
 
 @jax.jit
-def moe_forward_expert_INF(p : dict, x : jax.Array):
-    return jax.nn.sigmoid(moe_forward_expert(p['experts'], x))
+def expert_forward_dense_INF(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(expert_forward_dense(p['experts'], x))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_forward_gate(p : list, x : jax.Array):
+def expert_forward_sparse(experts : list, x : jax.Array, idx : jax.Array):
+    # Select parameters on per query basis
+    for e in experts[:-1]:
+        # Bias Trick
+        x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
+        x = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, e[idx]))
+    x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
+    out = jax.nn.tanh(jnp.einsum('bi,bij->bj', x, experts[-1][idx])* 0.5) * 3.0 
+    return out
+
+#------------------------------------------------------------------------------------
+
+@jax.jit
+def gate_forward(p : list, x : jax.Array):
     for l in p[:-1]:
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
         x = jax.nn.relu(x @ l)
@@ -38,15 +51,15 @@ def moe_forward_gate(p : list, x : jax.Array):
     return jax.nn.softmax(x @ p[-1])
 
 @jax.jit
-def moe_forward_gate_INF(p : dict, x : jax.Array):
-    return moe_forward_gate(p['gate'], x)
+def gate_forward_INF(p : dict, x : jax.Array):
+    return gate_forward(p['gate'], x)
 
-#------------------------------------------------------------------------------------
+#====================================================================================
 
 @jax.jit
 def moe_forward_dense(p : dict, x : jax.Array):
-    activation = moe_forward_gate(p['gate'], x)
-    y = jax.vmap(lambda p: moe_forward_expert(p, x), out_axes=1)(p['experts']).squeeze()
+    activation = gate_forward(p['gate'], x)
+    y = jax.vmap(lambda p: expert_forward_dense(p, x), out_axes=1)(p['experts']).squeeze()
     return jnp.sum(y * activation, axis=-1)
 
 @jax.jit
@@ -54,6 +67,19 @@ def moe_forward_dense_INF(p : dict, x : jax.Array):
     return jax.nn.sigmoid(moe_forward_dense(p, x))
 
 #------------------------------------------------------------------------------------
+
+@jax.jit
+def moe_forward_sparse(p : dict, x : jax.Array):
+    logits = gate_forward(p['gate'], x)
+    idx = jax.lax.top_k(logits, 1)[1].flatten()
+    out = expert_forward_sparse(p['experts'], x, idx)
+    return out
+
+@jax.jit
+def moe_forward_sparse_INF(p : dict, x : jax.Array):
+    return jax.nn.sigmoid(moe_forward_sparse(p, x))
+
+#====================================================================================
 
 def batch_query_moe(x_batches : list, moe : dict, func, remap_flag : bool = True):
     '''List of batched queries that will be passed through the model at once. Be aware of device OOM.'''
@@ -110,7 +136,7 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
     
     return yp_all
 
-#------------------------------------------------------------------------------------
+#====================================================================================
 
 # Not tested in a while - requires potentially to be updated
 

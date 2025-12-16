@@ -7,7 +7,7 @@ from beh.core.params import *
 from beh.core.registry import *
 from beh.core.moe_benchmarking import *
 from beh.core.loss import moe_grid_train_loss
-from beh.core.moe_grid import moe_grid_select, moe_grid_forward, batch_query_moe_grid
+from beh.core.moe_grid import moe_grid_select, batch_query_moe_grid
 from beh.core.train_moe import expert_conservativness
 
 from beh.styler.shared import *

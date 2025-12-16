@@ -1,11 +1,12 @@
 import numpy as np
+import trimesh as tm
 from skimage.measure import marching_cubes
 
 from beh.core.registry import *
-from beh.core.shared import batch_data
-from beh.core.moe import batch_query_moe_OOM
+from beh.registry import *
+from beh.core.shared import batch_data, remap
+from beh.core.moe import batch_query_moe_OOM, moe_forward_sparse_INF
 from beh.core.mlp import batch_query_mlp_OOM
-from beh.core.moe_sparse import *
 
 inf_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
 
@@ -41,7 +42,7 @@ def marching_cube_9D(
     # Evaluate the function over grid
     mc_x = batch_data(mc_x, inf_batch_size)
     if model_type == 'moe':
-        values = batch_query_moe_OOM(mc_x, model, sparse_funcs_2048[model_key], 50)
+        values = batch_query_moe_OOM(mc_x, model, moe_forward_sparse_INF, 50)
     else:
         values = batch_query_mlp_OOM(mc_x, model, 50)
     values = np.array(values).reshape((mc_res,mc_res,mc_res))

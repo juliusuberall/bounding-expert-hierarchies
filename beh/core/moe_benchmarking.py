@@ -6,7 +6,6 @@ from beh.core.shared import *
 from beh.core.moe import *
 from beh.core.registry import *
 from beh.core.benchmarking import *
-from beh.core.moe_sparse import sparse_funcs_2048, sparse_funcs_200K
 
 def register_accuracy(
         model_key : str,
@@ -26,7 +25,7 @@ def register_accuracy(
     dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
-    sparse_yp, sparse_yp_raw = batch_query_moe(x_batches, moe, sparse_funcs_2048[model_key])
+    sparse_yp, sparse_yp_raw = batch_query_moe(x_batches, moe, moe_forward_sparse_INF)
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
@@ -36,7 +35,7 @@ def register_accuracy(
     if x_aa != None : 
         # 2D - Query in higher res for AA while avoiding OOM
         dense_yp_aa = batch_query_moe_OOM(x_aa, moe, moe_forward_dense_INF, 50)
-        sparse_yp_aa = batch_query_moe_OOM(x_aa, moe, sparse_funcs_2048[model_key], 50)
+        sparse_yp_aa = batch_query_moe_OOM(x_aa, moe, moe_forward_sparse_INF, 50)
         reg.add(dkey + core_keys['aa_y_prediciton_key'], dense_yp_aa)
         reg.add(skey + core_keys['aa_y_prediciton_key'], sparse_yp_aa)
     
@@ -94,7 +93,7 @@ def register_inference_speed (
         sparse_speed = benchmark_inference_speed(
             x,
             moe,
-            sparse_funcs_200K[model_key],
+            moe_forward_sparse_INF,
             inf_batch_size,
             infB_reps,
             infB_qsize,
@@ -132,8 +131,8 @@ def gating_confidence (
     ## If gating probability not near 1.0 the MoE 
     ## relies on dense predicition
     x_batched = jnp.stack(x_batches[0:-1])
-    gate_activation = jax.vmap(lambda x: moe_forward_gate_INF(moe, x))(x_batched)
-    x_tail = moe_forward_gate_INF(moe, x_batches[-1])
+    gate_activation = jax.vmap(lambda x: gate_forward_INF(moe, x))(x_batched)
+    x_tail = gate_forward_INF(moe, x_batches[-1])
     gate_activation = jnp.concatenate((gate_activation.reshape((-1,x_tail.shape[-1])), x_tail))
 
     # Extract crucial activation metrics

@@ -130,7 +130,7 @@ def train_moe(
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            yp , yp_raw  = batch_query_moe(x_batches, moe, sparse_funcs_2048[model_key])  
+            yp , yp_raw  = batch_query_moe(x_batches, moe, moe_forward_sparse_INF)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)

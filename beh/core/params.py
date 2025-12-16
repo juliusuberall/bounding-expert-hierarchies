@@ -37,9 +37,8 @@ def init_network(layer_dims, key):
 def init_experts(e_arch, n_experts, key):
     """Initialize expert networks parameters."""
     # Init Experts parameters
-    key, subkey = jax.random.split(key)
     e = []
-    keys = jax.random.split(subkey, len(e_arch))
+    keys = jax.random.split(key, len(e_arch))
     for k, (n_in, n_out) in zip(keys, zip(e_arch[:-1], e_arch[1:])):
       # Account for bias by +1 input dim
       super_layer = jax.random.normal(k, (n_experts, n_in + 1, n_out)) * jnp.sqrt(1 / n_in) # LeCun initialization

@@ -3,9 +3,10 @@ import jax.numpy as jnp
 
 from beh.registry import *
 from beh.core.registry import *
-from beh.core.moe_sparse import *
+from beh.core.shared import remap
 from beh.core.mlp import mlp_forward_INF
 from beh.core.shared import batch_data
+from beh.core.moe import moe_forward_sparse_INF
 from beh.core.moe_benchmarking import gating_confidence
 
 inf_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
@@ -74,7 +75,7 @@ def prep_openVDB_4D(
     if model_type == 'moe':
         nex = configs[model_key]['nex']
         # Forward through model and compute voxel densities
-        func = sparse_funcs_2048[model_key]
+        func = moe_forward_sparse_INF
         # Originally we used vmap here but this caused for large models always OOM on a T4, 
         # which is why we swapped to a on devcice sequential compute, forward passing the batch
         # through each expert.

@@ -52,16 +52,7 @@ def batch_query_moe_grid(x_batches : list, experts : list, remap_flag : bool = T
     idx = moe_grid_select(x_batched)
     idx_tail = moe_grid_select(x_batches[-1])
     idx = jnp.concatenate((idx.flatten(), idx_tail), axis=0)
-
-    # Remap
-    yp_raw = yp.copy()
-    if remap_flag:
-        yp = remap(
-            yp, 
-            jnp.min(yp),
-            jnp.max(yp),
-            0,
-            1,)
+    yp_raw = yp
 
     return yp, idx, yp_raw
 
@@ -71,19 +62,10 @@ def batch_query_moe_grid_OOM(x_batches : list, experts : list, at_once : int):
     '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
     \nPassing all batches at once can be done with batch_query_moe().'''
 
-    # Forward batch subsets WITHOUT remapping the subsets model output already to 0.0 - 1.0
     yp_all = []
     for i in range(0, len(x_batches), at_once):
         yp, _ , _ = batch_query_moe_grid(x_batches[i:i+at_once], experts, remap_flag=False)
         yp_all.append(np.array(yp)) # unload from GPU
     yp_all = np.concatenate(yp_all, axis=0)
-
-    # Remap after all batches were processed to avoid uneven remapping
-    yp_all = remap(
-        yp_all, 
-        np.min(yp_all),
-        np.max(yp_all),
-        0,
-        1,)
     
     return yp_all

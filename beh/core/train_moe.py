@@ -57,7 +57,7 @@ def train_moe(
     gate_hid_lay = configs[model_key]['gate_hidden_layer']
     expert_hid_lay = configs[model_key]['expert_hidden_layer']
 
-    # Set training hyperparameters
+    # Get training hyperparameters
     batch_size = configs['general']['batch_size']
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
@@ -83,18 +83,15 @@ def train_moe(
     ## Dense MoE
     dkey = f'{model_key}_dense'
     total_p = count_parameter(expert_arch) * nex + count_parameter(gate_arch)
-    reg.add( dkey + core_keys['total_parameters_key'],
-            total_p)
-    reg.add( dkey + core_keys['active_parameters_key'],
-            total_p)
+    reg.add( dkey + core_keys['total_parameters_key'], total_p)
+    reg.add( dkey + core_keys['active_parameters_key'], total_p)
     ## Sparse MoE
     skey = f'{model_key}_sparse'
     active_p = count_parameter(expert_arch) + count_parameter(gate_arch)
-    reg.add( skey + core_keys['total_parameters_key'],
-            total_p)
-    reg.add( skey + core_keys['active_parameters_key'],
-            active_p)
+    reg.add( skey + core_keys['total_parameters_key'], total_p)
+    reg.add( skey + core_keys['active_parameters_key'], active_p)
     
+    # Define model training update
     @jax.jit
     def update(p, opt_state, xB, yB, negative_class_weight):
         grads = jax.grad(moe_train_loss)(p, xB, yB, negative_class_weight)

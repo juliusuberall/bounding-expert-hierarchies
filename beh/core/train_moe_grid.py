@@ -65,11 +65,10 @@ def train_moe_grid(
 
     # Count total parameter and store
     total_p = count_parameter(expert_arch) * nex
-    reg.add( model_key + core_keys['total_parameters_key'],
-            total_p)
-    reg.add( model_key + core_keys['active_parameters_key'],
-            total_p)
+    reg.add( model_key + core_keys['total_parameters_key'], total_p)
+    reg.add( model_key + core_keys['active_parameters_key'], total_p)
 
+    # Define model training update
     @jax.jit
     def update(p, opt_state, xB, yB, iB, negative_class_weight):
         grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)

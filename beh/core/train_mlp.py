@@ -46,11 +46,10 @@ def train_mlp(
 
     # Count total parameter and store
     total_p = count_parameter(mlp_arch)
-    reg.add( model_key + core_keys['total_parameters_key'],
-            total_p)
-    reg.add( model_key + core_keys['active_parameters_key'],
-            total_p)
+    reg.add( model_key + core_keys['total_parameters_key'], total_p)
+    reg.add( model_key + core_keys['active_parameters_key'], total_p)
 
+    # Define model training update
     @jax.jit
     def update(p, opt_state, xB, yB, negative_class_weight):
         grads = jax.grad(mlp_bce_loss)(p, xB, yB, negative_class_weight)

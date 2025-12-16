@@ -110,10 +110,8 @@ def register_inference_speed (
     # Save results
     dkey = f'{model_key}_dense'
     skey = f'{model_key}_sparse'
-    reg.add( dkey + core_keys['inf_speed_key'],
-            d_cache)
-    reg.add( skey + core_keys['inf_speed_key'],
-            s_cache)
+    reg.add( dkey + core_keys['inf_speed_key'], d_cache)
+    reg.add( skey + core_keys['inf_speed_key'], s_cache)
 
     return reg
 

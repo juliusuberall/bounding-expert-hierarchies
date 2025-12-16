@@ -82,14 +82,11 @@ def get_benchmarks(
     threshold = configs['general']['boundary_threshold']
     infB_qsize = configs['general']['inf_bench_query_size']
     infB_reps = configs['general']['inf_bench_repitions'] 
+    inf_batch_size = configs['general']['inf_batch_size']
     inf = configs['general']['inf_benchmark'] 
 
     # Dimensions
     img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
-
-    # Define the inference speed batchsizes to test sparse MoE inference functions
-    # This value is somewhat static, as sparse moe forward passes require an implementation per batch size due to JIT minibatching
-    inf_batch_size = 200000  
 
     # Batch data
     x_batches = batch_data(x, batch_size)

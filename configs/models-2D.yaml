@@ -11,6 +11,9 @@ general:
   vis_results : False # Visualize results or not e.g. Create plots, extract VDBs or meshes
 
 # Small = 180
+bvhS:
+  type: 'bvh'
+  max_depth: 3
 mlpS:
   type: 'mlp'
   min_epochs: 15000

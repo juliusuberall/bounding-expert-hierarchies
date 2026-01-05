@@ -118,23 +118,3 @@ def get_benchmarks(
     
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
-
-def save_model (
-    model_key : str,
-    configs : dict,
-    model) -> str:
-    '''
-    Export the parameters of a model.
-    \nReturns path to exported model file.
-    '''
-
-    # Get general configs
-    model_type = configs[model_key]['type']
-
-    # Not the cleanest way of delegating, but works for our case
-    if model_type == 'moe':
-        return export_moe(model, model_key)
-    elif model_type == 'mlp':
-        pass
-    else:
-        raise ValueError(f"Could not export the model. Unsupported model format.")

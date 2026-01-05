@@ -71,11 +71,5 @@ def main():
             query = args.query
         )
 
-        # save_model(
-        #     model_key = model_key,
-        #     configs = configs,
-        #     model = model
-        # )
-
 if __name__ == '__main__':
     main()

@@ -49,7 +49,7 @@ def register_inference_speed (
         dimension : int,
         infB_reps : int,
         infB_qsize : int,
-        inf_batch_size : int) -> CoreRegistry:
+        infB_batch_size : int) -> CoreRegistry:
     '''
     \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
     \nRegisters the measured median inference speed over N iterations.
@@ -64,12 +64,12 @@ def register_inference_speed (
             x,
             mlp,
             mlp_forward_INF,
-            inf_batch_size,
+            infB_batch_size,
             infB_reps,
             infB_qsize,
             query_dim = x.shape[-1])
-        cache.append([inf_batch_size, speed])
-        print(f"\nInf. Speed {inf_batch_size} batch size => {round(float(speed),4)}ms")
+        cache.append([infB_batch_size, speed])
+        print(f"\nInf. Speed {infB_batch_size} batch size => {round(float(speed),4)}ms")
     else:
         cache.append([0, 0])
         print('Skipped Benchmarking')

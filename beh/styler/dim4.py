@@ -9,7 +9,7 @@ from beh.core.shared import batch_data
 from beh.core.moe import moe_forward_sparse_INF
 from beh.core.moe_benchmarking import gating_confidence
 
-inf_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
+infB_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
 
 #------------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ def prep_openVDB_4D(
         axis=-1).reshape(-1, 4) 
 
     # Break in batches
-    x_batches = batch_data(vdb_x, inf_batch_size)
+    x_batches = batch_data(vdb_x, infB_batch_size)
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
 

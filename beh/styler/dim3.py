@@ -12,7 +12,7 @@ from beh.core.shared import batch_data
 from beh.core.moe_benchmarking import gating_confidence
 from skimage.measure import marching_cubes
 
-inf_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
+infB_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
 
 #------------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ def marching_cube(
     mc_x = np.stack([mc_x, mc_y, mc_z], axis=-1).reshape(-1, 3)  
 
     # Evaluate the function over grid
-    mc_x = batch_data(mc_x, inf_batch_size)
+    mc_x = batch_data(mc_x, infB_batch_size)
     if model_type == 'moe':
         values = batch_query_moe_OOM(mc_x, model, moe_forward_sparse_INF, 50)
     else:
@@ -123,7 +123,7 @@ def prep_openVDB(
     vdb_x = jnp.stack([vdb_X, vdb_Y, vdb_Z], axis=-1).reshape(-1, 3) 
 
     # Break in batches
-    x_batches = batch_data(vdb_x, inf_batch_size)
+    x_batches = batch_data(vdb_x, infB_batch_size)
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
 

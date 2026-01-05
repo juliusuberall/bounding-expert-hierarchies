@@ -50,7 +50,7 @@ def register_inference_speed (
         dimension : int,
         infB_reps : int,
         infB_qsize : int,
-        inf_batch_size : int) -> CoreRegistry:
+        infB_batch_size : int) -> CoreRegistry:
     '''
     \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
     \nRegisters the measured inference speed over N iterations.
@@ -67,13 +67,13 @@ def register_inference_speed (
             x,
             moe_grid,
             moe_grid_forward_INF,
-            inf_batch_size,
+            infB_batch_size,
             infB_reps,
             infB_qsize,
             query_dim = x.shape[-1])
-        cache.append([inf_batch_size, speed])
+        cache.append([infB_batch_size, speed])
         
-        print(f"Inf. Speed {inf_batch_size} batch size => {round(float(speed),4)}ms\n")
+        print(f"Inf. Speed {infB_batch_size} batch size => {round(float(speed),4)}ms\n")
     else:
         cache.append([0, 0])
         print('Skipped Benchmarking')

@@ -67,7 +67,7 @@ def register_inference_speed (
         dimension : int,
         infB_reps : int,
         infB_qsize : int,
-        inf_batch_size : int) -> CoreRegistry:
+        infB_batch_size : int) -> CoreRegistry:
     '''
     \nCan be flagged to benchmark or not, either adding placeholder or actualy measurments to the core registry to maintain pipeline flow.
     \nRegisters the measured inference speed over N iterations.
@@ -84,24 +84,24 @@ def register_inference_speed (
             x,
             moe,
             moe_forward_dense_INF,
-            inf_batch_size,
+            infB_batch_size,
             infB_reps,
             infB_qsize,
             query_dim = x.shape[-1])
-        d_cache.append([inf_batch_size, dense_speed])
+        d_cache.append([infB_batch_size, dense_speed])
 
         sparse_speed = benchmark_inference_speed(
             x,
             moe,
             moe_forward_sparse_INF,
-            inf_batch_size,
+            infB_batch_size,
             infB_reps,
             infB_qsize,
             query_dim = x.shape[-1])
-        s_cache.append([inf_batch_size, sparse_speed])
+        s_cache.append([infB_batch_size, sparse_speed])
         
-        print(f"Dense Inf. Speed {inf_batch_size} batch size => {round(float(dense_speed),4)}ms")
-        print(f"Sparse Inf. Speed {inf_batch_size} batch size => {round(float(sparse_speed),4)}ms\n")
+        print(f"Dense Inf. Speed {infB_batch_size} batch size => {round(float(dense_speed),4)}ms")
+        print(f"Sparse Inf. Speed {infB_batch_size} batch size => {round(float(sparse_speed),4)}ms\n")
     else:
         d_cache.append([0, 0])
         s_cache.append([0, 0])

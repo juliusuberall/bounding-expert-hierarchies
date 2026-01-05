@@ -35,6 +35,8 @@ def benchmark_inference_speed(
         # Dynamic slicing allows us to sub-select on the device, avoiding transfer overhead.
         # Dynamic slice handles tail if query-size and batch-size are not % == 0. In that
         # case it moves the start index as required.
+        # Tested this for cases in which we keep querying with the tail a.k.a. same queries
+        # multiple times instead of always random new queires and confirms that both are equal in query time
         x_slice = jax.lax.dynamic_slice(x, (start, 0), (batch_size, query_dim))
         y = func(model, x_slice)
         return val + jnp.sum(y) # Passing to make sure JIT does not ignore forward call

@@ -137,6 +137,18 @@ def query_bvh(tree : jax.Array, queries : jax.Array) -> jax.Array :
       query_indices = append_in_place(query_indices, query_indices, active_count)
       node_indices = append_in_place(node_indices_left, node_indices_right, active_count)
 
+#------------------------------------------------------------------------------------
+
+def batch_query_bvh(bvh : jax.Array, x_batches : list,):
+    ## Trim tail of x that does not fit with batchsize
+    x_batched = jnp.stack(x_batches[0:-1])
+    yp = jax.vmap(lambda X: query_bvh(bvh, X))(x_batched).flatten()
+    ## Add tail
+    x_tail = query_bvh(bvh, x_batches[-1])
+    yp = jnp.concatenate((yp, x_tail.flatten()))
+    return yp
+
+
 def grid(shape):
   u = jnp.linspace(-1, 1, shape[1])
   v = jnp.linspace(-1, 1, shape[0])

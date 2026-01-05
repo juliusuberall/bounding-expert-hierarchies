@@ -43,11 +43,13 @@ def format_export_results(
     visualize_results = configs['general']['vis_results']
     model_type = configs[model_key]['type']
 
-    # Create model detail string
-    model_detail_str = create_model_details_string(model_type, model_key, reg, configs, dimension) 
+    if model_type in ['moe', 'mlp', 'moe_grid']:
+        # Create model detail string
+        model_detail_str = create_model_details_string(model_type, model_key, reg, configs, dimension) 
 
-    # Result plots relevant for all dimensions and models
-    export_plot_training_metrics(data_name, model_key, model_detail_str, reg, configs, dimension)
+        # Result plots relevant for all dimensions and models
+        export_plot_training_metrics(data_name, model_key, model_detail_str, reg, configs, dimension)
+
 
     if visualize_results :
         if model_type == 'moe':

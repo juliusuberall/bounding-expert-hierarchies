@@ -131,7 +131,7 @@ def get_benchmarks(
         return reg
     
     elif model_type == 'bvh':
-        reg = bvh_B.register_accuracy(model_key, model, x, x_aa, y, reg, threshold)
+        reg = bvh_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
         reg = bvh_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, infB_batch_size)
         return reg
     

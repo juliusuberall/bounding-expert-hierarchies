@@ -22,12 +22,12 @@ def register_accuracy(
     '''
     
     # Inference
-    yp = query_bvh(bvh, x)
+    yp = batch_query_bvh(bvh, x)
     fn, fp = get_fn_fp_rate(yp, y, threshold)
 
     ## 2D - Query in higher resolution for anti-aliased binary classification plot
     # if x_aa != None : 
-    #     yp_aa = query_bvh(bvh, jnp.array(x_aa).reshape((-1, x.shape[-1])))
+    #     yp_aa = batch_query_bvh(bvh, jnp.array(x_aa).reshape((-1, x.shape[-1])))
     #     reg.add(model_key + core_keys['aa_y_prediciton_key'], yp_aa)
 
     # Save numerical results

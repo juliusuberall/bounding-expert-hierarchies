@@ -58,7 +58,7 @@ def train_mlp(
         return p, opt_state, grads
 
     # Training loop
-    print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
+    print(f"\nBatchsize: {batch_size} | LearnRate: {learning_rate}")
     print(f"MLP: {mlp_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     fn_cache, fp_cache, slope_cache, epoch_cache = [], [], [], []

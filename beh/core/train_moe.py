@@ -100,7 +100,7 @@ def train_moe(
         return p, opt_state, grads
 
     # Training loop
-    print(f"\nBatch: {batch_size} | LearnRate: {learning_rate}")
+    print(f"\nBatchsize: {batch_size} | LearnRate: {learning_rate}")
     print(f"Gate: {gate_arch} | {nex}x Experts: {expert_arch} | Total P: {total_p}")
     print(f"+++++++++++++ Starting {model_key} training ++++++++++++++")
     fn_cache, fp_cache, slope_cache, confidence_cache, epoch_cache, active_e_cache, con_experts_cache = [], [], [], [], [], [], []

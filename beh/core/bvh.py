@@ -1,6 +1,7 @@
 import math
 import jax
 import jax.numpy as jnp
+import time
 from typing import Tuple
 
 from beh.core.registry import *
@@ -10,7 +11,11 @@ config.update("jax_enable_x64", True) # Might interfere with other JAX computati
 
 node_dtype = jnp.int64
 
-def build_bvh(positions : jax.Array, max_depth : int, reg : CoreRegistry) -> Tuple[jax.Array, CoreRegistry] :
+def build_bvh(
+  model_key : str,
+  positions : jax.Array,
+  max_depth : int,
+  reg : CoreRegistry) -> Tuple[jax.Array, CoreRegistry] :
   """
   Build a Bounding Volume Hierarchy for 2D or 3D points.
   
@@ -28,6 +33,7 @@ def build_bvh(positions : jax.Array, max_depth : int, reg : CoreRegistry) -> Tup
       - jax.Array: The bounding volume tree with lower and upper bounds.
       - CoreRegistry: The updated registry object.
   """
+  construction_time_t0 = time.perf_counter_ns()
 
   def discretize(positions, bit_depth):
     grid_size = 1 << bit_depth
@@ -66,6 +72,13 @@ def build_bvh(positions : jax.Array, max_depth : int, reg : CoreRegistry) -> Tup
   tree = jnp.array(tree)
 
   print(f"BVH built with {tree.shape[0]} nodes and depth {int(math.log2(tree.shape[0] + 1))}")
+
+  # Save BVH specs to Core Registry
+  reg_key = model_key + core_keys['training_time']
+  reg.add( reg_key, np.array((time.perf_counter_ns() - construction_time_t0) / 6e10)) # Convert to ns to min
+
+  reg.add( model_key + core_keys['total_parameters_key'], tree.size)
+  reg.add( model_key + core_keys['active_parameters_key'], tree.size)
 
   return tree, reg
 

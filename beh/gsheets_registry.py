@@ -62,8 +62,12 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
     worksheet_name = 'last_run'
     accelerator = jax.devices()[0].device_kind
     model_type = configs[model_key]['type']
+    m_key = model_key
     
-    # Extract type specific information 
+    # Extract model type specific results 
+    if model_type in ['moe', 'moe_grid', 'mlp']:
+        epochs = reg.get(model_key + core_keys['total_epochs'])
+
     if model_type == 'moe':
         nex = configs[model_key]['nex']
         gate_hid_lay = configs[model_key]['gate_hidden_layer']
@@ -76,7 +80,6 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         pattern = 'Dense'
 
     elif model_type == 'moe_grid':
-        m_key = model_key
         nex = configs[model_key]['grid_dim'] ** dimension
         expert_hid_lay = configs[m_key]['expert_hidden_layer']
         expert_arch = [dimension] + expert_hid_lay + [1]
@@ -84,54 +87,58 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         pattern = 'Sparse'
 
     elif model_type == 'mlp':
-        m_key = model_key
         hid_lay = configs[m_key]['hidden_layer']
         arch = str([dimension] + hid_lay + [1]).replace(" ", "")
         pattern = 'Dense'
-
+    
+    elif model_type == 'bvh':
+        pattern = 'Sparse'
+        arch = f"Max-Depth: {configs[model_key]['max_depth']}"
+        epochs = "None"
+    
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
     
+    # Log results online 
     gsheet_log_row(
-        worksheet_name,
-        dimension,
-        data_name,
-        accelerator,
-        m_key.split("_")[0]  + "D",
-        model_type,
-        pattern,
-        "".join(c for c in m_key if c.isdigit()),
-        arch,
-        float(reg.get(m_key + core_keys['total_parameters_key'])),
-        float(reg.get(m_key + core_keys['active_parameters_key'])),
-        reg.get(model_key + core_keys['total_epochs']),
-        reg.get(m_key + core_keys['inf_speed_key']),
-        f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
-        float(reg.get(m_key + core_keys['fp_key'])),
-        float(reg.get(m_key + core_keys['fn_key'])),
-        float(reg.get(model_key + core_keys['training_time']))
+        worksheet_name   = worksheet_name,
+        dimension        = dimension,
+        data_name        = data_name,
+        accelerator      = accelerator,
+        chart_key        = m_key.split("_")[0]  + "D" if pattern == 'Dense' else  m_key.split("_")[0]  + "S",
+        model_type       = model_type,
+        pattern          = pattern,
+        size             = model_key[-1].capitalize(),
+        architecture     = arch,
+        total_p          = float(reg.get(m_key + core_keys['total_parameters_key'])),
+        active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),
+        epochs           = epochs,
+        batch_speeds     = reg.get(m_key + core_keys['inf_speed_key']),
+        timing_setup     = f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
+        fp               = float(reg.get(m_key + core_keys['fp_key'])),
+        fn               = float(reg.get(m_key + core_keys['fn_key'])),
+        train_time       = round(float(reg.get(model_key + core_keys['training_time'])), 2)
     )
 
-    ## Ensure we append all sparse MoE results after all other to 
-    ## have them as one block of results together
+    # Second result logging to add sparse MoE results immediatly after the dense results
     if model_type == 'moe':
         m_key = f'{model_key}_sparse'
         gsheet_log_row(
-            worksheet_name,
-            dimension,
-            data_name,
-            accelerator,
-            m_key.split("_")[0] + "S",
-            model_type,
-            'Sparse',
-            "".join(c for c in m_key if c.isdigit()),
-            arch,
-            float(reg.get(m_key + core_keys['total_parameters_key'])),
-            float(reg.get(m_key + core_keys['active_parameters_key'])),
-            reg.get(model_key + core_keys['total_epochs']),
-            reg.get(m_key + core_keys['inf_speed_key']),
-            f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
-            float(reg.get(m_key + core_keys['fp_key'])),
-            float(reg.get(m_key + core_keys['fn_key'])),
-            float(reg.get(model_key + core_keys['training_time']))
+            worksheet_name   = worksheet_name,
+            dimension        = dimension,
+            data_name        = data_name,
+            accelerator      = accelerator,
+            chart_key        = m_key.split("_")[0] + "S",
+            model_type       = model_type,
+            pattern          = 'Sparse',
+            size             = model_key[-1].capitalize(),
+            architecture     = arch,
+            total_p          = float(reg.get(m_key + core_keys['total_parameters_key'])),
+            active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),
+            epochs           = epochs,
+            batch_speeds     = reg.get(m_key + core_keys['inf_speed_key']),
+            timing_setup     = f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
+            fp               = float(reg.get(m_key + core_keys['fp_key'])),
+            fn               = float(reg.get(m_key + core_keys['fn_key'])),
+            train_time       = round(float(reg.get(model_key + core_keys['training_time'])), 2)
         )

@@ -70,6 +70,7 @@ def train_model(
         x = x[y > 0]
         x = shrink_to_nex_power_of_two(x)
         return build_bvh(
+            model_key = model_key,
             positions = x,
             max_depth = configs[model_key]['max_depth'],
             reg = reg

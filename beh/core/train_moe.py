@@ -217,7 +217,7 @@ def train_moe(
     reg.add( reg_key, i)
 
     reg_key = model_key + core_keys['training_time']
-    reg.add( reg_key, np.array((time.perf_counter_ns() - train_time_t0) / 1e9))
+    reg.add( reg_key, np.array((time.perf_counter_ns() - train_time_t0) / 6e10))
 
     reg_key = model_key + core_keys['train_fn_key']
     reg.add( reg_key, np.array(fn_cache))

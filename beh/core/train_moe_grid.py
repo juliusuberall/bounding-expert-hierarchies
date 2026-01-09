@@ -99,7 +99,7 @@ def train_moe_grid(
         # determinism and numpy runs much faster than jax for random sampling
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
-        iB = moe_grid_select(xB)
+        iB = moe_grid_select(xB, len(moe_grid))
         moe_grid, opt_state, gradient = update(moe_grid, opt_state, xB, yB, iB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 

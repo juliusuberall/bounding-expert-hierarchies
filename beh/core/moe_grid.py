@@ -8,24 +8,21 @@ from beh.core.moe import expert_forward_sparse
 from beh.registry import *
 from beh.config_parser import *
 
-args, configs = parse_train()
-
 #------------------------------------------------------------------------------------
 
 @jax.jit
 def moe_grid_forward_INF(experts : list, x : jax.Array):
-    idx = moe_grid_select(x)
+    idx = moe_grid_select(x, len(experts))
     return jax.nn.sigmoid(expert_forward_sparse(experts, x, idx))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_grid_select(x : jax.Array):
+def moe_grid_select(x : jax.Array, grid_dim : jax.Array):
     """Map queries to networks by computing networks index in grid for any query dimension.
     \nFor 4D+ dimensions this may seem non-trivial but can be generated. 
-    \nIt essentially checks a grid and assigns based on this grid cell index."""
-    # Get number of grid cells per dimension
-    grid_dim = configs['moeGrid']['grid_dim']
+    \nIt essentially checks a grid and assigns based on this grid cell index.
+    \ngrid_dim = Nnumber of grid cells per dimension in hypercube"""
 
     # Map training data (normalised in range -1 to 1) to grid cells
     dimension = x.shape[-1]
@@ -49,8 +46,8 @@ def batch_query_moe_grid(x_batches : list, experts : list, remap_flag : bool = T
     yp_tail = moe_grid_forward_INF(experts, x_batches[-1]).flatten()
     yp = jnp.concatenate((yp, yp_tail), axis=0)
 
-    idx = moe_grid_select(x_batched)
-    idx_tail = moe_grid_select(x_batches[-1])
+    idx = moe_grid_select(x_batched, len(experts))
+    idx_tail = moe_grid_select(x_batches[-1], len(experts))
     idx = jnp.concatenate((idx.flatten(), idx_tail), axis=0)
     yp_raw = yp
 

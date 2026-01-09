@@ -72,7 +72,7 @@ def build_bvh(
   tree = jnp.array(tree)
 
   depth = int(math.log2(tree.shape[0] + 1))
-  print(f"BVH built with {2**(depth-1)} lefs and depth {depth}")
+  print(f"BVH built with {2**(depth-1)} leafs and depth {depth}")
 
   # Save BVH specs to Core Registry
   reg_key = model_key + core_keys['training_time']
@@ -82,6 +82,8 @@ def build_bvh(
   reg.add( model_key + core_keys['active_parameters_key'], tree.size)
 
   return tree, reg
+
+#------------------------------------------------------------------------------------
 
 def child(node_indices , sibling, level):
   # Breadth-first layout
@@ -98,6 +100,8 @@ def append_in_place(a, b, count):
 
   is_second = (all_indices >= count) & (all_indices < 2 * count)
   return jnp.where(is_second, jnp.roll(b, count), a)
+
+#------------------------------------------------------------------------------------
 
 @jax.jit
 def query_bvh(tree : jax.Array, queries : jax.Array) -> jax.Array :
@@ -162,6 +166,7 @@ def batch_query_bvh(bvh : jax.Array, x_batches : list,):
     yp = jnp.concatenate((yp, x_tail.flatten()))
     return yp
 
+#------------------------------------------------------------------------------------
 
 def grid(shape):
   u = jnp.linspace(-1, 1, shape[1])
@@ -169,10 +174,14 @@ def grid(shape):
   x, y = jnp.meshgrid(v, u)
   return jnp.stack((x, y)).T
 
+#------------------------------------------------------------------------------------
+
 def shrink_to_nex_power_of_two(positions : jax.Array) -> jax.Array :
     power_of_two_count = 1 << jnp.array(jnp.floor(jnp.log2(positions.shape[0])), int)
     positions = positions[0 : power_of_two_count]
     return positions
+
+#------------------------------------------------------------------------------------
 
 def pad_to_power_of_two(positions : jax.Array) -> Tuple[jax.Array, jax.Array]:
     """Pad positions array to the next power of two to preserve all data.

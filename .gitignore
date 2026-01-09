@@ -3,6 +3,7 @@
 /results
 /keys
 /tools
+/ipynb
 
 # Ignore macOS DS_Store
 **/.DS_Store

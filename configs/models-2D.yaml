@@ -5,15 +5,15 @@ general:
   boundary_threshold: 0.5 # Decision boundary when converting continous model output to binary 
   inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
   infB_batch_size: 200000 # Batchsizes to test evaluate inference time -> 0 = inf_bench_query_size % infB_batch_size
-  inf_bench_repitions: 1000 # Number of repitions to median speed benchmark
+  inf_bench_repitions: 2 # Number of repitions to median speed benchmark
   aa_scaling : 3 # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
   inf_benchmark : False # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
-  vis_results : False # Visualize results or not e.g. Create plots, extract VDBs or meshes
+  vis_results : True # Visualize results or not e.g. Create plots, extract VDBs or meshes
 
 # Small = 180
 bvhS:
   type: 'bvh'
-  max_depth: 3
+  max_depth: 5
 mlpS:
   type: 'mlp'
   min_epochs: 100

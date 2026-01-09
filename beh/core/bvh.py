@@ -7,9 +7,9 @@ from typing import Tuple
 from beh.core.registry import *
 from jax import config
 
-config.update("jax_enable_x64", True) # Might interfere with other JAX computation which run in 32-bit
-
-node_dtype = jnp.int64
+# Originally the implentation was using jax with 64bit for higher precision in the BVH.
+# We swapped this back to 32, because we benchmark all models in the same 32 bit style.
+node_dtype = jnp.int32
 
 def build_bvh(
   model_key : str,

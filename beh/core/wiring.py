@@ -7,7 +7,7 @@ from beh.core.moe import export_moe
 
 from beh.core.shared import batch_data
 from beh.core.registry import *
-from beh.core.bvh import build_bvh, shrink_to_nex_power_of_two
+from beh.core.bvh import build_bvh, pad_to_power_of_two
 from beh.core.train_moe import train_moe
 from beh.core.train_moeg import train_moeg
 from beh.core.train_mlp import train_mlp
@@ -68,7 +68,7 @@ def train_model(
         # and account for balanced bvh tree by reducing amount of
         # points to construct bvh with
         x = x[y > 0]
-        x = shrink_to_nex_power_of_two(x)
+        x , _ = pad_to_power_of_two(x)
         return build_bvh(
             model_key = model_key,
             positions = x,

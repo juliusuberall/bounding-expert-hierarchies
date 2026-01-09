@@ -172,3 +172,27 @@ def shrink_to_nex_power_of_two(positions : jax.Array) -> jax.Array :
     power_of_two_count = 1 << jnp.array(jnp.floor(jnp.log2(positions.shape[0])), int)
     positions = positions[0 : power_of_two_count]
     return positions
+
+def pad_to_power_of_two(positions : jax.Array) -> Tuple[jax.Array, jax.Array]:
+    """Pad positions array to the next power of two to preserve all data.
+    
+    Args:
+        positions: A JAX array of shape (N, D) containing N points in D-dimensional space.
+    
+    Returns:
+        tuple:
+            - Padded positions array of shape (P, D) where P is the next power of 2 >= N
+            - Boolean mask of shape (P,) indicating which rows are original (True) vs padded (False)
+    """
+    n = positions.shape[0]
+    # Calculate next power of 2
+    power_of_two_size = 1 << int(jnp.ceil(jnp.log2(n)))
+    
+    # Pad with edge values (repeat last row)
+    padding_needed = power_of_two_size - n
+    positions_padded = jnp.pad(positions, ((0, padding_needed), (0, 0)), mode='edge')
+    
+    # Create mask for original data
+    mask = jnp.arange(power_of_two_size) < n
+    
+    return positions_padded, mask

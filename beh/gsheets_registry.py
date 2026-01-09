@@ -54,6 +54,14 @@ def gsheet_log_row(
     ws = gc.open_by_key(sheet_id).worksheet(worksheet_name)
     ws.append_row(row, value_input_option="RAW")
 
+def generate_key(type:str, pattern:str, size:str) -> str:
+    pattern = ""
+    if type == 'moe':
+        pattern = "Sp" if pattern == "Sparse" else "Dn"
+        pattern = "-" + pattern
+    key = f"{type.upper()}{pattern}-{size.upper()}"
+    return key
+
 def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, configs, data_name : str):
     '''
     Log all results in google sheets using google sheets api.
@@ -100,15 +108,16 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         raise ValueError(f"Unsupported model type: {model_type}")
     
     # Log results online 
+    size = model_key[-1].capitalize()
     gsheet_log_row(
         worksheet_name   = worksheet_name,
         dimension        = dimension,
         data_name        = data_name,
         accelerator      = accelerator,
-        chart_key        = m_key.split("_")[0]  + "+" if pattern == 'Sparse' else m_key.split("_")[0] ,
+        chart_key        = generate_key(model_type, pattern, size),
         model_type       = model_type,
         pattern          = pattern,
-        size             = model_key[-1].capitalize(),
+        size             = size,
         architecture     = arch,
         total_p          = float(reg.get(m_key + core_keys['total_parameters_key'])),
         active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),
@@ -128,10 +137,10 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             dimension        = dimension,
             data_name        = data_name,
             accelerator      = accelerator,
-            chart_key        = m_key.split("_")[0] + "+",
+            chart_key        = generate_key(model_type, pattern, size),
             model_type       = model_type,
             pattern          = 'Sparse',
-            size             = model_key[-1].capitalize(),
+            size             = size,
             architecture     = arch,
             total_p          = float(reg.get(m_key + core_keys['total_parameters_key'])),
             active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),

@@ -16,16 +16,16 @@ bvhS:
   max_depth: 3
 mlpS:
   type: 'mlp'
-  min_epochs: 15000
+  min_epochs: 100
   hidden_layer: [11,11]
-gmoeS:
-  type: 'moe_grid'
-  min_epochs: 15000
+moegS:
+  type: 'moeg'
+  min_epochs: 100
   grid_dim : 2
-  hidden_layer: [4,4]
+  expert_hidden_layer: [4,4]
 moeS:
   type: 'moe'
-  min_epochs: 15000
+  min_epochs: 100
   nex : 4
   expert_hidden_layer: [4,4]
   gate_hidden_layer: [2]

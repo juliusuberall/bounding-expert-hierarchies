@@ -11,14 +11,14 @@ from beh.config_parser import *
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_grid_forward_INF(experts : list, x : jax.Array):
-    idx = moe_grid_select(x, len(experts))
+def moeg_forward_INF(experts : list, x : jax.Array):
+    idx = moeg_select(x, len(experts))
     return jax.nn.sigmoid(expert_forward_sparse(experts, x, idx))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_grid_select(x : jax.Array, grid_dim : jax.Array):
+def moeg_select(x : jax.Array, grid_dim : jax.Array):
     """Map queries to networks by computing networks index in grid for any query dimension.
     \nFor 4D+ dimensions this may seem non-trivial but can be generated. 
     \nIt essentially checks a grid and assigns based on this grid cell index.
@@ -37,17 +37,17 @@ def moe_grid_select(x : jax.Array, grid_dim : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moe_grid(x_batches : list, experts : list, remap_flag : bool = True):
+def batch_query_moeg(x_batches : list, experts : list, remap_flag : bool = True):
     '''List of batched queries that will be passed through the model at once. Be aware of device OOM.'''
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
     
-    yp = jax.vmap(lambda x: moe_grid_forward_INF(experts, x))(x_batched).flatten()
-    yp_tail = moe_grid_forward_INF(experts, x_batches[-1]).flatten()
+    yp = jax.vmap(lambda x: moeg_forward_INF(experts, x))(x_batched).flatten()
+    yp_tail = moeg_forward_INF(experts, x_batches[-1]).flatten()
     yp = jnp.concatenate((yp, yp_tail), axis=0)
 
-    idx = moe_grid_select(x_batched, len(experts))
-    idx_tail = moe_grid_select(x_batches[-1], len(experts))
+    idx = moeg_select(x_batched, len(experts))
+    idx_tail = moeg_select(x_batches[-1], len(experts))
     idx = jnp.concatenate((idx.flatten(), idx_tail), axis=0)
     yp_raw = yp
 
@@ -55,13 +55,13 @@ def batch_query_moe_grid(x_batches : list, experts : list, remap_flag : bool = T
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moe_grid_OOM(x_batches : list, experts : list, at_once : int):
+def batch_query_moeg_OOM(x_batches : list, experts : list, at_once : int):
     '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
     \nPassing all batches at once can be done with batch_query_moe().'''
 
     yp_all = []
     for i in range(0, len(x_batches), at_once):
-        yp, _ , _ = batch_query_moe_grid(x_batches[i:i+at_once], experts, remap_flag=False)
+        yp, _ , _ = batch_query_moeg(x_batches[i:i+at_once], experts, remap_flag=False)
         yp_all.append(np.array(yp)) # unload from GPU
     yp_all = np.concatenate(yp_all, axis=0)
     

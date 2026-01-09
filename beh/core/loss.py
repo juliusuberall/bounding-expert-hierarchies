@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 from beh.core.moe import gate_forward, moe_forward_dense
 from beh.core.mlp import mlp_forward
-from beh.core.moe_grid import expert_forward_sparse
+from beh.core.moeg import expert_forward_sparse
 
 #------------------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_grid_train_loss(p : list, x : jax.Array, y : jax.Array, idx : jax.Array, negative_class_weight : jax.Array):
+def moeg_train_loss(p : list, x : jax.Array, y : jax.Array, idx : jax.Array, negative_class_weight : jax.Array):
     yp = expert_forward_sparse(p, x, idx).flatten() # Flatten to ensure correct shapes for BCE
     loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
     return loss

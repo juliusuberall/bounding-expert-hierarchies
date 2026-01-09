@@ -65,7 +65,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
     m_key = model_key
     
     # Extract model type specific results 
-    if model_type in ['moe', 'moe_grid', 'mlp']:
+    if model_type in ['moe', 'moeg', 'mlp']:
         epochs = reg.get(model_key + core_keys['total_epochs'])
 
     if model_type == 'moe':
@@ -79,7 +79,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         arch = f'G {str(gate_arch).replace(" ", "")}    {nex}x E {str(expert_arch).replace(" ", "")}'
         pattern = 'Dense'
 
-    elif model_type == 'moe_grid':
+    elif model_type == 'moeg':
         nex = configs[model_key]['grid_dim'] ** dimension
         expert_hid_lay = configs[m_key]['expert_hidden_layer']
         expert_arch = [dimension] + expert_hid_lay + [1]

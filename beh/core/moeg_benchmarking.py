@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import numpy as np
 
 from beh.core.shared import *
-from beh.core.moe_grid import batch_query_moe_grid, batch_query_moe_grid_OOM, moe_grid_forward_INF
+from beh.core.moeg import batch_query_moeg, batch_query_moeg_OOM, moeg_forward_INF
 from beh.core.registry import *
 from beh.core.benchmarking import *
 
@@ -21,12 +21,12 @@ def register_accuracy(
     \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in % of max FN or FP that could be reached.
     '''
     # MoE Grid inference
-    yp, idx, yp_raw = batch_query_moe_grid(x_batches, moe)
+    yp, idx, yp_raw = batch_query_moeg(x_batches, moe)
     fn, fp = get_fn_fp_rate(yp, y, threshold=threshold)
 
     if x_aa != None : 
         # 2D - Query in higher res for AA while avoiding OOM
-        yp_aa = batch_query_moe_grid_OOM(x_aa, moe, 50)
+        yp_aa = batch_query_moeg_OOM(x_aa, moe, 50)
         reg.add(model_key + core_keys['aa_y_prediciton_key'], yp_aa)
     
     # Save results
@@ -44,7 +44,7 @@ def register_accuracy(
 def register_inference_speed (  
         benchmark : bool,   
         model_key : str,     
-        moe_grid : list,
+        moeg : list,
         x : jax.Array,
         reg : CoreRegistry,
         dimension : int,
@@ -65,8 +65,8 @@ def register_inference_speed (
     if benchmark:
         speed = benchmark_inference_speed(
             x,
-            moe_grid,
-            moe_grid_forward_INF,
+            moeg,
+            moeg_forward_INF,
             infB_batch_size,
             infB_reps,
             infB_qsize,

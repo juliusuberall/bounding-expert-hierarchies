@@ -6,8 +6,8 @@ import optax
 from beh.core.params import *
 from beh.core.registry import *
 from beh.core.moe_benchmarking import *
-from beh.core.loss import moe_grid_train_loss
-from beh.core.moe_grid import moe_grid_select, batch_query_moe_grid
+from beh.core.loss import moeg_train_loss
+from beh.core.moeg import moeg_select, batch_query_moeg
 from beh.core.train_moe import expert_conservativness
 
 from beh.styler.shared import *
@@ -28,7 +28,7 @@ def mask_grads(grads : list, frozen_ids : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-def train_moe_grid(
+def train_moeg(
     model_key : str,
     key : jax.Array,
     x : jax.Array,
@@ -55,13 +55,13 @@ def train_moe_grid(
     
     # Initalize MoE and optimizer
     expert_arch = [query_dim] + expert_hid_lay + [1]
-    moe_grid = init_experts(
+    moeg = init_experts(
         expert_arch,
         nex,
         key
     )
     opt = optax.adam(learning_rate)
-    opt_state = opt.init(moe_grid)
+    opt_state = opt.init(moeg)
 
     # Count total parameter and store
     total_p = count_parameter(expert_arch) * nex
@@ -72,7 +72,7 @@ def train_moe_grid(
     # Define model training update
     @jax.jit
     def update(p, opt_state, xB, yB, iB, negative_class_weight):
-        grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)
+        grads = jax.grad(moeg_train_loss)(p, xB, yB, iB, negative_class_weight)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads
@@ -99,13 +99,13 @@ def train_moe_grid(
         # determinism and numpy runs much faster than jax for random sampling
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
-        iB = moe_grid_select(xB, len(moe_grid))
-        moe_grid, opt_state, gradient = update(moe_grid, opt_state, xB, yB, iB, negative_class_weight)
+        iB = moeg_select(xB, len(moeg))
+        moeg, opt_state, gradient = update(moeg, opt_state, xB, yB, iB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            yp , e_idx , yp_raw  = batch_query_moe_grid(x_batches, moe_grid)  
+            yp , e_idx , yp_raw  = batch_query_moeg(x_batches, moeg)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
@@ -120,7 +120,7 @@ def train_moe_grid(
             # Print epoch stats
             epoch_cache.append(i)     
             print(f"Epoch {i:05d} | FN: {round(float(fn),4):04f} | FP: {round(float(fp),4):04f} | Con Experts: {con_experts.size}/{nex} | yp Range: {jnp.min(yp_raw):04f} to {jnp.max(yp_raw):04f}")
-            checkpoint_moe_grid_export_plot_gradient(gradient, dimension, i)
+            checkpoint_moeg_export_plot_gradient(gradient, dimension, i)
 
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
                 making_conservative = True
@@ -133,7 +133,7 @@ def train_moe_grid(
                 # have to do it like this to maintain speed.
                 @jax.jit
                 def update(p, opt_state, xB, yB, iB, negative_class_weight):
-                    grads = jax.grad(moe_grid_train_loss)(p, xB, yB, iB, negative_class_weight)
+                    grads = jax.grad(moeg_train_loss)(p, xB, yB, iB, negative_class_weight)
                     # Freeze conservative experts
                     grads = mask_grads(grads, con_experts)
                     updates, opt_state = opt.update(grads, opt_state)
@@ -160,4 +160,4 @@ def train_moe_grid(
     reg_key = model_key + core_keys['train_conservative_experts_key']
     reg.add( reg_key, np.array(con_experts_cache))
     
-    return moe_grid, reg
+    return moeg, reg

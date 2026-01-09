@@ -36,7 +36,7 @@ def export_plot_training_data (x : jax.Array, y : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-def export_plot_2D_moe_grid_internal (
+def export_plot_2D_moeg_internal (
     data_name : str, 
     model_key : str,
     y : jax.Array,

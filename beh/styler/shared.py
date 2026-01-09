@@ -32,7 +32,7 @@ def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
     pass
 
 # Plot the gradient of a neural network training
-def checkpoint_moe_grid_export_plot_gradient(gradient, dimension, epoch):
+def checkpoint_moeg_export_plot_gradient(gradient, dimension, epoch):
     '''Visualize the MoE gradient during training and export as plot.'''
   
     # Create plot
@@ -112,7 +112,7 @@ def export_plot_training_metrics (
         ax.plot(epochs, active_experts, label='Active Experts')
         con_experts = reg.get(model_key + core_keys['train_conservative_experts_key'])
         ax.plot(epochs, con_experts, label='Conservative Experts')
-    elif model_type == 'moe_grid':
+    elif model_type == 'moeg':
         con_experts = reg.get(model_key + core_keys['train_conservative_experts_key'])
         ax.plot(epochs, con_experts, label='Conservative Experts')
     elif model_type == 'mlp':
@@ -163,7 +163,7 @@ def create_model_details_string (
         e = f"\nTop1 activation mean: {round(float(confidence),2)}"
         return a + b + c + d + e
     
-    elif model_type == 'moe_grid':
+    elif model_type == 'moeg':
         # Get model configurations
         e_arch = [dimension] + configs[model_key]['expert_hidden_layer'] + [1]
         nex = configs[model_key]['grid_dim'] ** dimension

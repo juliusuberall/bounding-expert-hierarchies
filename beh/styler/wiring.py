@@ -2,7 +2,7 @@ import jax
 
 from beh.core.registry import *
 from beh.styler.shared import export_plot_training_metrics, create_model_details_string
-from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_moe_grid_internal, export_plot_2D_internal_comparison, export_plot_2D_binary_comparison_paper_row
+from beh.styler.dim2 import export_plot_training_data, export_plot_2D_mlp_internal, export_plot_2D_moe_internal, export_plot_2D_moeg_internal, export_plot_2D_internal_comparison, export_plot_2D_binary_comparison_paper_row
 from beh.styler.dim3 import prep_openVDB, marching_cube, render_view
 from beh.styler.dim4 import prep_openVDB_frames
 from beh.styler.dim4plus import pose_marching_cube
@@ -43,7 +43,7 @@ def format_export_results(
     visualize_results = configs['general']['vis_results']
     model_type = configs[model_key]['type']
 
-    if model_type in ['moe', 'mlp', 'moe_grid']:
+    if model_type in ['moe', 'mlp', 'moeg']:
         # Create model detail string
         model_detail_str = create_model_details_string(model_type, model_key, reg, configs, dimension) 
 
@@ -70,9 +70,9 @@ def format_export_results(
             else:
                 raise ValueError(f"Unsupported data dimensionality: {dimension}")
         
-        elif model_type == 'moe_grid':
+        elif model_type == 'moeg':
             if dimension == 2:
-                export_plot_2D_moe_grid_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
+                export_plot_2D_moeg_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
             elif dimension in [3,4,9]:
                 pass
             else:

@@ -1,5 +1,5 @@
 import beh.core.moe_benchmarking as moe_B
-import beh.core.moe_grid_benchmarking as moeG_B
+import beh.core.moeg_benchmarking as moeG_B
 import beh.core.mlp_benchmarking as mlp_B
 import beh.core.bvh_benchmarking as bvh_B
 
@@ -9,7 +9,7 @@ from beh.core.shared import batch_data
 from beh.core.registry import *
 from beh.core.bvh import build_bvh, shrink_to_nex_power_of_two
 from beh.core.train_moe import train_moe
-from beh.core.train_moe_grid import train_moe_grid
+from beh.core.train_moeg import train_moeg
 from beh.core.train_mlp import train_mlp
 from beh.core.shared import create_queries
 
@@ -41,8 +41,8 @@ def train_model(
             query_dim = query_dim,
             dimension = dimension
         )
-    elif model_type == 'moe_grid':
-        return train_moe_grid(
+    elif model_type == 'moeg':
+        return train_moeg(
             model_key = model_key,
             key = key,
             x = x,
@@ -121,7 +121,7 @@ def get_benchmarks(
         reg = moe_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, infB_batch_size)
         return reg
     
-    elif model_type == 'moe_grid':
+    elif model_type == 'moeg':
         reg = moeG_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
         reg = moeG_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, infB_batch_size)
         return reg

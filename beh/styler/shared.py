@@ -31,6 +31,8 @@ def checkpoint_moe_export_plot_gradient(gradient, dimension, epoch):
     plt.close()
     pass
 
+#------------------------------------------------------------------------------------
+
 # Plot the gradient of a neural network training
 def checkpoint_moeg_export_plot_gradient(gradient, dimension, epoch):
     '''Visualize the MoE gradient during training and export as plot.'''
@@ -50,6 +52,8 @@ def checkpoint_moeg_export_plot_gradient(gradient, dimension, epoch):
     plt.savefig(path)
     plt.close()
     pass
+
+#------------------------------------------------------------------------------------
 
 def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
     '''Visualize the MLP gradient during training and export as plot.'''
@@ -71,6 +75,8 @@ def checkpoint_mlp_export_plot_gradient(gradient, dimension, epoch):
     plt.savefig(path)
     plt.close()
     pass
+
+#------------------------------------------------------------------------------------
 
 def export_plot_training_metrics (
     data_name : str,
@@ -127,7 +133,9 @@ def export_plot_training_metrics (
     plt.savefig(path)
     plt.close()
 
-def create_model_details_string (
+#------------------------------------------------------------------------------------
+
+def create_neural_model_details_string (
     model_type : str,
     model_key : str,
     reg : CoreRegistry,

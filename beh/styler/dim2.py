@@ -8,7 +8,7 @@ from beh.registry import *
 from beh.styler.registry import *
 from beh.core.registry import *
 from beh.core.params import *
-from beh.styler.shared import create_model_details_string
+from beh.styler.shared import create_neural_model_details_string
 
 #------------------------------------------------------------------------------------
 
@@ -249,7 +249,7 @@ def color_by_expert(nex : int, yp : jax.Array, top1_activation : jax.Array):
 
 #------------------------------------------------------------------------------------
 
-def export_plot_2D_mlp_internal (
+def export_plot_2D_mlp_bvh_internal (
     data_name : str,
     model_key : str,
     y : jax.Array,
@@ -260,9 +260,9 @@ def export_plot_2D_mlp_internal (
     id : str = '',):
     '''
     2D
-    \nCreate MLP internal state overview plot inlcuding:
-    \n- Decision boundaries
-    \n- MLP architecture details 
+    \nCreate a MLP or BVH internal state overview plot inlcuding:
+    \n- Decision boundary
+    \n- Architecture details 
     '''
 
     # Dimension
@@ -360,8 +360,8 @@ def export_plot_2D_internal_comparison (
     mlp_yp_fp = (mlp_yp > threshold) * ( y == 0)
     
     # Create combined model detail string
-    moe_string = create_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
-    mlp_string = create_model_details_string(configs[previous_model_key]['type'], previous_model_key, reg, configs, dimension)
+    moe_string = create_neural_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
+    mlp_string = create_neural_model_details_string(configs[previous_model_key]['type'], previous_model_key, reg, configs, dimension)
     model_detail_str = moe_string + '\n\n' + mlp_string
 
     # Create plot 
@@ -481,8 +481,8 @@ def export_plot_2D_binary_comparison_paper_row (
     mlp_binary = np.clip(mlp_binary, 0, 1)
     
     # Create combined model detail string
-    moe_string = create_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
-    mlp_string = create_model_details_string(configs[previous_model_key]['type'], previous_model_key, reg, configs, dimension)
+    moe_string = create_neural_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
+    mlp_string = create_neural_model_details_string(configs[previous_model_key]['type'], previous_model_key, reg, configs, dimension)
     model_detail_str = moe_string + '\n\n' + mlp_string
 
     # Create plot 

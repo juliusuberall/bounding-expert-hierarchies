@@ -71,7 +71,8 @@ def build_bvh(
 
   tree = jnp.array(tree)
 
-  print(f"BVH built with {tree.shape[0]} nodes and depth {int(math.log2(tree.shape[0] + 1))}")
+  depth = int(math.log2(tree.shape[0] + 1))
+  print(f"BVH built with {2**(depth-1)} lefs and depth {depth}")
 
   # Save BVH specs to Core Registry
   reg_key = model_key + core_keys['training_time']

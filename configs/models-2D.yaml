@@ -18,6 +18,11 @@ mlpS:
   type: 'mlp'
   min_epochs: 15000
   hidden_layer: [11,11]
+gmoeS:
+  type: 'moe_grid'
+  min_epochs: 15000
+  grid_dim : 2
+  hidden_layer: [4,4]
 moeS:
   type: 'moe'
   min_epochs: 15000

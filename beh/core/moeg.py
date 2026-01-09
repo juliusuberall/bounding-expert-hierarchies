@@ -12,17 +12,19 @@ from beh.config_parser import *
 
 @jax.jit
 def moeg_forward_INF(experts : list, x : jax.Array):
-    idx = moeg_select(x, len(experts))
+    idx = moeg_select(x, experts)
     return jax.nn.sigmoid(expert_forward_sparse(experts, x, idx))
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moeg_select(x : jax.Array, grid_dim : jax.Array):
+def moeg_select(x : jax.Array, experts : list):
     """Map queries to networks by computing networks index in grid for any query dimension.
     \nFor 4D+ dimensions this may seem non-trivial but can be generated. 
-    \nIt essentially checks a grid and assigns based on this grid cell index.
-    \ngrid_dim = Nnumber of grid cells per dimension in hypercube"""
+    \nIt essentially checks a grid and assigns based on this grid cell index."""
+    
+    # Number of grid cells per dimension in hypercube
+    grid_dim = experts[0].shape[0] ** (1/x.shape[-1])
 
     # Map training data (normalised in range -1 to 1) to grid cells
     dimension = x.shape[-1]
@@ -46,8 +48,8 @@ def batch_query_moeg(x_batches : list, experts : list, remap_flag : bool = True)
     yp_tail = moeg_forward_INF(experts, x_batches[-1]).flatten()
     yp = jnp.concatenate((yp, yp_tail), axis=0)
 
-    idx = moeg_select(x_batched, len(experts))
-    idx_tail = moeg_select(x_batches[-1], len(experts))
+    idx = moeg_select(x_batched, experts)
+    idx_tail = moeg_select(x_batches[-1], experts)
     idx = jnp.concatenate((idx.flatten(), idx_tail), axis=0)
     yp_raw = yp
 

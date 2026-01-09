@@ -99,7 +99,7 @@ def train_moeg(
         # determinism and numpy runs much faster than jax for random sampling
         idx = np.random.choice(np.arange(x.shape[0]),batch_size,replace=True) # Replace=true makes this much faster and is okay in our case
         xB, yB = x[idx,...], y[idx,...]
-        iB = moeg_select(xB, len(moeg))
+        iB = moeg_select(xB, moeg)
         moeg, opt_state, gradient = update(moeg, opt_state, xB, yB, iB, negative_class_weight)
         
         if i % loss_logging_frequency == 0: 

@@ -75,6 +75,5 @@ def benchmark_inference_speed(
 
     # Median of speed measures from all iterations, to avoid outliers
     speed = jnp.median(jnp.array(speed))
-    round(float(speed), 2)
-
+    
     return speed

@@ -38,7 +38,7 @@ def positional_encoding(x : jax.Array , num_frequencies : int):
     for d in range(D):
         # work on a single coordinate column to keep its encoded components contiguous
         col = x[..., d:d+1]
-        parts = []
+        parts = [col]
         for i in range(num_frequencies):
             freq = 2.0 ** i
             parts.append(jnp.sin(freq * col))

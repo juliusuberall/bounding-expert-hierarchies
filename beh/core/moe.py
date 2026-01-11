@@ -133,7 +133,17 @@ def expert_conservativness(yp : jax.Array, y : jax.Array, e_idx : jax.Array, thr
 
 #------------------------------------------------------------------------------------
 
-def mask_grads(grads : dict, frozen_ids : jax.Array):
+def mask_grads(grads, frozen_ids : jax.Array):
+    '''Mask and freeze expert parameters based on passed id.'''
+    if type(grads) == list:
+        return mask_grads_moeg(grads, frozen_ids)
+    elif type(grads) == dict:
+        return mask_grads_moe(grads, frozen_ids)
+    else:
+        raise ValueError(f"Unsupported model type for expert freezing.")
+
+
+def mask_grads_moe(grads : dict, frozen_ids : jax.Array):
     '''Freeze parameters of conservative experts.
     Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
     expert_grads = []
@@ -145,3 +155,15 @@ def mask_grads(grads : dict, frozen_ids : jax.Array):
         expert_grads.append(layer)
     grads['experts'] = expert_grads
     return grads
+
+def mask_grads_moeg(grads : list, frozen_ids : jax.Array):
+    '''Freeze parameters of conservative experts.
+    Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
+    expert_grads = []
+    for layer in grads:
+        mask = jnp.ones(layer.shape[0], dtype=layer.dtype)
+        mask = mask.at[frozen_ids].set(0.0)   # 0 for frozen, 1 otherwise
+        # Broadcast mask to match grads shape
+        layer = layer * mask[:, None, None]
+        expert_grads.append(layer)
+    return expert_grads

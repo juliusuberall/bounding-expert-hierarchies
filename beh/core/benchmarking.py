@@ -18,40 +18,45 @@ def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
 #------------------------------------------------------------------------------------
 
 def benchmark_inference_speed(
-    x,
+    _ ,
     model,
     func,
     batch_size : int,
-    reps : int,
+    iterations : int,
     query_size : int,
     query_dim : int,
     print_updates : bool = True):
     '''
     Measures the inference speed of a model given its forward call for N queries, median over M idedependant repitions.
     '''
-    @jax.jit
-    def batch_INF(i, val):
-        start = i * batch_size
-        # Dynamic slicing allows us to sub-select on the device, avoiding transfer overhead.
-        # Dynamic slice handles tail if query-size and batch-size are not % == 0. In that
-        # case it moves the start index as required.
-        # Tested this for cases in which we keep querying with the tail a.k.a. same queries
-        # multiple times instead of always random new queires and confirms that both are equal in query time
-        x_slice = jax.lax.dynamic_slice(x, (start, 0), (batch_size, query_dim))
-        y = func(model, x_slice)
-        return val + jnp.sum(y) # Passing to make sure JIT does not ignore forward call
-
-    # Number of steps needed to go through entire query using defined batch size
-    # Ensure loop hits tail, by always rounding up
-    full_batch_iter = query_size // batch_size + bool(query_size % batch_size)
+    # Number of steps for n amount of total samples to be benchmarked per iteration
+    total_steps = query_size // batch_size
+    # Random key seed for every benchmarked model to ensure same randome queries
+    master_key = jax.random.PRNGKey(28)
 
     @jax.jit
-    def fori():
-        return jax.lax.fori_loop(0, full_batch_iter, batch_INF, 0.0)
+    def process_batched_queries(key):
+
+        @jax.jit
+        def batch_INF(i, carry):
+            key, acc = carry
+            # JAX's cheap and determenistic key splitter without dependency chain
+            # Will give every benchmarked model the same random queries unless master PRNG key seed changed
+            k = jax.random.fold_in(key, i)
+            # Generate batch of random queries / Not possible to pre-compute due to memory limits
+            x = jax.random.uniform(k, (batch_size, query_dim), minval=-1, maxval=1)
+            # Forward queries through model
+            y = func(model, x)
+            # Use model output to ensur JIT does not eliminate dead-code
+            acc = acc + jnp.sum(y) 
+            return (key, acc)
+
+        _ , acc = jax.lax.fori_loop(0, total_steps, batch_INF, (key, jnp.array(0.0)))
+        return acc
 
     # Warm-up and JIT + check if GPU would run out of memory and skip otherwise
     try:
-        _ = fori().block_until_ready()
+        _ = process_batched_queries(master_key).block_until_ready()
     except jaxlib.xla_extension.XlaRuntimeError as e:
         print(f"XLA Runtime Error - Device out of memory. Inference benchmark skipped.")
         # Ensure GPU memory is cleaned after OOM and return -1 as benchmark result
@@ -60,18 +65,18 @@ def benchmark_inference_speed(
         return jnp.array(-1.0)
 
     speed = []
-    for i in range(reps):
+    for i in range(iterations):
         # Measure speed and convert nano to miliseconds
         start = time.perf_counter_ns()
         # .block_until_ready() is essential here to measure the true computation time to account for JAX's asynchronous dispatch:
         # https://docs.jax.dev/en/latest/notebooks/thinking_in_jax.html#just-in-time-compilation-with-jax-jit
-        _ = fori().block_until_ready() 
+        _ = process_batched_queries(master_key).block_until_ready() 
         end = time.perf_counter_ns()
         speed.append((end - start) * 1e-6)
 
         if print_updates:
-            end = '\n' if i == (reps - 1) else '\r'
-            print(f'{i+1}/{reps} iterations with {int(query_size / 1e06)}M queries batched as {batch_size} -> {func.__name__}()', end = end, flush = True)
+            end = '\n' if i == (iterations - 1) else '\r'
+            print(f'{i+1}/{iterations} iterations with {int(query_size / 1e06)}M queries batched as {batch_size} -> {func.__name__}()', end = end, flush = True)
 
     # Median of speed measures from all iterations, to avoid outliers
     speed = jnp.median(jnp.array(speed))

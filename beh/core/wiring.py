@@ -3,8 +3,6 @@ import beh.core.moeg_benchmarking as moeG_B
 import beh.core.mlp_benchmarking as mlp_B
 import beh.core.bvh_benchmarking as bvh_B
 
-from beh.core.moe import export_moe
-
 from beh.core.shared import batch_data
 from beh.core.registry import *
 from beh.core.bvh import build_bvh, pad_to_power_of_two

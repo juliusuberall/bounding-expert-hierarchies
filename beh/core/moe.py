@@ -2,17 +2,16 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from datetime import datetime
+from beh.core.shared import positional_encoding
+from beh.config_parser import parse_train
 
-from beh.adapter.shared import *
-from beh.core.shared import *
-from beh.registry import *
-from beh.config_parser import *
+_ , configs = parse_train()
 
 #------------------------------------------------------------------------------------
 
 @jax.jit
 def expert_forward_dense(p : list, x : jax.Array):
+    x = positional_encoding(x, configs['general']['pe_num_freq'])
     for e in p[:-1]:
         # Bias Trick
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
@@ -31,6 +30,7 @@ def expert_forward_dense_INF(p : dict, x : jax.Array):
 
 @jax.jit
 def expert_forward_sparse(experts : list, x : jax.Array, idx : jax.Array):
+    x = positional_encoding(x, configs['general']['pe_num_freq'])
     # Select parameters on per query basis
     for e in experts[:-1]:
         # Bias Trick
@@ -117,3 +117,31 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
     yp_all = np.concatenate(yp_all, axis=0)
     
     return yp_all
+
+#------------------------------------------------------------------------------------
+
+def expert_conservativness(yp : jax.Array, y : jax.Array, e_idx : jax.Array, threshold : float, nex : int):
+    '''Evaluate which of the experts is conservative and which not.
+    \nReturns indicies of conservative experts which should be frozen.'''
+    # Compute locations of FN
+    fn_mask = (yp < threshold) * (y > 0)
+    # Determine which experts caused FN
+    fn_experts = e_idx[fn_mask]
+    fn_experts = jnp.unique(fn_experts)
+    conservative_experts = jnp.setdiff1d(jnp.arange(nex), fn_experts)
+    return conservative_experts
+
+#------------------------------------------------------------------------------------
+
+def mask_grads(grads : dict, frozen_ids : jax.Array):
+    '''Freeze parameters of conservative experts.
+    Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
+    expert_grads = []
+    for layer in grads["experts"]:
+        mask = jnp.ones(layer.shape[0], dtype=layer.dtype)
+        mask = mask.at[frozen_ids].set(0.0)   # 0 for frozen, 1 otherwise
+        # Broadcast mask to match grads shape
+        layer = layer * mask[:, None, None]
+        expert_grads.append(layer)
+    grads['experts'] = expert_grads
+    return grads

@@ -6,12 +6,16 @@ def remap(value, low1, high1, low2, high2):
     '''Remap values from one domain to another'''
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1)
 
+#------------------------------------------------------------------------------------
+
 def batch_data(data, batch_size):
     '''Break data into batches'''
     batches =[]
     for i in range(0, data.shape[0], batch_size):
         batches.append(data[i : i + batch_size, ...])
     return batches
+
+#------------------------------------------------------------------------------------
 
 def create_queries(width : int, height : int):
     '''Creates queries of specified resolution within normalized range -1.0 to 1.0.'''
@@ -20,6 +24,8 @@ def create_queries(width : int, height : int):
     xx, yy = np.meshgrid(xs, ys)
     q = np.stack([xx, yy], axis=-1).reshape(-1, 2).astype(np.float32)
     return q
+
+#------------------------------------------------------------------------------------
 
 def positional_encoding(x : jax.Array , num_frequencies : int):
     '''
@@ -45,3 +51,9 @@ def positional_encoding(x : jax.Array , num_frequencies : int):
             parts.append(jnp.cos(freq * col))
         enc_per_dim.append(jnp.concatenate(parts, axis=-1))
     return jnp.concatenate(enc_per_dim, axis=-1)
+
+#------------------------------------------------------------------------------------
+
+def pe_dim (query_dim, pe_num_freq) -> int:
+    '''Compute the length of a positional encoding'''
+    return query_dim * (1 + 2 * pe_num_freq)

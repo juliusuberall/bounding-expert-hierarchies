@@ -2,10 +2,16 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from beh.config_parser import parse_train
+from beh.core.shared import positional_encoding
+
+_ , configs = parse_train()
+
 #------------------------------------------------------------------------------------
 
 @jax.jit
 def mlp_forward(p : list , X : jax.Array):
+    X = positional_encoding(X, configs['general']['pe_num_freq'])
     for W in p[:-1]:
         # Bias Trick
         X = jnp.concatenate([X, jnp.ones((X.shape[0], 1))], axis=1)

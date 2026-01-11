@@ -2,11 +2,8 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from beh.adapter.shared import *
 from beh.core.shared import remap
 from beh.core.moe import expert_forward_sparse
-from beh.registry import *
-from beh.config_parser import *
 
 #------------------------------------------------------------------------------------
 

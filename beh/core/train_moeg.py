@@ -4,27 +4,14 @@ import numpy as np
 import optax
 
 from beh.core.params import *
-from beh.core.registry import *
+from beh.core.registry import CoreRegistry
 from beh.core.moe_benchmarking import *
+from beh.core.shared import pe_dim
 from beh.core.loss import moeg_train_loss
 from beh.core.moeg import moeg_select, batch_query_moeg
 from beh.core.train_moe import expert_conservativness
 
 from beh.styler.shared import *
-
-#------------------------------------------------------------------------------------
-
-def mask_grads(grads : list, frozen_ids : jax.Array):
-    '''Freeze parameters of conservative experts.
-    Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
-    expert_grads = []
-    for layer in grads:
-        mask = jnp.ones(layer.shape[0], dtype=layer.dtype)
-        mask = mask.at[frozen_ids].set(0.0)   # 0 for frozen, 1 otherwise
-        # Broadcast mask to match grads shape
-        layer = layer * mask[:, None, None]
-        expert_grads.append(layer)
-    return expert_grads
 
 #------------------------------------------------------------------------------------
 
@@ -45,6 +32,7 @@ def train_moeg(
 
     # Set training hyperparameters
     batch_size = configs['general']['batch_size']
+    pe_num_freq = configs['general']['pe_num_freq']
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
@@ -54,7 +42,8 @@ def train_moeg(
     x_batches = batch_data(x, batch_size)
     
     # Initalize MoE and optimizer
-    expert_arch = [query_dim] + expert_hid_lay + [1]
+    pe_query_dim = pe_dim(query_dim, pe_num_freq)
+    expert_arch = [pe_query_dim] + expert_hid_lay + [1]
     moeg = init_experts(
         expert_arch,
         nex,

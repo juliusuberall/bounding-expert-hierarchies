@@ -6,7 +6,7 @@ import optax
 from beh.core.mlp import *
 from beh.core.params import *
 from beh.core.registry import *
-from beh.core.shared import *
+from beh.core.shared import pe_dim, batch_data
 from beh.core.benchmarking import *
 from beh.core.loss import mlp_bce_loss
 
@@ -27,6 +27,7 @@ def train_mlp(
 
     # Set training hyperparameters
     batch_size = configs['general']['batch_size']
+    pe_num_freq = configs['general']['pe_num_freq']
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
@@ -36,7 +37,8 @@ def train_mlp(
     x_batches = batch_data(x, batch_size)
     
     # Initalize MLP and optimizer
-    mlp_arch = [query_dim] + hid_lay + [1]
+    pe_query_dim = pe_dim(query_dim, pe_num_freq)
+    mlp_arch = [pe_query_dim] + hid_lay + [1]
     mlp = init_network(
         mlp_arch,
         key

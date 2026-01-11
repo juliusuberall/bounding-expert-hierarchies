@@ -5,40 +5,12 @@ import optax
 
 from beh.core.moe import *
 from beh.core.params import *
-from beh.core.registry import *
+from beh.core.registry import CoreRegistry
+from beh.core.shared import pe_dim
 from beh.core.moe_benchmarking import *
 from beh.core.loss import moe_train_loss
 
 from beh.styler.shared import *
-
-#------------------------------------------------------------------------------------
-
-# Evaluate for each expert if conservative
-def expert_conservativness(yp : jax.Array, y : jax.Array, e_idx : jax.Array, threshold : float, nex : int):
-    '''Evaluate which of the experts is conservative and which not.
-    \nReturns indicies of conservative experts which should be frozen.'''
-    # Compute locations of FN
-    fn_mask = (yp < threshold) * (y > 0)
-    # Determine which experts caused FN
-    fn_experts = e_idx[fn_mask]
-    fn_experts = jnp.unique(fn_experts)
-    conservative_experts = jnp.setdiff1d(jnp.arange(nex), fn_experts)
-    return conservative_experts
-
-#------------------------------------------------------------------------------------
-
-def mask_grads(grads : dict, frozen_ids : jax.Array):
-    '''Freeze parameters of conservative experts.
-    Could not think of an alternative because not each expert is an indidviual leaf in the PyTree.'''
-    expert_grads = []
-    for layer in grads["experts"]:
-        mask = jnp.ones(layer.shape[0], dtype=layer.dtype)
-        mask = mask.at[frozen_ids].set(0.0)   # 0 for frozen, 1 otherwise
-        # Broadcast mask to match grads shape
-        layer = layer * mask[:, None, None]
-        expert_grads.append(layer)
-    grads['experts'] = expert_grads
-    return grads
 
 #------------------------------------------------------------------------------------
 
@@ -59,6 +31,7 @@ def train_moe(
 
     # Get training hyperparameters
     batch_size = configs['general']['batch_size']
+    pe_num_freq = configs['general']['pe_num_freq']
     learning_rate = configs['general']['learning_rate']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
@@ -68,8 +41,9 @@ def train_moe(
     x_batches = batch_data(x, batch_size)
     
     # Initalize MoE and optimizer
+    pe_query_dim = pe_dim(query_dim, pe_num_freq)
     gate_arch = [query_dim] + gate_hid_lay + [nex]
-    expert_arch = [query_dim] + expert_hid_lay + [1]
+    expert_arch = [pe_query_dim] + expert_hid_lay + [1]
     moe = init_moe(
         gate_arch,
         expert_arch,

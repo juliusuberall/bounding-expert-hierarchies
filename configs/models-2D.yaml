@@ -1,4 +1,5 @@
 general:
+  pe_num_freq: 8 # Positional encoding number of frequencies (same as Neural Bounding)
   batch_size: 2048 # Training
   learning_rate: 0.01 # Training
   loss_logging_frequency: 100 # Each N epoch we print and save the loss + other traininig metrics that we plot in a summary training plot

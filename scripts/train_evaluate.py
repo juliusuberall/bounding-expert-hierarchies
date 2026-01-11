@@ -26,7 +26,6 @@ def main():
         dimension = args.dim,
         reg = reg
     )
-    query_dim = x.shape[-1]
     checkpoint_training_data(x, y)
     checkpoint_plot_training_data(x, y, args.dim)
 
@@ -46,7 +45,7 @@ def main():
             y = y,
             reg = reg,
             configs = configs,
-            query_dim = query_dim, 
+            query_dim = x.shape[-1], 
             dimension = args.dim
         )
     

@@ -21,6 +21,7 @@ class CoreRegistry:
 # Data directory managment
 core_keys = {
     'training_time' : '_train_time', # Training time in s
+    'architecture' : '_model_arch', # String formatted model architecture details, layer numbers and size
     'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
     'active_experts_key' : '_act_e', # Cache of active experts throughout training 

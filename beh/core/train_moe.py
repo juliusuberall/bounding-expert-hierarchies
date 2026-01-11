@@ -210,5 +210,8 @@ def train_moe(
 
     reg_key = model_key + core_keys['train_conservative_experts_key']
     reg.add( reg_key, np.array(con_experts_cache))
+
+    reg_key = model_key + core_keys['architecture']
+    reg.add( reg_key, f"G {gate_arch.replace(" ", "")}  {nex}x E {expert_arch.replace(" ", "")}")
     
     return moe, reg

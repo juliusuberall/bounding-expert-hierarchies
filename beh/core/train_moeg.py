@@ -148,5 +148,8 @@ def train_moeg(
 
     reg_key = model_key + core_keys['train_conservative_experts_key']
     reg.add( reg_key, np.array(con_experts_cache))
+
+    reg_key = model_key + core_keys['architecture']
+    reg.add( reg_key, f"{nex}x E {expert_arch.replace(" ", "")}")
     
     return moeg, reg

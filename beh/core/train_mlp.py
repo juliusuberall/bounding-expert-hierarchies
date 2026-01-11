@@ -120,5 +120,8 @@ def train_mlp(
 
     reg_key = model_key + core_keys['train_epoch_key']
     reg.add( reg_key, np.array(epoch_cache))
+
+    reg_key = model_key + core_keys['architecture']
+    reg.add( reg_key, str(mlp_arch).replace(" ", ""))
     
     return mlp, reg

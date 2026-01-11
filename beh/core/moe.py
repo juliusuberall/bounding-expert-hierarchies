@@ -117,37 +117,3 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
     yp_all = np.concatenate(yp_all, axis=0)
     
     return yp_all
-
-#====================================================================================
-
-# Not tested in a while - requires potentially to be updated
-
-def export_moe( moe : dict, model_key : str) -> str:
-    # Convert to NumPy and save parameters as dictionary of numpy arrays
-    moe_gate = [np.array(l) for l in moe['gate']]
-    moe_experts = [[np.array(l) for l in e] for e in moe['experts']]
-    dimension = moe_gate[0].shape[0] - 1 #To account for bias
-
-    # Create timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # e.g. 20250716_142015
-
-    # Save layers as list of numpy arrays under gate or expert keyword.
-    path = result_model_dir_registry[dimension] + "/" + timestamp + f"_{model_key}.npz"
-    np.savez(
-        path,
-        gate = np.array(moe_gate, dtype=object),
-        experts = np.array(moe_experts, dtype=object)
-    )
-    return path
-
-def load_moe( path : str) -> dict:
-    # Load moe .npz file 
-    loaded = np.load(path, allow_pickle=True)
-    
-    # Unpack file and create core moe structure
-    ## Simply joins into single dictionary and converts numpy arrays to JAX arrays
-    moe = {}
-    moe['experts'] = [jnp.array([l for l in e]) for e in loaded['experts']]
-    moe['gate'] = [jnp.array(l) for l in loaded['gate']]
-
-    return moe

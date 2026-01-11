@@ -1,5 +1,6 @@
 import jax
 import beh.registry
+import time
 
 from beh.adapter.wiring import *
 from beh.styler.wiring import *
@@ -36,6 +37,7 @@ def main():
         # Get model name
         model_key = i[0]
         if model_key == 'general': continue
+        reg.add(model_key + core_keys['experiment_start_time_key'], time.perf_counter_ns())
         print(f"\n================================================== {model_key}")
         
         model, reg = train_model(

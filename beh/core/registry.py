@@ -20,27 +20,28 @@ class CoreRegistry:
 
 # Data directory managment
 core_keys = {
-    'training_time' : '_train_time', # Training time in s
+    'aa_y_prediciton_key' : 'aa_y', # For visulaizing the binary classification in 2D we query in higher resolution and downsample to original for anti-aliasing
+    'aa_gate_top1_activation_key' : '_top1_activation_aa', # Map of top1 activation indicies of experts for anti-aliasing high res queries
     'architecture' : '_model_arch', # String formatted model architecture details, layer numbers and size
-    'total_parameters_key' : '_tot_para', # Total parameters
     'active_parameters_key' : '_act_para', # Total parameters
     'active_experts_key' : '_act_e', # Cache of active experts throughout training 
-    'train_conservative_experts_key' : 'con_e', # Conservative experts in each training iteration
-    'inf_speed_key' : '_inf_speed', # List of pairs: batchsize + inference speed in miliseconds
+    'data_size_key' : 'data_size_per_dim', # Stores data size, capturing width and height, depth etc.
+    'data_bounds_key' : 'data_bounds', # Stores data original data bounds so we can translate back correct after normalization
+    'experiment_start_time_key' : '_exp_start_time', # Timestamp of experiment start e.g. for measuring total epxeriment time of individual models incl. benchmarking
     'fn_key' : '_fn', # False Negative rate in %
     'fp_key' : '_fp', # False Positive rate in %
     'gate_top1_activation_key' : '_top1_activation', # Map of top1 activation indicies of experts
-    'aa_gate_top1_activation_key' : '_top1_activation_aa', # Map of top1 activation indicies of experts for anti-aliasing high res queries
-    'y_prediciton_key' : '_yp', # All remapped outputs predicited during accuracy compute
-    'y_prediciton_RAW_key' : '_yp_raw', # All NOT REMAPPED outputs predicited during accuracy compute
-    'data_size_key' : 'data_size_per_dim', # Stores data size, capturing width and height, depth etc.
-    'data_bounds_key' : 'data_bounds', # Stores data original data bounds so we can translate back correct after normalization
     'gating_confidence_key' : '_gate_confidence', # The sparsity of the MoE gate
     'gating_sorted_activation_key' : '_gate_sorted_activation', # The gate activation probabilities sorted from max to min
+    'inf_speed_key' : '_inf_speed', # List of pairs: batchsize + inference speed in miliseconds
     'train_confidence_key' : '_training_confidence', # Gating confidence logged throughout training
     'train_epoch_key' : '_training_epoch', # Epoch timestamp for logged training metric following training logging frequency from configs
     'train_fn_key' : '_training_fn', # False negative rate training cache
     'train_fp_key' : '_training_fp', # False negative rate training cache
+    'training_time' : '_train_time', # Training time in s
+    'train_conservative_experts_key' : 'con_e', # Conservative experts in each training iteration
     'total_epochs' : "total_trained_epochs", # The number of epochs until training stopped
-    'aa_y_prediciton_key' : 'aa_y' # For visulaizing the binary classification in 2D we query in higher resolution and downsample to original for anti-aliasing
+    'total_parameters_key' : '_tot_para', # Total parameters
+    'y_prediciton_key' : '_yp', # All remapped outputs predicited during accuracy compute
+    'y_prediciton_RAW_key' : '_yp_raw', # All NOT REMAPPED outputs predicited during accuracy compute
 }

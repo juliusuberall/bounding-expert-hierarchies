@@ -30,7 +30,8 @@ def gsheet_log_row(
     timing_setup,
     fp,
     fn,
-    train_time):
+    train_time,
+    exp_time):
     '''
     Log a row of results in google sheets using google sheets api.
     '''
@@ -52,6 +53,7 @@ def gsheet_log_row(
         fp,
         fn,
         train_time,
+        exp_time,
         time.strftime("%Y-%m-%d %H:%M:%S") # Timestamp
     ]
     ws = gc.open_by_key(sheet_id).worksheet(worksheet_name)
@@ -117,7 +119,8 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         timing_setup     = f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
         fp               = float(reg.get(m_key + core_keys['fp_key'])),
         fn               = float(reg.get(m_key + core_keys['fn_key'])),
-        train_time       = round(float(reg.get(model_key + core_keys['training_time'])), 2)
+        train_time       = round(float(reg.get(model_key + core_keys['training_time'])), 2),
+        exp_time         = round(float((time.perf_counter_ns() - reg.get(model_key + core_keys['experiment_start_time_key'])) / 6e10), 2),
     )
 
     # Second result logging to add sparse MoE results immediatly after the dense results
@@ -141,5 +144,6 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             timing_setup     = f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
             fp               = float(reg.get(m_key + core_keys['fp_key'])),
             fn               = float(reg.get(m_key + core_keys['fn_key'])),
-            train_time       = round(float(reg.get(model_key + core_keys['training_time'])), 2)
+            train_time       = '"',
+            exp_time         = '"',
         )

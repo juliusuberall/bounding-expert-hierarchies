@@ -3,12 +3,11 @@ import jax.numpy as jnp
 import jax
 
 def remap(value, low1, high1, low2, high2):
-    # Remap values from one domain to another
-    ## Taken from: https://stackoverflow.com/questions/3451553/value-remapping
+    '''Remap values from one domain to another'''
     return low2 + (value - low1) * (high2 - low2) / (high1 - low1)
 
 def batch_data(data, batch_size):
-    # Break data into batches
+    '''Break data into batches'''
     batches =[]
     for i in range(0, data.shape[0], batch_size):
         batches.append(data[i : i + batch_size, ...])
@@ -22,14 +21,27 @@ def create_queries(width : int, height : int):
     q = np.stack([xx, yy], axis=-1).reshape(-1, 2).astype(np.float32)
     return q
 
-def positional_encoding(x, num_frequencies):
-    ''' 
-    \nx: [..., D] input coordinates
-    \nreturns [..., D * 2 * num_frequencies]
+def positional_encoding(x : jax.Array , num_frequencies : int):
     '''
-    enc = [x]
-    for i in range(num_frequencies):
-        freq = 2.0 ** i
-        enc.append(jnp.sin(freq * x))
-        enc.append(jnp.cos(freq * x))
-    return jnp.concatenate(enc, axis=-1)
+    x: [..., D] input coordinates
+    returns: [..., D * (1 + 2 * num_frequencies)]
+
+    The returned encoding groups all encoded components for each input coordinate
+    together. For each dimension d the output contains: [x_d, sin(2^0 x_d), cos(2^0 x_d),
+    sin(2^1 x_d), cos(2^1 x_d), ...]. This makes the encoding coordinate-major
+    (all components of x_d are contiguous) rather than frequency-major.
+
+    NeRF commonly uses 10 frequencies per Cartesian coordinate and 4 for viewing direction.
+    '''
+    D = x.shape[-1]
+    enc_per_dim = []
+    for d in range(D):
+        # work on a single coordinate column to keep its encoded components contiguous
+        col = x[..., d:d+1]
+        parts = []
+        for i in range(num_frequencies):
+            freq = 2.0 ** i
+            parts.append(jnp.sin(freq * col))
+            parts.append(jnp.cos(freq * col))
+        enc_per_dim.append(jnp.concatenate(parts, axis=-1))
+    return jnp.concatenate(enc_per_dim, axis=-1)

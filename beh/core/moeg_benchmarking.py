@@ -26,8 +26,9 @@ def register_accuracy(
 
     if x_aa != None : 
         # 2D - Query in higher res for AA while avoiding OOM
-        yp_aa = batch_query_moeg_OOM(x_aa, moe, 50)
+        yp_aa, idx_aa = batch_query_moeg_OOM(x_aa, moe, 50)
         reg.add(model_key + core_keys['aa_y_prediciton_key'], yp_aa)
+        reg.add(model_key + core_keys['aa_gate_top1_activation_key'], idx_aa)
     
     # Save results
     reg.add(model_key + core_keys['y_prediciton_key'], yp)

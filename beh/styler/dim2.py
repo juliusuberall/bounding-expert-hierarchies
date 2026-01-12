@@ -424,9 +424,9 @@ def export_plot_2D_binary_comparison_paper_row (
     config_list = list(configs.keys())
     config_model_idx = config_list.index(model_key)
     previous_model_key = config_list[config_model_idx-1]
-    current_size = model_key[3:]
+    current_size = model_key[-1]
     # Skip if first model to evaluate or 
-    if previous_model_key == 'general' or previous_model_key[3:] != current_size: return
+    if previous_model_key == 'general' or previous_model_key[-1] != current_size: return
 
     # Retrieve model specific key for results
     dkey = f'{model_key}_dense'
@@ -459,8 +459,19 @@ def export_plot_2D_binary_comparison_paper_row (
     sparse_binary_col = sparse_binary_col * sparse_mask + ~sparse_mask * back_col
     sparse_binary_col = sparse_binary_col.reshape((img_dim_0*s, img_dim_1*s, -1))
 
+    # MOEG
+    moeg_key = 'moeg' + current_size
+    nex_moeg = configs[moeg_key]['grid_dim'] ** 2
+    moeg_activation = reg.get(moeg_key + core_keys['aa_gate_top1_activation_key'])
+    moeg_yp = reg.get(moeg_key + core_keys['aa_y_prediciton_key'])
+    moeg_mask = np.expand_dims(moeg_yp > threshold, axis=1)
+    moeg_binary_col = color_by_expert(nex_moeg, moeg_mask.flatten().astype(jnp.float32), moeg_activation)
+    moeg_binary_col = moeg_binary_col * moeg_mask + ~moeg_mask * back_col
+    moeg_binary_col = moeg_binary_col.reshape((img_dim_0*s, img_dim_1*s, -1))
+
     # MLP
-    mlp_yp = reg.get(previous_model_key + core_keys['aa_y_prediciton_key'])
+    mlp_key = 'mlp' + current_size
+    mlp_yp = reg.get(mlp_key + core_keys['aa_y_prediciton_key'])
     mask = np.expand_dims(mlp_yp > threshold, axis=1)
     mlp_binary = (0.0, 0.0, 0.0, 1.0) * mask + ~mask * back
     mlp_binary = mlp_binary.reshape((img_dim_0*s, img_dim_1*s, -1))
@@ -469,24 +480,28 @@ def export_plot_2D_binary_comparison_paper_row (
     interpolation = cv2.INTER_AREA
     dense_binary_col = cv2.resize(dense_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
     sparse_binary_col = cv2.resize(sparse_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    moeg_binary_col = cv2.resize(moeg_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
     mlp_binary = cv2.resize(mlp_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
 
     ## OpenCV swaps width and height such that we have to swap back
     dense_binary_col = np.transpose(dense_binary_col, (1, 0, 2))
     sparse_binary_col = np.transpose(sparse_binary_col, (1, 0, 2))
+    moeg_binary_col = np.transpose(moeg_binary_col, (1, 0, 2))
     mlp_binary = np.transpose(mlp_binary, (1, 0, 2))
 
     dense_binary_col = np.clip(dense_binary_col, 0, 1)
     sparse_binary_col = np.clip(sparse_binary_col, 0, 1)
+    moeg_binary_col = np.clip(moeg_binary_col, 0, 1)
     mlp_binary = np.clip(mlp_binary, 0, 1)
     
     # Create combined model detail string
     moe_string = create_neural_model_details_string(configs[model_key]['type'], model_key, reg, configs, dimension)
-    mlp_string = create_neural_model_details_string(configs[previous_model_key]['type'], previous_model_key, reg, configs, dimension)
-    model_detail_str = moe_string + '\n\n' + mlp_string
+    moeg_string = create_neural_model_details_string(configs[moeg_key]['type'], moeg_key, reg, configs, dimension)
+    mlp_string = create_neural_model_details_string(configs[mlp_key]['type'], mlp_key, reg, configs, dimension)
+    model_detail_str = moe_string + '\n\n' + moeg_string + '\n\n' + mlp_string
 
     # Create plot 
-    r, c = 1, 4
+    r, c = 1, 5
     fig, ax = plt.subplots(r,c, figsize=(16,6))
     
     ## Original
@@ -494,17 +509,21 @@ def export_plot_2D_binary_comparison_paper_row (
     ax[0].set_title("Original", fontsize=9)
     
     ## Conservativness
-    mlp_fp = reg.get(previous_model_key + core_keys['fp_key'])
+    mlp_fp = reg.get(mlp_key + core_keys['fp_key'])
     ax[1].imshow(mlp_binary)
     ax[1].set_title(f"MLP | FP {float(mlp_fp):.4f}", fontsize=9)
 
+    moeg_fp = reg.get(moeg_key + core_keys['fp_key'])
+    ax[2].imshow(moeg_binary_col)
+    ax[2].set_title(f"MoEG | FP {float(moeg_fp):.4f}", fontsize=9)
+
     dense_fp = reg.get(dkey + core_keys['fp_key'])
-    ax[2].imshow(dense_binary_col)
-    ax[2].set_title(f"Dense MoE | FP {float(dense_fp):.4f}", fontsize=9)
+    ax[3].imshow(dense_binary_col)
+    ax[3].set_title(f"Dense MoE | FP {float(dense_fp):.4f}", fontsize=9)
 
     sparse_fp = reg.get(skey + core_keys['fp_key'])
-    ax[3].imshow(sparse_binary_col)
-    ax[3].set_title(f"Sparse MoE | FP {float(sparse_fp):.4f}", fontsize=9)
+    ax[4].imshow(sparse_binary_col)
+    ax[4].set_title(f"Sparse MoE | FP {float(sparse_fp):.4f}", fontsize=9)
 
     for i in range(c):
         ax[i].axis('off')
@@ -523,6 +542,15 @@ def export_plot_2D_binary_comparison_paper_row (
     ## MLP
     plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_mlp_binary.png", mlp_binary)
 
+    ## MoEG
+    moeg_binary = (0.0, 0.0, 0.0, 1.0) * moeg_mask + ~moeg_mask * back
+    moeg_binary = moeg_binary.reshape((img_dim_0 * s,img_dim_1 * s, -1))
+    moeg_binary = cv2.resize(moeg_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    moeg_binary = np.transpose(moeg_binary, (1, 0, 2))
+    moeg_binary = np.clip(moeg_binary, 0, 1)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_moeg_binary.png", moeg_binary)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_moeg_binary_col.png", moeg_binary_col)
+
     ## Dense MoE
     dense_binary = (0.0, 0.0, 0.0, 1.0) * dense_mask + ~dense_mask * back
     dense_binary = dense_binary.reshape((img_dim_0* s,img_dim_1 * s, -1))
@@ -538,6 +566,6 @@ def export_plot_2D_binary_comparison_paper_row (
     sparse_binary = np.transpose(sparse_binary, (1, 0, 2))
     sparse_binary = np.clip(sparse_binary, 0, 1)
     plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary.png", sparse_binary)
-
-    # Sparse MoE expert color
     plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary_col.png", sparse_binary_col)
+
+    print('Decision boundaries exported as high-res images for figures.')

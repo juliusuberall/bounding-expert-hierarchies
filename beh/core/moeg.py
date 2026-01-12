@@ -58,10 +58,14 @@ def batch_query_moeg_OOM(x_batches : list, experts : list, at_once : int):
     '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
     \nPassing all batches at once can be done with batch_query_moe().'''
 
-    yp_all = []
+    yp_all, idx_all = [], []
     for i in range(0, len(x_batches), at_once):
-        yp, _ , _ = batch_query_moeg(x_batches[i:i+at_once], experts, remap_flag=False)
-        yp_all.append(np.array(yp)) # unload from GPU
+        yp, idx , _ = batch_query_moeg(x_batches[i:i+at_once], experts, remap_flag=False)
+        # Unload from GPU
+        yp_all.append(np.array(yp))
+        idx_all.append(np.array(idx))
+
     yp_all = np.concatenate(yp_all, axis=0)
+    idx_all = np.concatenate(idx_all, axis=0)
     
-    return yp_all
+    return yp_all, idx_all

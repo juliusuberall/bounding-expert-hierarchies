@@ -25,7 +25,7 @@ def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : ja
     # Focal BCE to cover outlier based on "Focal Loss for Dense Object Detection (Lin et al., ICCV 2017)"
     p = jax.nn.sigmoid(logits)
     p_t = p * labels + (1 - p) * (1 - labels)
-    gamma = 2.0  # tune
+    gamma = 3.0  # tune
     focal_weights = (1.0 - p_t) ** gamma
 
     # Asymmetric BCE diswaying ALL negatives as training progresses.

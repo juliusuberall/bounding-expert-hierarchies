@@ -104,6 +104,15 @@ def train_mlp(
                     opt = optax.adam(learning_rate_con)
                     opt_state = opt.init(mlp)
                     print(f'Learning rate changed to: {learning_rate_con}')
+                    
+                    # Define model training update
+                    @jax.jit
+                    def update(p, opt_state, xB, yB, negative_class_weight):
+                        grads = jax.grad(mlp_bce_loss)(p, xB, yB, negative_class_weight)
+                        updates, opt_state = opt.update(grads, opt_state)
+                        p = optax.apply_updates(p, updates)
+                        return p, opt_state, grads
+
                 making_conservative = True
                 negative_class_weight /= 1.5
                 slope_cache = []

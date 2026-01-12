@@ -2,6 +2,8 @@ import argparse
 import yaml
 
 from beh.registry import *
+from beh.core.params import count_parameter
+from beh.core.shared import pe_dim
 
 def parse_train():
     '''
@@ -36,6 +38,8 @@ def parse_train():
         configs = yaml.safe_load(file)
 
     return args, configs
+
+#------------------------------------------------------------------------------------
 
 def parse_sample():
     '''
@@ -95,3 +99,48 @@ def parse_sample():
         default = None)
     
     return parser.parse_args()
+
+#------------------------------------------------------------------------------------
+
+def compute_config_model_sizes(dim : int, query_dim : int):
+    # Load model configurations / architectures
+    with open(model_config_registry[dim], "r") as file:
+        configs = yaml.safe_load(file)
+    config_list = list(configs.keys())
+
+    # Compute positional encoding dimensions
+    pe_i = pe_dim(query_dim, configs['general']['pe_num_freq'])
+
+    # Create caches
+    mlp, moeg, moe = [], [], []
+
+    # Count model parameters
+    for key in config_list:
+        if key == 'general' : continue
+        match configs[key]['type']:
+            # case 'bvh':
+            #     depth = configs[key]['max_depth']
+            #     p = 0
+            #     for i in range(depth-1):
+            #         p += dim**i * 4
+
+            case 'mlp':
+                arch = [pe_i] + configs[key]['hidden_layer'] + [1]
+                p = count_parameter(arch)
+                mlp.append(p)
+            case 'moeg':
+                nex = configs[key]['grid_dim'] ** dim
+                e_arch = [pe_i] + configs[key]['expert_hidden_layer'] + [1]
+                p = nex * count_parameter(e_arch)
+                moeg.append(p)
+            case 'moe':
+                nex = configs[key]['nex']
+                g_arch = [query_dim] + configs[key]['gate_hidden_layer'] + [nex]
+                e_arch = [pe_i] + configs[key]['expert_hidden_layer'] + [1]
+                p = count_parameter(g_arch) + nex * count_parameter(e_arch)
+                moe.append(p)
+
+    print('Model Parameter (S,M,L)')
+    print(f'MLP : {mlp}')
+    print(f'MOEG: {moeg}')
+    print(f'MOE : {moe}')

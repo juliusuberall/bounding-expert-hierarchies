@@ -33,6 +33,7 @@ def train_moe(
     batch_size = configs['general']['batch_size']
     pe_num_freq = configs['general']['pe_num_freq']
     learning_rate = configs['general']['learning_rate']
+    learning_rate_con = configs['general']['learning_rate_conservative']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
     min_epochs = configs[model_key]['min_epochs']
@@ -125,6 +126,8 @@ def train_moe(
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
+                if i == min_epochs: 
+                    print(f'Learning rate changed to: {learning_rate_con}')
                 making_conservative = True
                 slope_cache = []
                 flip += 1
@@ -137,7 +140,7 @@ def train_moe(
                     tx = optax.multi_transform(
                         {
                             "e": optax.set_to_zero(),
-                            "g": optax.adam(0.0001)
+                            "g": optax.adam(learning_rate_con)
                         },
                         param_labels={"experts": "e", "gate": "g"}
                     )
@@ -163,7 +166,7 @@ def train_moe(
                     ## Makes the gate gradient strictly 0 during updates
                     tx = optax.multi_transform(
                         {
-                            "e": optax.adam(0.0001),
+                            "e": optax.adam(learning_rate_con),
                             "g": optax.set_to_zero()
                         },
                         param_labels={"experts": "e", "gate": "g"}

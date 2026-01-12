@@ -34,6 +34,7 @@ def train_moeg(
     batch_size = configs['general']['batch_size']
     pe_num_freq = configs['general']['pe_num_freq']
     learning_rate = configs['general']['learning_rate']
+    learning_rate_con = configs['general']['learning_rate_conservative']
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
     min_epochs = configs[model_key]['min_epochs']
@@ -112,6 +113,11 @@ def train_moeg(
             checkpoint_moeg_export_plot_gradient(gradient, dimension, i)
 
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 
+                if i == min_epochs:
+                    opt = optax.adam(learning_rate_con)
+                    opt_state = opt.init(moeg)
+                    print(f'Learning rate changed to: {learning_rate_con}')
+
                 making_conservative = True
                 slope_cache = []
                 negative_class_weight /= 1.5

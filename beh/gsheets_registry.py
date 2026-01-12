@@ -126,6 +126,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
     # Second result logging to add sparse MoE results immediatly after the dense results
     if model_type == 'moe':
         m_key = f'{model_key}_sparse'
+        pattern = 'Sparse'
         gsheet_log_row(
             worksheet_name   = worksheet_name,
             dimension        = dimension,

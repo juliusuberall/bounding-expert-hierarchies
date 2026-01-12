@@ -29,11 +29,3 @@ result_visual_registry = {
     4 : result_dir_registry[4] + "/visual_data", 
     9 : result_dir_registry[9] + "/visual_data", 
 }
-
-# Model directory managment 
-result_model_dir_registry = {
-    2 : result_dir_registry[2] + "/models", 
-    3 : result_dir_registry[3] + "/models", 
-    4 : result_dir_registry[4] + "/models", 
-    9 : result_dir_registry[9] + "/models", 
-}

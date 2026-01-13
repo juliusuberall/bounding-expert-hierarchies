@@ -29,7 +29,6 @@ def main():
         reg = reg
     )
     checkpoint_training_data(x, y)
-    checkpoint_plot_training_data(x, y, args.dim)
 
     # Loop over all configured models
     ## Train, Benchmark, Save model

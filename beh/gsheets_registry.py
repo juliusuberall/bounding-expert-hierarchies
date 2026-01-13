@@ -22,6 +22,7 @@ def gsheet_log_row(
     pattern,
     size,
     architecture,
+    gamma,
     pe_num_freq,
     total_p,
     active_p,
@@ -44,6 +45,7 @@ def gsheet_log_row(
         pattern,
         size,
         architecture.replace(",","-"),
+        gamma,
         pe_num_freq,
         total_p,
         active_p,
@@ -77,6 +79,8 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
     accelerator = jax.devices()[0].device_kind
     model_type = configs[model_key]['type']
     pe_num_freq = configs['general']['pe_num_freq']
+    gammas = configs['general']['gamma']
+    gamma = gammas[model_key[-1]]
     
     # Extract model type specific results 
     if model_type == 'moe':
@@ -112,6 +116,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         pattern          = pattern,
         size             = size,
         architecture     = arch,
+        gamma            = gamma,
         pe_num_freq      = pe_num_freq,
         total_p          = float(reg.get(m_key + core_keys['total_parameters_key'])),
         active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),
@@ -138,6 +143,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             pattern          = 'Sparse',
             size             = size,
             architecture     = arch,
+            gamma            = gamma,
             pe_num_freq      = pe_num_freq,
             total_p          = float(reg.get(m_key + core_keys['total_parameters_key'])),
             active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),

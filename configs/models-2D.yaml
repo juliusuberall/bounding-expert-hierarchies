@@ -11,6 +11,7 @@ general:
   aa_scaling                    : 3         # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
   inf_benchmark                 : True      # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
   vis_results                   : True     # Visualize results or not e.g. Create plots, extract VDBs or meshes
+  gamma                         : {"S": 2, "M": 4, "L": 4} # Increase focality for larger models to stabelize training and shorten training time
 
 # Small = 200
 mlpS:
@@ -30,7 +31,7 @@ moeS:
   gate_hidden_layer             : [2]
 
 
-# Medium = 1.5K
+# Medium = 5K
 mlpM:
   type                          : 'mlp'
   min_epochs                    : 10000
@@ -48,7 +49,7 @@ moeM:
   gate_hidden_layer             : [8]
 
 
-# Large = 10K
+# Large = 20K
 mlpL:
   type                          : 'mlp'
   min_epochs                    : 20000

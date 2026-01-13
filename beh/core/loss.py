@@ -10,7 +10,7 @@ from beh.core.moeg import expert_forward_sparse
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array):
+def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : jax.Array, negative_class_weight : jax.Array, gamma : int):
     '''
     Neural bounding asymmetric BCE for achieving conservativness (https://dl.acm.org/doi/abs/10.1145/3641519.3657442).
     With additional focal term to cover outlier based on "Focal Loss for Dense Object Detection (Lin et al., ICCV 2017)"
@@ -25,7 +25,6 @@ def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : ja
     # Focal BCE to cover outlier based on "Focal Loss for Dense Object Detection (Lin et al., ICCV 2017)"
     p = jax.nn.sigmoid(logits)
     p_t = p * labels + (1 - p) * (1 - labels)
-    gamma = 3.0  # tune
     focal_weights = (1.0 - p_t) ** gamma
 
     # Asymmetric BCE diswaying ALL negatives as training progresses.
@@ -55,7 +54,7 @@ def sigmoid_binary_cross_entropy_asymmetry(logits : jax.Array, labels : jax.Arra
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array):
+def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight : jax.Array, gamma : int):
     '''
     Deafult MoE loss. Combines
     \n- BCE -> Conservativness and bounding
@@ -66,7 +65,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 
     # Binary Cross-Entropy 
     yp = moe_forward_dense(p,x)
-    bce_loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
+    bce_loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight, gamma)
 
     # KL-divergence of the expert activation distribution against uniform distribution 
     activation = gate_forward(p['gate'], x) * jnp.expand_dims(y,axis=1)
@@ -84,9 +83,9 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
 #------------------------------------------------------------------------------------
 
 @jax.jit
-def moeg_train_loss(p : list, x : jax.Array, y : jax.Array, idx : jax.Array, negative_class_weight : jax.Array):
+def moeg_train_loss(p : list, x : jax.Array, y : jax.Array, idx : jax.Array, negative_class_weight : jax.Array, gamma : int):
     yp = expert_forward_sparse(p, x, idx).flatten() # Flatten to ensure correct shapes for BCE
-    loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight)
+    loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight, gamma)
     return loss
 
 #------------------------------------------------------------------------------------

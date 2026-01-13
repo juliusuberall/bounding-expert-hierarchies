@@ -38,6 +38,8 @@ def train_moeg(
     threshold = configs['general']['boundary_threshold']
     loss_logging_frequency = configs['general']['loss_logging_frequency']
     min_epochs = configs[model_key]['min_epochs']
+    gammas = configs['general']['gamma']
+    gamma = gammas[model_key[-1]]
 
     # Create validation loss batches
     x_batches = batch_data(x, batch_size)
@@ -62,7 +64,7 @@ def train_moeg(
     # Define model training update
     @jax.jit
     def update(p, opt_state, xB, yB, iB, negative_class_weight):
-        grads = jax.grad(moeg_train_loss)(p, xB, yB, iB, negative_class_weight)
+        grads = jax.grad(moeg_train_loss)(p, xB, yB, iB, negative_class_weight, gamma)
         updates, opt_state = opt.update(grads, opt_state)
         p = optax.apply_updates(p, updates)
         return p, opt_state, grads
@@ -128,7 +130,7 @@ def train_moeg(
                 # have to do it like this to maintain speed.
                 @jax.jit
                 def update(p, opt_state, xB, yB, iB, negative_class_weight):
-                    grads = jax.grad(moeg_train_loss)(p, xB, yB, iB, negative_class_weight)
+                    grads = jax.grad(moeg_train_loss)(p, xB, yB, iB, negative_class_weight, gamma)
                     # Freeze conservative experts
                     grads = mask_grads(grads, con_experts)
                     updates, opt_state = opt.update(grads, opt_state)

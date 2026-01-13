@@ -8,23 +8,6 @@ from beh.styler.dim4 import prep_openVDB_frames
 from beh.styler.dim4plus import pose_marching_cube
 from beh.gsheets_registry import gsheet_log_results
 
-def checkpoint_plot_training_data(x : jax.Array, y : jax.Array, dimension : int ):
-    '''
-    Validation visualization of training data.
-    \nDelegates to corresponding data dimensionality sub-routine.
-    '''
-    if dimension == 2:
-        export_plot_training_data(x, y)
-        pass
-    elif dimension == 3:
-        pass
-    elif dimension == 4:
-        pass
-    elif dimension == 9:
-        pass
-    else:
-        raise ValueError(f"Unsupported data dimensionality: {dimension}")
-
 def format_export_results(
     model,
     model_key : str,

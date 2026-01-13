@@ -1,58 +1,66 @@
 general:
-  pe_num_freq: 8 # Positional encoding number of frequencies (same as Neural Bounding)
-  batch_size: 2048 # Training
-  learning_rate: 0.01 # Training
-  loss_logging_frequency: 100 # Each N epoch we print and save the loss + other traininig metrics that we plot in a summary training plot
-  boundary_threshold: 0.5 # Decision boundary when converting continous model output to binary 
-  inf_bench_query_size: 10000000 # 10M, size of query to speed benchmark inference with
-  infB_batch_size: 200000 # Batchsizes to test evaluate inference time -> 0 = inf_bench_query_size % infB_batch_size
-  inf_bench_repitions: 2 # Number of repitions to median speed benchmark
-  aa_scaling : 3 # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
-  inf_benchmark : False # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
-  vis_results : True # Visualize results or not e.g. Create plots, extract VDBs or meshes
+  pe_num_freq                   : 4         # Positional encoding number of frequencies (same as Neural Bounding)
+  batch_size                    : 200000    # Training
+  learning_rate                 : 0.01      # Training
+  learning_rate_conservative    : 0.001    # Learning rate that is switched to for neural methods once conservativness is enforced through asymmetric BCE
+  loss_logging_frequency        : 100       # Each N epoch we print and save the loss + other traininig metrics that we plot in a summary training plot
+  boundary_threshold            : 0.5       # Decision boundary when converting continous model output to binary 
+  inf_bench_query_size          : 10000000  # 10M, size of query to speed benchmark inference with
+  infB_batch_size               : 200000    # Batchsizes to test evaluate inference time -> 0 = inf_bench_query_size % infB_batch_size
+  inf_bench_repitions           : 1000      # Number of repitions to median speed benchmark
+  aa_scaling                    : 3         # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
+  inf_benchmark                 : True      # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
+  vis_results                   : True     # Visualize results or not e.g. Create plots, extract VDBs or meshes
 
-# Small = 180
-bvhS:
-  type: 'bvh'
-  max_depth: 5
+# Small = 200
 mlpS:
-  type: 'mlp'
-  min_epochs: 100
-  hidden_layer: [11,11]
+  type                          : 'mlp'
+  min_epochs                    : 5000
+  hidden_layer                  : [7,7]
 moegS:
-  type: 'moeg'
-  min_epochs: 100
-  grid_dim : 2
-  expert_hidden_layer: [4,4]
+  type                          : 'moeg'
+  min_epochs                    : 5000
+  grid_dim                      : 2
+  expert_hidden_layer           : [2,2]
 moeS:
-  type: 'moe'
-  min_epochs: 100
-  nex : 4
-  expert_hidden_layer: [4,4]
-  gate_hidden_layer: [2]
+  type                          : 'moe'
+  min_epochs                    : 5000
+  nex                           : 4
+  expert_hidden_layer           : [2,2]
+  gate_hidden_layer             : [2]
 
 
-# Medium = 6K
+# Medium = 1.5K
 mlpM:
-  type: 'mlp'
-  min_epochs: 20000
-  hidden_layer: [53,53,53]
+  type                          : 'mlp'
+  min_epochs                    : 10000
+  hidden_layer                  : [21,21,21]
+moegM:
+  type                          : 'moeg'
+  min_epochs                    : 10000
+  grid_dim                      : 4
+  expert_hidden_layer           : [3,3,3]
 moeM:
-  type: 'moe'
-  min_epochs: 20000
-  nex : 16
-  expert_hidden_layer: [12,12,12]
-  gate_hidden_layer: [8]
+  type                          : 'moe'
+  min_epochs                    : 10000
+  nex                           : 16
+  expert_hidden_layer           : [3,3,3]
+  gate_hidden_layer             : [4]
 
 
-# Large = 20K
+# Large = 10K
 mlpL:
-  type: 'mlp'
-  min_epochs: 30000
-  hidden_layer: [100,100,100]
+  type                          : 'mlp'
+  min_epochs                    : 20000
+  hidden_layer                  : [67,67,67]
+moegL:
+  type                          : 'moeg'
+  min_epochs                    : 20000
+  grid_dim                      : 6
+  expert_hidden_layer           : [8,8,8]
 moeL:
-  type: 'moe'
-  min_epochs: 30000
-  nex : 32
-  expert_hidden_layer: [16,16,16]
-  gate_hidden_layer: [16]
+  type                          : 'moe'
+  min_epochs                    : 20000
+  nex                           : 32
+  expert_hidden_layer           : [8,8,8]
+  gate_hidden_layer             : [16]

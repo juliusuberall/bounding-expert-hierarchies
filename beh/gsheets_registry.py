@@ -60,10 +60,11 @@ def gsheet_log_row(
     ws.append_row(row, value_input_option="RAW")
 
 def generate_key(type:str, pattern:str, size:str) -> str:
-    pattern = ""
     if type == 'moe':
         pattern = "Sp" if pattern == "Sparse" else "Dn"
         pattern = "-" + pattern
+    else:
+        pattern = ""
     key = f"{type.upper()}{pattern}-{size.upper()}"
     return key
 

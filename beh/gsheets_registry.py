@@ -43,7 +43,7 @@ def gsheet_log_row(
         model_type,
         pattern,
         size,
-        architecture,
+        architecture.replace(",","-"),
         pe_num_freq,
         total_p,
         active_p,

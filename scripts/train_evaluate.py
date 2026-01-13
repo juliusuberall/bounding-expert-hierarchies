@@ -8,7 +8,8 @@ from beh.core.registry import *
 from beh.core.moe_benchmarking import *
 from beh.config_parser import *
 from beh.core.wiring import *
-from beh.shared import setup_dirs
+from beh.shared import setup_dirs, move_results
+from beh.registry import *
 
 def main():
 
@@ -71,6 +72,9 @@ def main():
             data_name = args.data_name,
             query = args.query
         )
+    
+    # Bundle all exported results by data-name prefix
+    move_results(result_dir_registry[args.dim], args.data_name)
 
 if __name__ == '__main__':
     main()

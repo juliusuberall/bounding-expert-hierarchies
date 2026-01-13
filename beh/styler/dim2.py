@@ -292,7 +292,7 @@ def export_plot_2D_mlp_bvh_internal (
     plt.tight_layout(rect=[0, 0.05, 1, 1])
     
     # Export plot
-    path = result_dir_registry[dimension] + f"/{model_key}{id}_2D_internal.png"
+    path = result_dir_registry[dimension] + f"/{data_name}_{model_key}{id}_2D_internal.png"
     plt.savefig(path)
     plt.close()
 

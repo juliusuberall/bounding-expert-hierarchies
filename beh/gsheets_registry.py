@@ -149,7 +149,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
             active_p         = float(reg.get(m_key + core_keys['active_parameters_key'])),
             epochs           = epochs,
             batch_speeds     = reg.get(m_key + core_keys['inf_speed_key']),
-            timing_setup     = f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps",
+            timing_setup     = f"{configs['general']['inf_bench_query_size']/1e06}M queries | {configs['general']['inf_bench_repitions']/1e03}K reps | Batch {configs['general']['infB_batch_size']//1e03}K ",
             fp               = float(reg.get(m_key + core_keys['fp_key'])),
             fn               = float(reg.get(m_key + core_keys['fn_key'])),
             train_time       = '"',

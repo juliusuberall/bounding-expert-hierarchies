@@ -4,7 +4,7 @@ import trimesh as tm
 from PIL import Image
 
 from beh.registry import *
-from beh.core.shared import remap
+from beh.core.moeg import moeg_forward_INF, moeg_select
 from beh.core.registry import *
 from beh.core.moe import batch_query_moe_OOM, moe_forward_sparse_INF
 from beh.core.mlp import mlp_forward_INF, batch_query_mlp_OOM
@@ -43,6 +43,8 @@ def marching_cube(
     mc_x = batch_data(mc_x, infB_batch_size)
     if model_type == 'moe':
         values = batch_query_moe_OOM(mc_x, model, moe_forward_sparse_INF, 50)
+    elif model_type == 'moeg':
+        values = batch_query_moe_OOM(mc_x, model, moeg_forward_INF, 50)
     else:
         values = batch_query_mlp_OOM(mc_x, model, 50)
     values = np.array(values).reshape((mc_res,mc_res,mc_res))
@@ -87,6 +89,8 @@ def render_view(
     rays_batched = batch_data(rays, batch_size)
     if model_type == 'moe':
         y = batch_query_moe_OOM(rays_batched, model, moe_forward_sparse_INF, 50)
+    elif model_type == 'moeg':
+        y = batch_query_moe_OOM(rays_batched, model, moeg_forward_INF, 50)
     elif model_type == 'mlp':
         y = batch_query_mlp_OOM(rays_batched, model, 50)
     else :
@@ -108,7 +112,7 @@ def prep_openVDB(
     model_key : str,
     configs : dict,
     reg : CoreRegistry):
-    '''Create a .npy file that we can use in Blender to simply convert into a openVDB as Blender ships with the functions for this.'''
+    '''Create a .npz file that we can use in Blender to simply convert into a openVDB as Blender ships with the functions for this.'''
 
     print("\nExtracting results and formatting for OpenVDB.")
 
@@ -127,13 +131,18 @@ def prep_openVDB(
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
 
-    if model_type == 'moe':
-        nex = configs[model_key]['nex']
-        # Forward through model and compute voxel densities
-        func = moe_forward_sparse_INF
-        # Originally we used vmap here but this caused for large models always OOM on a T4, 
-        # which is why we swapped to a on devcice sequential compute, forward passing the batch
-        # through each expert.
+    if model_type in ['moe', 'moeg']:
+        if model_type == 'moe':
+            nex = configs[model_key]['nex']
+            # Forward through model and compute voxel densities
+            func = moe_forward_sparse_INF
+            # Get top1 expert id per voxel
+            _ , _ , expert_idx = gating_confidence(model, x_batches)
+        else:
+            nex = configs[model_key]['grid_dim'] ** 3
+            func = moeg_forward_INF
+            expert_idx = np.array(moeg_select(vdb_x, model))
+
         def run_in_batches(func, moe, x_batches):
             def step(carry, xb):
                 yp = func(moe, xb).flatten()
@@ -143,19 +152,12 @@ def prep_openVDB(
         yp = run_in_batches(func, model, x_batched)
         yp_tail = func(model, x_batches[-1]).flatten()
         yp = jnp.concatenate((yp, yp_tail), axis=0)
-        # Remap back in binary range
-        yp = remap(
-            yp, 
-            jnp.min(yp),
-            jnp.max(yp),
-            0,
-            1,)
-        # Get top1 expert id per voxel
-        _ , _ , expert_idx = gating_confidence(model, x_batches)
         # Assign correct material for blender import
         expert_material_table = {
             4 : 0,
+            8 : 3,
             16 : 1,
+            27 : 4,
             32 : 2,
         }
         mat_dix = expert_material_table[nex]

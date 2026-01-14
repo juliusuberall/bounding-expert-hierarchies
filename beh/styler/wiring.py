@@ -65,7 +65,13 @@ def format_export_results(
         elif model_type == 'moeg':
             if dimension == 2:
                 export_plot_2D_moeg_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
-            elif dimension in [3,4,9]:
+            elif dimension == 3:
+                if query == 'ray':
+                    render_view(data_name, dimension, model, model_key, configs)
+                else :
+                    prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
+                    marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
+            elif dimension in [4,9]:
                 pass
             else:
                 raise ValueError(f"Unsupported data dimensionality: {dimension}")

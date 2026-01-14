@@ -108,19 +108,19 @@ def train_moe(
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
-            fn_cache.append(fn) 
-            fp_cache.append(fp)
+            fn_cache.append(float(fn)) 
+            fp_cache.append(float(fp))
             slope_cache.append(fp)  
 
             # Confidence
             confidence , _ , e_idx = gating_confidence(moe=moe, x_batches=x_batches)
-            confidence_cache.append(confidence)
+            confidence_cache.append(float(confidence))
             active_e = jnp.unique(e_idx.flatten()).size
-            active_e_cache.append(active_e / nex)
+            active_e_cache.append(float(active_e / nex))
 
             # Track number of conservative experts
             con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
-            con_experts_cache.append(con_experts.size / active_e)
+            con_experts_cache.append(float(con_experts.size / active_e))
 
             # Print epoch stats
             epoch_cache.append(i)     

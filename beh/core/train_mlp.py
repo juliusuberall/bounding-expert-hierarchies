@@ -90,8 +90,8 @@ def train_mlp(
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
-            fn_cache.append(fn) 
-            fp_cache.append(fp) 
+            fn_cache.append(float(fn)) 
+            fp_cache.append(float(fp)) 
             slope_cache.append(fp) 
 
             # Print epoch stats

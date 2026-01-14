@@ -101,13 +101,13 @@ def train_moeg(
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)
-            fn_cache.append(fn) 
-            fp_cache.append(fp)
+            fn_cache.append(float(fn)) 
+            fp_cache.append(float(fp))
             slope_cache.append(fp)  
 
             # Track number of conservative experts
             con_experts = expert_conservativness(yp, y, e_idx, threshold, nex)
-            con_experts_cache.append(con_experts.size / nex)
+            con_experts_cache.append(float(con_experts.size / nex))
 
             # Print epoch stats
             epoch_cache.append(i)     

@@ -1,6 +1,6 @@
 general:
   pe_num_freq                   : 4         # Positional encoding number of frequencies (same as Neural Bounding)
-  batch_size                    : 500000    # Training
+  batch_size                    : 200000    # Training
   learning_rate                 : 0.01      # Training
   learning_rate_conservative    : 0.001    # Learning rate that is switched to for neural methods once conservativness is enforced through asymmetric BCE
   loss_logging_frequency        : 100       # Each N epoch we print and save the loss + other traininig metrics that we plot in a summary training plot

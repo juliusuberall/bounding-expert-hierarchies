@@ -67,15 +67,18 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     yp = moe_forward_dense(p,x)
     bce_loss = sigmoid_binary_cross_entropy_focal_asymmetry(yp, y, negative_class_weight, gamma)
 
-    # KL-divergence of the expert activation distribution against uniform distribution 
+    # KL-divergence of the expert activation distribution against uniform distribution
+    ## Get expert activation probability distribution for each query 
     activation = gate_forward(p['gate'], x) * jnp.expand_dims(y,axis=1)
+    ## Get the number of experts, based on the number of values in a single distribution
     nex = activation.shape[1]
-    max_kl = jnp.log(nex)
-    g = 1/jnp.sum(y) * jnp.sum(activation, axis=0) 
+    ## KL Divergence 
+    g = 1/(jnp.sum(y) + epsilon) * jnp.sum(activation, axis=0) 
     kl_loss = jnp.sum(g * jnp.log(g / (1 / nex) + epsilon))
 
     # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
+    max_kl = jnp.log(nex)
     ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 1)
 
     return kl_loss + bce_loss + ae_loss

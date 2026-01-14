@@ -7,12 +7,12 @@ import gc
 
 from beh.registry import *
 
-def get_fn_fp_rate(yp : jax.Array, y : jax.Array, threshold : float = 0.1):
+def get_fn_fp_rate(yp : np.ndarray, y : np.ndarray, threshold : float = 0.1):
     '''
     Measure conservativness of predictions and labels with False-Negative and False-Positive rate.
     '''
-    fp_rate = jnp.sum((yp > threshold) * (y == 0)) / jnp.sum(y == 0)
-    fn_rate = jnp.sum((yp < threshold) * (y > 0)) / jnp.sum(y > 0)
+    fp_rate = np.sum((yp > threshold) * (y == 0)) / np.sum(y == 0)
+    fn_rate = np.sum((yp < threshold) * (y > 0)) / np.sum(y > 0)
     return fn_rate, fp_rate
 
 #------------------------------------------------------------------------------------

@@ -99,14 +99,14 @@ def batch_query_moe(x_batches : list, moe : dict, func, remap_flag : bool = True
 
     yp = run_in_batches(func, moe, x_batched)
     yp_tail = func(moe, x_batches[-1]).flatten()
-    yp = jnp.concatenate((yp, yp_tail), axis=0)
+    yp = np.concatenate((yp, yp_tail), axis=0)
     yp_raw = yp
 
     return yp, yp_raw
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
+def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int) -> np.ndarray:
     '''List of batched queries that will be passed through the model by looping over subsets of batches to avoid OOM on device when passing all batches at once.
     \nPassing all batches at once can be done with batch_query_moe().'''
 
@@ -120,7 +120,7 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int):
 
 #------------------------------------------------------------------------------------
 
-def expert_conservativness(yp : jax.Array, y : jax.Array, e_idx : jax.Array, threshold : float, nex : int):
+def expert_conservativness(yp : np.ndarray, y : np.ndarray, e_idx : np.ndarray, threshold : float, nex : int) -> np.ndarray:
     '''Evaluate which of the experts is conservative and which not.
     \nReturns indicies of conservative experts which should be frozen.'''
     # Compute locations of FN
@@ -129,7 +129,7 @@ def expert_conservativness(yp : jax.Array, y : jax.Array, e_idx : jax.Array, thr
     fn_experts = e_idx[fn_mask]
     fn_experts = jnp.unique(fn_experts)
     conservative_experts = jnp.setdiff1d(jnp.arange(nex), fn_experts)
-    return conservative_experts
+    return np.array(conservative_experts)
 
 #------------------------------------------------------------------------------------
 

@@ -46,9 +46,10 @@ def format_export_results(
     if visualize_results :
         if model_type == 'moe':
             if dimension == 2:
-                export_plot_2D_moe_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
-                #export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
-                export_plot_2D_binary_comparison_paper_row(data_name, model_key, y, reg, configs, dimension, threshold, export_binary=True)
+                if query == 'point':
+                    export_plot_2D_moe_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
+                    #export_plot_2D_internal_comparison(model_key, y, reg, configs, dimension, threshold)
+                    export_plot_2D_binary_comparison_paper_row(data_name, model_key, y, reg, configs, dimension, threshold, export_binary=True)
             elif dimension == 3:
                 if query == 'ray':
                     render_view(data_name, dimension, model, model_key, configs)
@@ -64,7 +65,8 @@ def format_export_results(
         
         elif model_type == 'moeg':
             if dimension == 2:
-                export_plot_2D_moeg_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
+                if query == 'point':
+                    export_plot_2D_moeg_internal(data_name, model_key, y, reg, configs, dimension, threshold, model_detail_str)
             elif dimension == 3:
                 if query == 'ray':
                     render_view(data_name, dimension, model, model_key, configs)
@@ -78,7 +80,8 @@ def format_export_results(
         
         elif model_type == 'mlp':
             if dimension == 2:
-                export_plot_2D_mlp_bvh_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
+                if query == 'point':
+                    export_plot_2D_mlp_bvh_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
             elif dimension == 3:
                 if query == 'ray':
                     render_view(data_name, dimension, model, model_key, configs)
@@ -92,7 +95,8 @@ def format_export_results(
 
         elif model_type == "bvh":
             if dimension == 2:
-                export_plot_2D_mlp_bvh_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
+                if query == 'point':
+                    export_plot_2D_mlp_bvh_internal(data_name, model_key, y, reg, dimension, threshold, model_detail_str)
             else:
                 raise ValueError(f"Unsupported data dimensionality: {dimension}")
 

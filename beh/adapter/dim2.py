@@ -85,7 +85,7 @@ def load_samples(path : str, reg : CoreRegistry, query : str, dim : int, data_na
     2D
     Load samples from a .npz formatted file with the expected content and update core registry.
     '''
-    if query == "points":
+    if query == "point":
         return preprocess_rgba(data_dir_registry[dim] + f"/{data_name}.png", reg, False)
     else:
         npz = np.load(path)

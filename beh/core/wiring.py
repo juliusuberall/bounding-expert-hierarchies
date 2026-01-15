@@ -106,7 +106,7 @@ def get_benchmarks(
 
     # Create queries for anti-aliasing binary classification plots in 2D
     x_aa, s = None, None
-    if dimension == 2:
+    if dimension == 2 and x.shape[1] == 2:
         s = configs['general']['aa_scaling'] 
         x_aa = batch_data(create_queries(width=img_dim_0*s, height=img_dim_1*s), batch_size=2048)
 

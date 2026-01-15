@@ -22,7 +22,7 @@ def register_accuracy(
     '''
     
     # Inference
-    yp = batch_query_bvh(bvh, x)
+    yp, idx = batch_query_bvh(bvh, x)
     fn, fp = get_fn_fp_rate(yp, y, threshold)
 
     ## 2D - Query in higher resolution for anti-aliased binary classification plot
@@ -32,6 +32,7 @@ def register_accuracy(
 
     # Save numerical results
     reg.add(model_key + core_keys['y_prediciton_key'], yp)
+    reg.add(model_key + core_keys['gate_top1_activation_key'], idx)
     reg.add(model_key + core_keys['fn_key'], fn)
     reg.add(model_key + core_keys['fp_key'], fp)
 

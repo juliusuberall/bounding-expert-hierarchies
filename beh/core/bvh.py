@@ -157,14 +157,62 @@ def query_bvh(tree : jax.Array, queries : jax.Array) -> jax.Array :
 
 #------------------------------------------------------------------------------------
 
+@jax.jit
+def query_bvh_get_node_idx_and_binary(tree : jax.Array, queries : jax.Array) -> jax.Array :
+  """
+  Query the Bounding Volume Hierarchy and return binary and node index
+  """
+  depth = int(math.log2(tree.shape[0] + 1))
+
+  active_count = queries.shape[0]
+  max_size = 32 * active_count
+
+  query_indices = jnp.where(jnp.arange(0, max_size) < active_count, jnp.arange(max_size, dtype = node_dtype), -1)
+  node_indices = jnp.zeros(max_size, dtype = node_dtype)
+
+  for level in range(0, depth):
+    #assert(active_count < max_size)
+
+    active_querys = queries[query_indices]
+    active_nodes = tree[node_indices]
+    is_above_min = jnp.all(active_querys >= active_nodes[:, 0], axis = -1)
+    is_below_max = jnp.all(active_querys <= active_nodes[:, 1], axis = -1)
+    is_inside = is_above_min & is_below_max
+    keep = (query_indices > - 1) & is_inside
+
+    active_count = jnp.sum(keep)
+
+    def sort_and_clip(keep, x):
+      x = jax.lax.sort_key_val(keep, x)[1]
+      x = jnp.flip(x)
+      x = jnp.where(jnp.arange(0, max_size) < active_count, x, -1)
+      return x
+
+    query_indices = sort_and_clip(keep, query_indices)
+    node_indices = sort_and_clip(keep, node_indices)
+
+    if level == depth - 1:
+      result = jnp.zeros(queries.shape[0])
+      result = result.at[query_indices].set(1)
+      return result, node_indices
+    else:
+      node_indices_left = child(node_indices, 0, level)
+      node_indices_right = child(node_indices, 1, level)
+
+      query_indices = append_in_place(query_indices, query_indices, active_count)
+      node_indices = append_in_place(node_indices_left, node_indices_right, active_count)
+
+#------------------------------------------------------------------------------------
+
 def batch_query_bvh(bvh : jax.Array, x_batches : list,):
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
-    yp = jax.vmap(lambda X: query_bvh(bvh, X))(x_batched).flatten()
+    yp, idx = jax.vmap(lambda X: query_bvh_get_node_idx_and_binary(bvh, X))(x_batched)
     ## Add tail
-    x_tail = query_bvh(bvh, x_batches[-1])
-    yp = jnp.concatenate((yp, x_tail.flatten()))
-    return yp
+    x_tail, idx_tail = query_bvh_get_node_idx_and_binary(bvh, x_batches[-1])
+    yp = jnp.concatenate((yp.flatten(), x_tail.flatten()))
+    idx = jnp.concatenate((idx.flatten(), idx_tail.flatten()))
+    return yp, idx
 
 #------------------------------------------------------------------------------------
 

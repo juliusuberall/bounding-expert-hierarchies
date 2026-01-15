@@ -569,3 +569,66 @@ def export_plot_2D_binary_comparison_paper_row (
     plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary_col.png", sparse_binary_col)
 
     print('Decision boundaries exported as high-res images for figures.')
+
+#------------------------------------------------------------------------------------
+
+def export_plot_2D_binary_bvh_paper(
+    data_name : str,
+    model_key : str,
+    y : jax.Array,
+    reg : CoreRegistry,
+    configs : dict,
+    dimension : int,
+    threshold : float,
+    export_binary : bool = False):
+    '''Export bvh binary plots for creating figures and running BVH seperatly to neural experiment pipeline'''
+
+    current_size = model_key[-1]
+
+    # Dimension
+    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
+    s = 1 #configs['general']['aa_scaling'] 
+
+    ## Color densen and sparse classification based on top1 experts
+    back_col = (1.0, 1.0, 1.0, 0.0) # background is transparent, make bright white to avoid outlines
+    back = (0.0, 0.0, 0.0, 0.0) # background is transparent, make bright white to avoid outlines
+
+    # MOEG
+    bvh_leaf_count = 2**configs[model_key]['max_depth']
+    bvh_leaf_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
+    yp = reg.get(model_key + core_keys['y_prediciton_key'])
+    moeg_mask = np.expand_dims(yp > threshold, axis=1)
+    moeg_binary_col = color_by_expert(bvh_leaf_count, moeg_mask.flatten().astype(jnp.float32), bvh_leaf_activation)
+    moeg_binary_col = moeg_binary_col * moeg_mask + ~moeg_mask * back_col
+    moeg_binary_col = moeg_binary_col.reshape((img_dim_0*s, img_dim_1*s, -1))
+
+    # Anti-Alias
+    interpolation = cv2.INTER_AREA
+    dense_binary_col = cv2.resize(dense_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    sparse_binary_col = cv2.resize(sparse_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    moeg_binary_col = cv2.resize(moeg_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    mlp_binary = cv2.resize(mlp_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+
+    ## OpenCV swaps width and height such that we have to swap back
+    dense_binary_col = np.transpose(dense_binary_col, (1, 0, 2))
+    sparse_binary_col = np.transpose(sparse_binary_col, (1, 0, 2))
+    moeg_binary_col = np.transpose(moeg_binary_col, (1, 0, 2))
+    mlp_binary = np.transpose(mlp_binary, (1, 0, 2))
+
+    dense_binary_col = np.clip(dense_binary_col, 0, 1)
+    sparse_binary_col = np.clip(sparse_binary_col, 0, 1)
+    moeg_binary_col = np.clip(moeg_binary_col, 0, 1)
+    mlp_binary = np.clip(mlp_binary, 0, 1)
+
+    # Export binary classification image for mlp and sparse Moe.
+    # We want to export with an alpha channel and not as previously on background.
+    ## MoEG
+    moeg_binary = (0.0, 0.0, 0.0, 1.0) * moeg_mask + ~moeg_mask * back
+    moeg_binary = moeg_binary.reshape((img_dim_0 * s,img_dim_1 * s, -1))
+    moeg_binary = cv2.resize(moeg_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
+    moeg_binary = np.transpose(moeg_binary, (1, 0, 2))
+    moeg_binary = np.clip(moeg_binary, 0, 1)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_bvh_binary.png", moeg_binary)
+    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_bvh_binary_col.png", moeg_binary_col)
+
+    print('Decision boundaries exported as high-res images for figures.')

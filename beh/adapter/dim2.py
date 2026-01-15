@@ -76,5 +76,31 @@ def sample_rays_random (args):
     # Create ray encodings
     x = np.concatenate((x, d), axis=1)
 
-    return x, y, size, None
+    return x, y, size, 0
+
+#------------------------------------------------------------------------------------
+
+def load_samples(path : str, reg : CoreRegistry, query : str, dim : int, data_name : str):
+    '''
+    2D
+    Load samples from a .npz formatted file with the expected content and update core registry.
+    '''
+    if query == "points":
+        return preprocess_rgba(data_dir_registry[dim] + f"/{data_name}.png", reg, False)
+    else:
+        npz = np.load(path)
+        x = jnp.array(npz['x'])
+        y = jnp.array(npz['y'])
+        size = jnp.array(npz['size'])
+        bounds = jnp.array(npz['bounds'])
+
+        # Normalize point coordinates to range -1.0 to 1.0 
+        d = x[...,2:4]
+        x = x.at[...,:2].multiply(2).at[...,:2].subtract(1) 
+
+        # Store sample size per dimension 
+        reg.add(core_keys['data_size_key'], size)
+        reg.add(core_keys['data_bounds_key'], bounds)
+
+        return reg, x ,y
 

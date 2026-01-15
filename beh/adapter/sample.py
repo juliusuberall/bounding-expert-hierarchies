@@ -31,7 +31,10 @@ def save_samples(args, x, y, size, bounds):
         n_samples = f"{int(x.shape[0] / 1e+6)}M"
     
     if args.dim == 3 :
-        path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{n_samples}_{args.strategy}_samples.npz"
+        if args.query == 'point' :
+            path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{n_samples}_{args.strategy}_samples.npz"
+        else :
+            path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{n_samples}_samples.npz"
     else :
         path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{args.start}to{args.end}_{args.frame_rate}f_{n_samples}_samples.npz"
 

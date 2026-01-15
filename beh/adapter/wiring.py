@@ -3,6 +3,7 @@ from beh.adapter.shared import *
 from beh.registry import *
 from beh.core.registry import *
 
+import beh.adapter.dim2 as dim2
 import beh.adapter.dim3 as dim3
 import beh.adapter.dim4 as dim4
 import beh.adapter.dim4plus as dim4plus
@@ -28,11 +29,12 @@ def get_traininig_data(
     else:
         raise ValueError(f"Unsupported data dimensionality: {dimension}")
     
-def pre_process(dimension : int , args):
+def pre_process(args):
     '''
     Sample data.
     \nDelegation based on dimensionalty to ensure correct data sampling procedure.
     '''
+    dimension = args.dim
     if args.query == 'point':
         if dimension == 3:
             if args.strategy == 'grid':
@@ -46,7 +48,9 @@ def pre_process(dimension : int , args):
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")
     elif args.query == 'ray':
-        if dimension == 3:
+        if dimension == 2:
+            return dim2.sample_rays_random(args)
+        elif dimension == 3:
             return dim3.sample_rays_random(args)
         elif dimension in [2,4,9]:
             pass

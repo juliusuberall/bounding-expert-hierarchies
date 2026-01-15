@@ -30,10 +30,12 @@ def sample_pts_random (args):
 
     return x, y, size, bounds
 
+#------------------------------------------------------------------------------------
+
 def sample_rays_random (args):
     '''
     3D 
-    \nLoads OBj mesh and ray samples the mesh within its bounding box randomly uniform. 
+    \nLoads OBj mesh and ray-samples the mesh within its bounding box randomly uniform. 
     \nCreates labels (y) and 6D encoding of ray (x) using 3D origin and 3D direction vector as in NeuralBounding (Liu et al. 2024). 
     '''
     # Load OBJ mesh
@@ -57,6 +59,8 @@ def sample_rays_random (args):
     x = np.concatenate((x, d), axis=1)
 
     return x, y, size, bounds
+
+#------------------------------------------------------------------------------------
 
 def sample_pts_grid (args):
     '''
@@ -85,6 +89,8 @@ def sample_pts_grid (args):
     y = mesh.contains(x_absolut).astype(np.float32)
 
     return x, y, size, bounds
+
+#------------------------------------------------------------------------------------
 
 def load_samples(path : str, reg : CoreRegistry, query : str):
     '''

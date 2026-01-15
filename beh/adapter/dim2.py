@@ -2,7 +2,10 @@ import jax.numpy as jnp
 import numpy as np
 
 from beh.core.registry import *
+from beh.registry import *
 from PIL import Image
+import trimesh as tm
+from skimage.measure import marching_cubes
 
 def preprocess_rgba (path : str, reg : CoreRegistry, downsample : bool = True):
     '''
@@ -30,3 +33,48 @@ def preprocess_rgba (path : str, reg : CoreRegistry, downsample : bool = True):
     reg.add(core_keys['data_size_key'], img.shape)
 
     return reg, x, y
+
+#------------------------------------------------------------------------------------
+
+def sample_rays_random (args):
+    '''
+    2D 
+    \nLoads image and ray-samples the iso-surface reconstructred mesh of the alpha mask in 3D within its bounding box randomly uniform. 
+    \nCreates labels (y) and 4D encoding of ray (x) using 2D origin and 2D direction vector. 
+    '''
+    # Load image and alpha mask
+    img = data_dir_registry[args.dim] + f"/{args.data_name}.png"
+    img = Image.open(img)
+    alpha = np.asarray(img, dtype=np.float32)[...,-1]
+    alpha = ((alpha / 255.0) > 0.1).astype(float)
+
+    # Use marching cubes to create a 3D voxel representation of the alpha mask that we can ray cast
+    padding = np.zeros_like(alpha)
+    alpha = np.stack([padding,alpha,padding], axis=-1)
+    verts, faces, normals, values_on_surface = marching_cubes(alpha, level=0.5, spacing=(1, 1, 1))
+    mesh = tm.Trimesh(vertices=verts, faces=faces, vertex_normals=-normals)
+
+    # Get random points for ray origin
+    ## Assuming square image with "width = height"
+    width = height = alpha.shape[0]
+    size = np.array((width, height, 0))
+    n_samples = args.res ** 2
+    x = np.random.uniform(0, 1, (n_samples, 2))
+    ### Set all points in plane for raycasting with mesh 
+    x_abs = x * width
+    x_abs = np.concatenate([x_abs, np.ones((x_abs.shape[0], 1))], axis=-1)
+
+    # Get random directions for rays 
+    n = x.shape[0]
+    d = np.random.normal(size=(n,2))
+    d = d / np.linalg.norm(d, axis=1)[:,None]
+    d3 = np.concatenate([d, np.ones((d.shape[0], 1))], axis=-1)
+
+    # Sample object with ray
+    y = mesh.ray.intersects_any(x_abs, d3).astype(np.float32)
+
+    # Create ray encodings
+    x = np.concatenate((x, d), axis=1)
+
+    return x, y, size, None
+

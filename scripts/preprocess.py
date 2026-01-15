@@ -18,7 +18,7 @@ def main():
     setup_dirs(beh.registry)
     args = parse_sample()
 
-    x, y, size, bounds = pre_process(args.dim, args)
+    x, y, size, bounds = pre_process(args)
 
     checkpoint_samples(x, y, size)
 

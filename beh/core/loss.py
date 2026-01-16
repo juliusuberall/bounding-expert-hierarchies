@@ -61,7 +61,7 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     \n- KL gating -> Uniform expert usage
     \n- Gating Entropy -> Sparse expert usage while training dense
     '''
-    epsilon = 1e-8
+    epsilon = 1e-5
 
     # Binary Cross-Entropy 
     yp = moe_forward_dense(p,x)

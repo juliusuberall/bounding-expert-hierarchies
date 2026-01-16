@@ -9,8 +9,8 @@ general:
   infB_batch_size               : 500000 # Batchsizes to test evaluate inference time -> 0 = inf_bench_query_size % infB_batch_size
   inf_bench_repitions           : 1000 # Number of repitions to median speed benchmark 
   inf_benchmark                 : True # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
-  vis_results                   : False # Visualize results or not e.g. Create plots, extract VDBs or meshes
-  gamma                         : {"S": 2, "M": 4, "L": 4} # Increase focality for larger models to stabelize training and shorten training time
+  vis_results                   : True # Visualize results or not e.g. Create plots, extract VDBs or meshes
+  gamma                         : {"S": 3, "M": 4, "L": 4} # Increase focality for larger models to stabelize training and shorten training time
 
 
 # Small = 500

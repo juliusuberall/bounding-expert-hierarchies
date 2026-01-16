@@ -5,6 +5,9 @@ import numpy as np
 from beh.core.shared import remap
 from beh.core.moe import expert_forward_sparse
 from beh.core.registry import gating_table
+from beh.config_parser import parse_train
+
+args , _ = parse_train()
 
 #------------------------------------------------------------------------------------
 
@@ -24,7 +27,7 @@ def moeg_select(x : jax.Array, experts : list):
     # Grid dimension
     ## We assign queries of points and rays (point + direction) always based on their point location.
     ## We assume the first n-D coordinates to always represent the point location.
-    dimension = gating_table[x.shape[-1]]
+    dimension = gating_table[args.query][x.shape[-1]]
 
     # Number of grid cells per dimension in hypercube
     grid_dim = experts[0].shape[0] ** (1/dimension)

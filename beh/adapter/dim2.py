@@ -95,7 +95,6 @@ def load_samples(path : str, reg : CoreRegistry, query : str, dim : int, data_na
         bounds = jnp.array(npz['bounds'])
 
         # Normalize point coordinates to range -1.0 to 1.0 
-        d = x[...,2:4]
         x = x.at[...,:2].multiply(2).at[...,:2].subtract(1) 
 
         # Store sample size per dimension 

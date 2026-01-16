@@ -50,9 +50,14 @@ core_keys = {
 # As we are gating in MoEG and MOE based on positional location for point-queries and ray-queries
 # we define a hash-table for looking up to which index the location is encoded for varying query dimensions.
 gating_table = {
-    2 : 2, # 2D point
-    4 : 2, # 2D ray
-    3 : 3, # 3D point
-    6 : 3, # 3D ray
-    4 : 4, # 4D point
+    'point' : {
+        2 : 2, # 2D point
+        3 : 3, # 3D point
+        4 : 4, # 4D point
+    },
+    'ray' : {
+        4 : 2, # 2D ray (2D point + 2D ray)
+        6 : 3, # 3D ray (3D point + 3D ray)
+        7 : 4, # 4D ray (4D point + 3D ray)
+    }
 } 

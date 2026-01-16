@@ -45,3 +45,14 @@ core_keys = {
     'y_prediciton_key' : '_yp', # All remapped outputs predicited during accuracy compute
     'y_prediciton_RAW_key' : '_yp_raw', # All NOT REMAPPED outputs predicited during accuracy compute
 }
+
+# Space partitioning routing table
+# As we are gating in MoEG and MOE based on positional location for point-queries and ray-queries
+# we define a hash-table for looking up to which index the location is encoded for varying query dimensions.
+gating_table = {
+    2 : 2, # 2D point
+    4 : 2, # 2D ray
+    3 : 3, # 3D point
+    6 : 3, # 3D ray
+    4 : 4, # 4D point
+} 

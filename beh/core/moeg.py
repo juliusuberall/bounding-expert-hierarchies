@@ -4,6 +4,7 @@ import numpy as np
 
 from beh.core.shared import remap
 from beh.core.moe import expert_forward_sparse
+from beh.core.registry import gating_table
 
 #------------------------------------------------------------------------------------
 
@@ -20,12 +21,16 @@ def moeg_select(x : jax.Array, experts : list):
     \nFor 4D+ dimensions this may seem non-trivial but can be generated. 
     \nIt essentially checks a grid and assigns based on this grid cell index."""
     
+    # Grid dimension
+    ## We assign queries of points and rays (point + direction) always based on their point location.
+    ## We assume the first n-D coordinates to always represent the point location.
+    dimension = gating_table[x.shape[-1]]
+
     # Number of grid cells per dimension in hypercube
-    grid_dim = experts[0].shape[0] ** (1/x.shape[-1])
+    grid_dim = experts[0].shape[0] ** (1/dimension)
 
     # Map training data (normalised in range -1 to 1) to grid cells
-    dimension = x.shape[-1]
-    grid_mapping = jnp.floor(remap(x, -1, 1, 0, grid_dim - 1e-4))
+    grid_mapping = jnp.floor(remap(x[...,:dimension], -1, 1, 0, grid_dim - 1e-4))
 
     # Convert mapping to grid cell index used for selecting NN
     idx = jnp.zeros(grid_mapping.shape[:-1])

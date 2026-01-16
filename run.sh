@@ -14,6 +14,14 @@ DATA_NAMES_2D=(
   monstera
 )
 
+DATA_NAMES_2D_RAYS=(
+  dwarfumbrella_ray_1M_samples
+  sakura_ray_1M_samples
+  swisscheesevine_ray_1M_samples
+  rubber_ray_1M_samples
+  monstera_ray_1M_samples
+)
+
 DATA_NAMES_3D=(
   apple_point_1M_grid_samples
   bunny_point_1M_grid_samples
@@ -23,10 +31,18 @@ DATA_NAMES_3D=(
   tree_point_1M_grid_samples
 )
 
-for data_name in "${DATA_NAMES_3D[@]}"; do
+DATA_NAMES_4D=(
+  fluid_point_1to20_1f_1M_samples
+  fluid_point_21to40_1f_1M_samples
+  fluid_point_41to60_1f_1M_samples
+  fluid_point_61to80_1f_1M_samples
+  fluid_point_81to100_1f_1M_samples
+)
+
+for data_name in "${DATA_NAMES_4D[@]}"; do
   echo "=== Running data_name=${data_name} ==="
   python "${WORKSPACE_DIR}/scripts/train_evaluate.py" \
     --data_name "${data_name}" \
     --query point \
-    --dim 3
+    --dim 4
 done

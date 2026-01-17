@@ -2,7 +2,7 @@
 set -e
 
 # Resolve workspace root (directory of this script's parent, or current dir)
-WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)/bounding-expert-hierarchies"
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
 
 export PYTHONPATH="${WORKSPACE_DIR}"
 
@@ -27,8 +27,15 @@ DATA_NAMES_3D=(
   bunny_point_1M_grid_samples
   deer_point_1M_grid_samples
   jade_complex_point_1M_grid_samples
-  jade_point_1M_grid_samples
   tree_point_1M_grid_samples
+)
+
+DATA_NAMES_3D_RAYS=(
+  apple_ray_1M_samples
+  bunny_ray_1M_samples
+  deer_ray_1M_samples
+  jade_complex_ray_1M_samples
+  tree_ray_1M_samples
 )
 
 DATA_NAMES_4D=(

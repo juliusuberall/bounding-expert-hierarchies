@@ -4,6 +4,7 @@ import yaml
 from beh.registry import *
 from beh.core.params import count_parameter
 from beh.core.shared import pe_dim
+from beh.core.registry import gating_table
 
 def parse_train():
     '''
@@ -102,13 +103,14 @@ def parse_sample():
 
 #------------------------------------------------------------------------------------
 
-def compute_config_model_sizes(dim : int, query_dim : int):
+def compute_config_model_sizes(dim : int, query_type : str):
     # Load model configurations / architectures
     with open(model_config_registry[dim], "r") as file:
         configs = yaml.safe_load(file)
     config_list = list(configs.keys())
 
     # Compute positional encoding dimensions
+    query_dim = dim if query_type == "point" else dim * 2
     pe_i = pe_dim(query_dim, configs['general']['pe_num_freq'])
 
     # Create caches
@@ -137,7 +139,7 @@ def compute_config_model_sizes(dim : int, query_dim : int):
                 moeg.append(p)
             case 'moe':
                 nex = configs[key]['nex']
-                g_arch = [query_dim] + configs[key]['gate_hidden_layer'] + [nex]
+                g_arch = [gating_table[query_type][query_dim]] + configs[key]['gate_hidden_layer'] + [nex]
                 e_arch = [pe_i] + configs[key]['expert_hidden_layer'] + [1]
                 p = count_parameter(g_arch) + nex * count_parameter(e_arch)
                 moe.append(p)

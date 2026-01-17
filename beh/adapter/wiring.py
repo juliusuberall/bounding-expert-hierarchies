@@ -42,7 +42,7 @@ def pre_process(args):
             else:
                 return dim3.sample_pts_random(args)
         elif dimension == 4:
-            return dim4.preprocess_4D(args)
+            return dim4.preprocess_4D_points(args)
         elif dimension == 9:
             return dim4plus.preprocess_4Dplus(args)
         else:
@@ -52,7 +52,9 @@ def pre_process(args):
             return dim2.sample_rays_random(args)
         elif dimension == 3:
             return dim3.sample_rays_random(args)
-        elif dimension in [2,4,9]:
+        elif dimension == 4:
+            return dim4.sample_rays_random(args)
+        elif dimension == 9:
             pass
         else:
             raise ValueError(f"Unsupported data dimensionality: {dimension}")

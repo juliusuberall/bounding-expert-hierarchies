@@ -4,8 +4,9 @@ import numpy as np
 
 from beh.core.shared import positional_encoding
 from beh.config_parser import parse_train
+from beh.core.registry import gating_table
 
-_ , configs = parse_train()
+args , configs = parse_train()
 
 #------------------------------------------------------------------------------------
 
@@ -44,6 +45,10 @@ def expert_forward_sparse(experts : list, x : jax.Array, idx : jax.Array):
 
 @jax.jit
 def gate_forward(p : list, x : jax.Array):
+    # Only use the cartesian coordinate of a query for gating
+    # Point queries = full query based gating | Ray queries = origin based gating
+    pos_coordinate = gating_table[args.query][x.shape[-1]]
+    x = x[...,:pos_coordinate]
     for l in p[:-1]:
         x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
         x = jax.nn.relu(x @ l)

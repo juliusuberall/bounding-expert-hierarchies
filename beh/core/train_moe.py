@@ -5,7 +5,7 @@ import optax
 
 from beh.core.moe import *
 from beh.core.params import *
-from beh.core.registry import CoreRegistry
+from beh.core.registry import CoreRegistry, gating_table
 from beh.core.shared import pe_dim
 from beh.core.moe_benchmarking import *
 from beh.core.loss import moe_train_loss
@@ -45,7 +45,10 @@ def train_moe(
     
     # Initalize MoE and optimizer
     pe_query_dim = pe_dim(query_dim, pe_num_freq)
-    gate_arch = [query_dim] + gate_hid_lay + [nex]
+    ## Only use the cartesian coordinate of a query for gating, as this works better
+    ## Point queries = full query based gating | Ray queries = origin based gating
+    pos_coordinate_dim = gating_table[args.query][x.shape[-1]]
+    gate_arch = [pos_coordinate_dim] + gate_hid_lay + [nex]
     expert_arch = [pe_query_dim] + expert_hid_lay + [1]
     moe = init_moe(
         gate_arch,

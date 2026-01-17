@@ -54,6 +54,7 @@ gating_table = {
         2 : 2, # 2D point
         3 : 3, # 3D point
         4 : 4, # 4D point
+        9 : 3, # 9D control state space - (3D position in space; 6D robot joints for pose)
     },
     'ray' : {
         4 : 2, # 2D ray (2D point + 2D ray)

@@ -138,7 +138,7 @@ def sample_rays_random(args):
 
 #------------------------------------------------------------------------------------
 
-def load_samples(path : str, reg : CoreRegistry,):
+def load_samples(path : str, reg : CoreRegistry, query : str):
     '''
     4D
     Load samples from a .npz formatted file with the expected content and update core registry.
@@ -153,8 +153,14 @@ def load_samples(path : str, reg : CoreRegistry,):
     bounds = jnp.array(loaded['bounds'])
 
     # Normalize coordinates to range -1.0 to 1.0
-    x = (x.at[...,1:4].subtract(bounds[0])).at[...,1:4].divide(size)
-    x = x * 2 - 1 # Also remap time from 0.0 - 1.0 to -1.0 - 1.0
+    if query == "point":
+        x = (x.at[...,1:4].subtract(bounds[0])).at[...,1:4].divide(size)
+        x = x * 2 - 1 # Also remap time from 0.0 - 1.0 to -1.0 - 1.0
+    elif query == "ray" :
+        x = x.at[...,:4].multiply(2).at[...,:4].subtract(1)  
+    else:
+        raise ValueError(f"Unsupported query type: {query}")
+
 
     # Store sample size per dimension 
     reg.add(core_keys['data_size_key'], size)

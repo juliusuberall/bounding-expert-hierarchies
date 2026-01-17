@@ -23,7 +23,7 @@ def get_traininig_data(
     elif dimension == 3:
         return dim3.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg, query)
     elif dimension == 4:
-        return dim4.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
+        return dim4.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg, query)
     elif dimension == 9:
         return dim4plus.load_samples(data_dir_registry[dimension] + f"/{data_name}.npz", reg)
     else:

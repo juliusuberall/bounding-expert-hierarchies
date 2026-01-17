@@ -38,6 +38,9 @@ def save_samples(args, x, y, size, bounds):
             path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{n_samples}_{args.strategy}_samples.npz"
         else :
             path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{n_samples}_samples.npz"
+    elif args.dim == 4 :
+        if args.query == 'ray' :
+            path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{args.start}to{args.end}_{n_samples}_samples.npz"
     else :
         path = data_dir_registry[args.dim] + f"/{args.data_name}_{args.query}_{args.start}to{args.end}_{args.frame_rate}f_{n_samples}_samples.npz"
 

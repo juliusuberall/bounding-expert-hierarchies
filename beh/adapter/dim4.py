@@ -148,7 +148,7 @@ def load_samples(path : str, reg : CoreRegistry, query : str):
     
     # Unpack file
     x = jnp.array(loaded['x'])
-    y = jnp.array(loaded['y'])
+    y = jnp.array(loaded['y'].flatten()) # WRONG SHAPE IN DATASET !!! y needs to be flat originally
     size = jnp.array(loaded['size'])
     bounds = jnp.array(loaded['bounds'])
 

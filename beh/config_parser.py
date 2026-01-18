@@ -111,6 +111,8 @@ def compute_config_model_sizes(dim : int, query_type : str):
 
     # Compute positional encoding dimensions
     query_dim = dim if query_type == "point" else dim * 2
+    if dim == 4 and query_type == "ray" :
+        query_dim -= 1
     pe_i = pe_dim(query_dim, configs['general']['pe_num_freq'])
 
     # Create caches

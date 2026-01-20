@@ -126,7 +126,7 @@ def compute_config_model_sizes(dim : int, query_type : str):
                 # Max depth = for each depth i we store 2^i bounding boxes with 2 n-D coordinates 
                 depth = configs[key]['max_depth']
                 p = 0
-                for i in range(1, depth+1):
+                for i in range(depth):
                     p += 2**i * (2 * dim)
                 bvh.append(p)
 

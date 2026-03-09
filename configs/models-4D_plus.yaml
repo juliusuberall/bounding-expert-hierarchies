@@ -9,8 +9,8 @@ general:
   infB_batch_size               : 500000    # Batchsizes to test evaluate inference time -> 0 = inf_bench_query_size % infB_batch_size
   inf_bench_repitions           : 1000      # Number of repitions to median speed benchmark
   aa_scaling                    : 3         # Fcator of original query size at which we sample for anti-aliasing (2 = we sample the image at double resolution and downsample to original size)
-  inf_benchmark                 : True      # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
-  vis_results                   : True     # Visualize results or not e.g. Create plots, extract VDBs or meshes
+  inf_benchmark                 : False      # Flag for infernece benchmarking or not, as this takes much extra time to run without always being needed
+  vis_results                   : False     # Visualize results or not e.g. Create plots, extract VDBs or meshes
   gamma                         : {"S": 3, "M": 4, "L": 4} # Increase focality for larger models to stabelize training and shorten training time
 
 
@@ -19,14 +19,14 @@ general:
 #   type                          : 'mlp'
 #   min_epochs                    : 30000
 #   hidden_layer                  : [110,110,110]
+moeL:
+  type                          : 'moe'
+  min_epochs                    : 30000
+  nex                           : 48
+  expert_hidden_layer           : [16,16,16]
+  gate_hidden_layer             : [24]
 moegL:
   type                          : 'moeg'
   min_epochs                    : 30000
   grid_dim                      : 2
-  expert_hidden_layer           : [16,16,16]
-moeL:
-  type                          : 'moe'
-  min_epochs                    : 30000
-  nex                           : 32
-  expert_hidden_layer           : [16,16,16]
-  gate_hidden_layer             : [64]
+  expert_hidden_layer           : [2,2,2]

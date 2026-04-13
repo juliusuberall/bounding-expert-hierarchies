@@ -15,10 +15,10 @@ general:
 
 
 # Medium = 20K
-# mlpL:
-#   type                          : 'mlp'
-#   min_epochs                    : 30000
-#   hidden_layer                  : [110,110,110]
+mlpL:
+  type                          : 'mlp'
+  min_epochs                    : 30000
+  hidden_layer                  : [194,194,194]
 moegL:
   type                          : 'moeg'
   min_epochs                    : 30000

@@ -6,6 +6,7 @@ from beh.core.registry import *
 from beh.registry import *
 from beh.core.shared import batch_data, remap
 from beh.core.moe import batch_query_moe_OOM, moe_forward_sparse_INF
+from beh.core.moeg import batch_query_moeg_OOM
 from beh.core.mlp import batch_query_mlp_OOM
 
 infB_batch_size = 2048 # Important to ensure no sparse MoE query swalloing when sampling full MoE
@@ -43,6 +44,8 @@ def marching_cube_9D(
     mc_x = batch_data(mc_x, infB_batch_size)
     if model_type == 'moe':
         values = batch_query_moe_OOM(mc_x, model, moe_forward_sparse_INF, 50)
+    elif model_type == 'moeg':
+        values, _ = batch_query_moeg_OOM(mc_x, model, 50)
     else:
         values = batch_query_mlp_OOM(mc_x, model, 50)
     values = np.array(values).reshape((mc_res,mc_res,mc_res))

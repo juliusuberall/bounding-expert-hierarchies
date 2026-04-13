@@ -73,8 +73,8 @@ def format_export_results(
                 else :
                     prep_openVDB(data_name, dimension, 100, model, model_key, configs, reg)
                     marching_cube(data_name, dimension, 100, model, model_key, configs, reg)
-            elif dimension in [4,9]:
-                pass
+            elif dimension == 9:
+                pose_marching_cube(data_name, dimension, 200, model, model_key, configs, reg)
             else:
                 raise ValueError(f"Unsupported data dimensionality: {dimension}")
         

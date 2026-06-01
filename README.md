@@ -58,6 +58,10 @@ Install all dependencies specified with *requirements.txt* in the environment:
 ```
 pip install -r requirements.txt
 ```
+In case you want to run the repo on a machine without CUDA access, then you should install the requirements like this:
+```
+grep -Ev "cuda|nvidia|jax-cuda|pjrt" requirements.txt | pip install -r /dev/stdin
+```
 </details>
 
 <details>

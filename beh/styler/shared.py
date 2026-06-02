@@ -202,3 +202,36 @@ def create_neural_model_details_string (
 
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
+    
+#------------------------------------------------------------------------------------
+
+def compute_bounding_box_2D(alpha):
+    '''
+    Computes the bounding box for a 2D alpha channel. Returns binary image with masked bounidng box.
+    '''
+    rows, cols = np.where(alpha == 1)
+    y0, y1, x0, x1 = rows.min(), rows.max(), cols.min(), cols.max()
+    bb = np.zeros_like(alpha)
+    bb[y0:y1+1, x0:x1+1] = 1
+    return bb
+
+def manhattan_border_length(alpha) -> float:
+    return (
+        (alpha[:-1, :] != alpha[1:, :]).sum() +
+        (alpha[:, :-1] != alpha[:, 1:]).sum()
+    )
+
+def normalized_manhattan_border_length(path):
+    '''
+    Compute the normalized border length of a alpha channel image. 
+    1 pixel equals a border of length 4 which then gets normalized with the border length of the bounding box 
+    -> 1 pixel would result normalized in a length of 1
+    '''
+    reg, x, alpha = preprocess_rgba(path, CoreRegistry(), False)
+    image_shape = reg.get(core_keys['data_size_key'])[:2]
+    alpha = alpha.reshape(image_shape)
+    # Uses a 2x1 horizontal and vertical filter to detect all pixel edges and count them
+    border_length = manhattan_border_length(alpha) 
+    bb_border_length = manhattan_border_length(compute_bounding_box_2D(alpha))
+    normalized = border_length / bb_border_length
+    return normalized

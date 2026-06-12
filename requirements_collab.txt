@@ -1,7 +1,0 @@
-embreex==2.17.7.post6
-trimesh==4.7.1
-jax[cuda12]==0.5.1
-optax==0.2.5
-chex==0.1.89
-pillow>=10
-PyYAML>=6

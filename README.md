@@ -37,9 +37,10 @@ bounding-expert-hierarchies/
 </details>
 <details>
   <summary><strong>Install Dependencies</strong></summary>
-
+  
+Tested on Ubuntu 24.04 with CUDA 12.6 and NVIDIA RTX 3090 GPU.
 &nbsp;<br>
-> *The main dependencies we have are [JAX](https://docs.jax.dev/en/latest/index.html) and [Optax](https://optax.readthedocs.io/en/latest/), since these are used for the implementation of the neural networks. Everything else could be considered 'standard'.*
+> *The main dependencies are [JAX](https://docs.jax.dev/en/latest/index.html) and [Optax](https://optax.readthedocs.io/en/latest/).*
 
 It is recommended to create a new python environment for the project to keep things tidy and manage python dependencies. 
 Navigate to the root directory of the cloned reposiroty:

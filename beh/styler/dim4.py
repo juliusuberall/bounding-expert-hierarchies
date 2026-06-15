@@ -20,13 +20,11 @@ def prep_openVDB_frames (
     model ,
     model_key : str,
     configs : dict,
-    reg : CoreRegistry) :
+    reg : CoreRegistry,
+    frames : int = 20) :
     '''Create a .npy file for each frame that we can use in Blender to simply convert into a openVDB as Blender ships with the functions for this.'''
     
-    start, end = data_name.split('_')[1].split('to')
-    frames = int(end) - int(start)
     ts = np.linspace(0, 1, frames)
-
     for frame in range(frames):
         t = ts[frame]
         prep_openVDB_4D(

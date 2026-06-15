@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 
 def count_parameter(layer):
@@ -82,5 +83,48 @@ def init_moe(g_arch, e_arch, n_experts, key):
       g.append(super_layer)
     
     e = init_experts(e_arch, n_experts, key)
-    
+
     return {'gate': g, 'experts': e}
+
+#------------------------------------------------------------------------------------
+
+def export_moe(path, moe):
+    """
+    Export MoE parameters to a .npz file.
+
+    Args
+    ----------
+    path :
+      Path to write the .npz file to. The '.npz' extension is appended automatically.
+    moe :
+      MoE parameter dict as returned by `init_moe`, i.e. {'gate': g, 'experts': e}
+      where `g` and `e` are lists of jax arrays.
+    """
+    arrays = {}
+    for k, layer in enumerate(moe['gate']):
+        arrays[f'gate_{k}'] = np.asarray(layer)
+    for k, layer in enumerate(moe['experts']):
+        arrays[f'experts_{k}'] = np.asarray(layer)
+    np.savez(path, n_gate=len(moe['gate']), n_experts=len(moe['experts']), **arrays)
+
+#------------------------------------------------------------------------------------
+
+def import_moe(path):
+    """
+    Import MoE parameters from a .npz file written by `export_moe`.
+
+    Args
+    ----------
+    path :
+      Path to the .npz file to load.
+
+    Return
+    ----------
+    Dict :
+      'gate': g, 'experts': e
+    """
+    loaded = np.load(path)
+    g = [jnp.array(loaded[f'gate_{k}']) for k in range(int(loaded['n_gate']))]
+    e = [jnp.array(loaded[f'experts_{k}']) for k in range(int(loaded['n_experts']))]
+    return {'gate': g, 'experts': e}
+

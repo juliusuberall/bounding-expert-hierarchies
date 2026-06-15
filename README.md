@@ -42,27 +42,15 @@ Tested on Ubuntu 24.04 with CUDA 12.6 and NVIDIA RTX 3090 GPU.
 &nbsp;<br>
 > *The main dependencies are [JAX](https://docs.jax.dev/en/latest/index.html) and [Optax](https://optax.readthedocs.io/en/latest/).*
 
-It is recommended to create a new python environment for the project to keep things tidy and manage python dependencies. 
 Navigate to the root directory of the cloned reposiroty:
 ```bash
 cd bounding-expert-hierarchies
 ```
-Create a virtual environment in the cloned repository by using the command line:
+Use the provided shell script to setup up the .venv python environment for the project and install requirements.txt.
 ```
-python3 -m venv venv
+.\setup_venv.sh
 ```
-Activate the new environment:
-```
-source venv/bin/activate
-```
-Install all dependencies specified with *requirements.txt* in the environment:
-```
-pip install -r requirements.txt
-```
-In case you want to run the repo on a machine without CUDA access, then you should install the requirements like this:
-```
-grep -Ev "cuda|nvidia|jax-cuda|pjrt" requirements.txt | pip install -r /dev/stdin
-```
+This installs a CPU-compatible base environment that works on macOS and Linux. If run on a Linux machine with an NVIDIA GPU (`nvidia-smi` available), it additionally installs the CUDA-accelerated JAX backend from `requirements-cuda.txt`.
 </details>
 
 <details>
@@ -77,23 +65,6 @@ The easiest way is simply using the pre-defined launch and debugging profiles to
 ### Local terminal
 Check out our .vscode profiles shipped with this repo and invoke the python scripts with the respective arguments using shell.
 
-### Google Collab
-Clone the repo using google collab and change the directory to the repo folder.
-```
-%cd drive/MyDrive/03_multi_bound/00_collabs/repo
-```
-Install all dependecies and setup the environment. Most of the packages should be available through collab and already installed. There might be version conflicts for JAX and all jupyter related packages.
-```
-!pip install -r requirements_collab.txt
-```
-Set the python path to the repo such that we can import the custom beh python package from the repo to run the exeperiments.
-```
-%env PYTHONPATH=/content/drive/MyDrive/03_multi_bound/00_collabs/repo
-```
-Trigger the train and evaluation experiment pipeline with the respective arguments, selecting data and query to fit.
-```
-!python scripts/train_evaluate.py --data_name dwarfumbrella --query point --dim 2
-```
 ### Google Spread Results Sync
 The pipeline allows to store results in a google spreadsheet, storing benchmarking results and hyperparameters in an organized fahsion. If this is of interest for your workflows, check out the following file and add the required gspread api arguments for your spreadsheet.
 ```

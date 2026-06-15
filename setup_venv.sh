@@ -34,6 +34,13 @@ else
     echo "⚠ No requirements.txt found, skipping dependency install"
 fi
 
+# ===== Install CUDA Requirements (Linux + NVIDIA GPU only) =====
+CUDA_REQ_FILE="requirements-cuda.txt"
+if [ -f "$CUDA_REQ_FILE" ] && [ "$(uname)" = "Linux" ] && command -v nvidia-smi &> /dev/null; then
+    echo "▶ NVIDIA GPU detected, installing requirements from ${CUDA_REQ_FILE}"
+    pip install -r "$CUDA_REQ_FILE"
+fi
+
 # ===== Completion Status =====
 echo "✔ Environment ready"
 echo "Python: $(which python)"

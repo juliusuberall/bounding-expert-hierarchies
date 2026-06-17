@@ -19,6 +19,8 @@ def sigmoid_binary_cross_entropy_focal_asymmetry(logits : jax.Array, labels : ja
     chex.assert_type([logits], float)
     labels = labels.astype(logits.dtype)
 
+    # We follow the OPTAX implementation (optax.losses.sigmoid_binary_cross_entropy)
+    # # log(1 - sigmoid(x)) = log_sigmoid(-x), not numerically stable
     log_p = jax.nn.log_sigmoid(logits)
     log_not_p = jax.nn.log_sigmoid(-logits)
 

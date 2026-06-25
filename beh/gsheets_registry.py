@@ -2,14 +2,13 @@ import time
 import gspread
 import jax
 
-from beh.core.shared import pe_dim
 from google.oauth2.service_account import Credentials
 
 from beh.core.registry import *
 
-sheet_id = "1bK4UXi6Orcgq8jQwv1Ikeq5sa5qIWIk-ZQxrH71axX8"
+sheet_id = "ADD YOUR GOOGLE SPREADSHEET ID HERE"
 scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-creds = Credentials.from_service_account_file("./keys/gsheets_credentials.json", scopes=scopes)
+creds = Credentials.from_service_account_file("SOME LOCATION TO YOUR GENERATE SERVICE ACCOUNT KEY", scopes=scopes)
 gc = gspread.authorize(creds)
 
 def gsheet_log_row(
@@ -94,13 +93,6 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
         pattern = 'Dense'
         if model_type == 'moeg':
             pattern = 'Sparse'
-    
-    elif model_type == 'bvh':
-        pattern = 'Sparse'
-        pe_num_freq = 0
-        arch = f"Max-Depth: {configs[model_key]['max_depth']}"
-        epochs = "None"
-    
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
     

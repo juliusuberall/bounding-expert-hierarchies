@@ -44,7 +44,7 @@ def moeg_select(x : jax.Array, experts : list):
 
 #------------------------------------------------------------------------------------
 
-def batch_query_moeg(x_batches : list, experts : list, remap_flag : bool = True):
+def batch_query_moeg(x_batches : list, experts : list):
     '''List of batched queries that will be passed through the model at once. Be aware of device OOM.'''
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
@@ -56,9 +56,8 @@ def batch_query_moeg(x_batches : list, experts : list, remap_flag : bool = True)
     idx = moeg_select(x_batched, experts)
     idx_tail = moeg_select(x_batches[-1], experts)
     idx = jnp.concatenate((idx.flatten(), idx_tail), axis=0)
-    yp_raw = yp
 
-    return yp, idx, yp_raw
+    return yp, idx
 
 #------------------------------------------------------------------------------------
 

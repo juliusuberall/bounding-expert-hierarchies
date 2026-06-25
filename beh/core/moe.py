@@ -19,7 +19,7 @@ def expert_forward_dense(p : list, x : jax.Array):
         x = jax.nn.tanh(x @ e)
     x = jnp.concatenate([x, jnp.ones((x.shape[0], 1))], axis=1)
     # We found that these additional factors improved the accurarcy as well as the "double" activation with tanh() and sigmoid() in the final layer.
-    # The sigmoid is not defined here, because OPTAX does this for numerical stability in their BCE implementation. Therefore the regualr model output
+    # The sigmoid is not defined here, because OPTAX does this for numerical stability in their BCE implementation. Therefore the regular model output
     # needs to be additionally transformed with sigmoid()
     return jax.nn.tanh((x @ p[-1]) * 0.5) * 3.0 
 
@@ -86,7 +86,7 @@ def moe_forward_sparse_INF(p : dict, x : jax.Array):
 
 #====================================================================================
 
-def batch_query_moe(x_batches : list, moe : dict, func, remap_flag : bool = True):
+def batch_query_moe(x_batches : list, moe : dict, func):
     '''List of batched queries that will be passed through the model at once. Be aware of device OOM.'''
     ## Trim tail of x that does not fit with batchsize
     x_batched = jnp.stack(x_batches[0:-1])
@@ -105,9 +105,8 @@ def batch_query_moe(x_batches : list, moe : dict, func, remap_flag : bool = True
     yp = run_in_batches(func, moe, x_batched)
     yp_tail = func(moe, x_batches[-1]).flatten()
     yp = np.concatenate((yp, yp_tail), axis=0)
-    yp_raw = yp
 
-    return yp, yp_raw
+    return yp
 
 #------------------------------------------------------------------------------------
 
@@ -117,7 +116,7 @@ def batch_query_moe_OOM(x_batches : list, moe : dict, func, at_once : int) -> np
 
     yp_all = []
     for i in range(0, len(x_batches), at_once):
-        yp, _ = batch_query_moe(x_batches[i:i+at_once], moe, func, remap_flag=False)
+        yp = batch_query_moe(x_batches[i:i+at_once], moe, func)
         yp_all.append(np.array(yp)) # unload from GPU
     yp_all = np.concatenate(yp_all, axis=0)
     

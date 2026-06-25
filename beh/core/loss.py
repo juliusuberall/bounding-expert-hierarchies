@@ -81,7 +81,9 @@ def moe_train_loss(p : dict, x : jax.Array, y : jax.Array, negative_class_weight
     # Gate Activation Entropy
     query_entropy = -jnp.sum(activation * jnp.log(activation + epsilon), axis=1)
     max_kl = jnp.log(nex)
-    ae_loss = jnp.mean(query_entropy) * jnp.clip(-jnp.log(kl_loss / max_kl), 0, 1)
+    # We add an inverse relationship such that the MoE can become sparse once uniformly distributed
+    inverse_relationship = jnp.clip(-jnp.log(kl_loss / max_kl), 0, 1)
+    ae_loss = jnp.mean(query_entropy) * inverse_relationship
 
     return kl_loss + bce_loss + ae_loss
 

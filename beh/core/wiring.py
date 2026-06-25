@@ -1,11 +1,9 @@
 import beh.core.moe_benchmarking as moe_B
 import beh.core.moeg_benchmarking as moeG_B
 import beh.core.mlp_benchmarking as mlp_B
-import beh.core.bvh_benchmarking as bvh_B
 
 from beh.core.shared import batch_data
 from beh.core.registry import *
-from beh.core.bvh import build_bvh, pad_to_power_of_two
 from beh.core.train_moe import train_moe
 from beh.core.train_moeg import train_moeg
 from beh.core.train_mlp import train_mlp
@@ -61,18 +59,6 @@ def train_model(
             query_dim = query_dim,
             dimension = dimension
         )
-    elif model_type == 'bvh':
-        # Filter out data that is labeled as occupied or hit 
-        # and account for balanced bvh tree by reducing amount of
-        # points to construct bvh with
-        x = x[y > 0]
-        x , _ = pad_to_power_of_two(x)
-        return build_bvh(
-            model_key = model_key,
-            positions = x,
-            max_depth = configs[model_key]['max_depth'],
-            reg = reg
-        )
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 
@@ -127,11 +113,6 @@ def get_benchmarks(
     elif model_type == 'mlp':
         reg = mlp_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
         reg = mlp_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, infB_batch_size)
-        return reg
-    
-    elif model_type == 'bvh':
-        reg = bvh_B.register_accuracy(model_key, model, x_batches, x_aa, y, reg, threshold)
-        reg = bvh_B.register_inference_speed(inf, model_key, model, x, reg, dimension, infB_reps, infB_qsize, infB_batch_size)
         return reg
     
     else:

@@ -1,6 +1,6 @@
-// Ensure all configurations use the correct data to fit
+// The launch configurations for fitting BEH to data
 {
-    "version": "0.2.0",
+    "version": "1.0.0",
     "configurations": [
         {
             "name": "2D Train & Evaluate",
@@ -77,26 +77,6 @@
                 "--end", "100",
                 "--frame_rate", "2"
             ],
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
-            "name": "GSheet To Latex Table",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/tools/gsheet_formatting.py",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}"
-            }
-        },
-        {
-            "name": "3D samples to mesh",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/tools/3D_sampled_data_to_mesh.py",
-            "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }

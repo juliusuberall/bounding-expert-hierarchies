@@ -3,7 +3,6 @@ import jax.numpy as jnp
 
 from beh.registry import *
 from beh.core.registry import *
-from beh.core.shared import remap
 from beh.core.mlp import mlp_forward_INF
 from beh.core.shared import batch_data
 from beh.core.moe import moe_forward_sparse_INF
@@ -37,8 +36,7 @@ def prep_openVDB_frames (
             model_key,
             configs,
             reg)
-        print(f"\rExported frame {frame}/{frames}", end='', flush=True)
-
+        print(f"\rExported frame {frame+1}/{frames}", end='', flush=True)
 
 #------------------------------------------------------------------------------------
 
@@ -86,13 +84,6 @@ def prep_openVDB_4D(
         yp = run_in_batches(func, model, x_batched)
         yp_tail = func(model, x_batches[-1]).flatten()
         yp = jnp.concatenate((yp, yp_tail), axis=0)
-        # Remap back in binary range
-        yp = remap(
-            yp, 
-            jnp.min(yp),
-            jnp.max(yp),
-            0,
-            1,)
         # Get top1 expert id per voxel
         _ , _ , expert_idx = gating_confidence(model, x_batches)
         # Assign correct material for blender import

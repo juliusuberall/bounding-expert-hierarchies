@@ -97,7 +97,7 @@ def train_moeg(
         if i % loss_logging_frequency == 0: 
             # Error
             ## Should be ideally over all data, otherwise conservativness calculation needs to be reworked
-            yp , e_idx , yp_raw  = batch_query_moeg(x_batches, moeg)  
+            yp , e_idx  = batch_query_moeg(x_batches, moeg)  
 
             # False-Negatives and False-Positives 
             fn, fp = get_fn_fp_rate(yp, y, threshold = threshold)

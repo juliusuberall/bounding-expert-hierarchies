@@ -116,20 +116,12 @@ def compute_config_model_sizes(dim : int, query_type : str):
     pe_i = pe_dim(query_dim, configs['general']['pe_num_freq'])
 
     # Create caches
-    bvh, mlp, moeg, moe = [], [], [], []
+    mlp, moeg, moe = [], [], []
 
     # Count model parameters
     for key in config_list:
         if key == 'general' : continue
         match configs[key]['type']:
-            case 'bvh':
-                # Max depth = for each depth i we store 2^i bounding boxes with 2 n-D coordinates 
-                depth = configs[key]['max_depth']
-                p = 0
-                for i in range(depth):
-                    p += 2**i * (2 * dim)
-                bvh.append(p)
-
             case 'mlp':
                 arch = [pe_i] + configs[key]['hidden_layer'] + [1]
                 p = count_parameter(arch)
@@ -147,7 +139,6 @@ def compute_config_model_sizes(dim : int, query_type : str):
                 moe.append(p)
 
     print('Model Parameter (S,M,L)')
-    print(f'BVH : {bvh}')
     print(f'MLP : {mlp}')
     print(f'MOEG: {moeg}')
     print(f'MOE : {moe}')

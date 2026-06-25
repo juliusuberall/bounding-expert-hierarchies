@@ -61,7 +61,6 @@ def export_plot_2D_moeg_internal (
     nex = grid_dim ** dimension
 
     # Get results from registry
-    yp_raw = reg.get(model_key + core_keys['y_prediciton_RAW_key'])
     yp = reg.get(model_key + core_keys['y_prediciton_key'])
     fp = reg.get(model_key + core_keys['fp_key'])
     fn = reg.get(model_key + core_keys['fn_key'])
@@ -149,9 +148,6 @@ def export_plot_2D_moe_internal (
     topk = 1
 
     # Get results from registry
-    dense_yp_NOTremapped = reg.get(dkey + core_keys['y_prediciton_RAW_key'])
-    sparse_yp_NOTremapped = reg.get(skey + core_keys['y_prediciton_RAW_key'])
-
     dense_yp = reg.get(dkey + core_keys['y_prediciton_key'])
     sparse_yp = reg.get(skey + core_keys['y_prediciton_key'])
 
@@ -246,55 +242,6 @@ def color_by_expert(nex : int, yp : jax.Array, top1_activation : jax.Array):
         expert = expert_gradients[i](yp[mask]) # color based yp
         colored_yp[mask] = expert
     return colored_yp
-
-#------------------------------------------------------------------------------------
-
-def export_plot_2D_mlp_bvh_internal (
-    data_name : str,
-    model_key : str,
-    y : jax.Array,
-    reg : CoreRegistry,
-    dimension : int,
-    threshold : float,
-    model_detail_str : str,
-    id : str = '',):
-    '''
-    2D
-    \nCreate a MLP or BVH internal state overview plot inlcuding:
-    \n- Decision boundary
-    \n- Architecture details 
-    '''
-
-    # Dimension
-    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
-    
-    # Get results from registry
-    yp = reg.get(model_key + core_keys['y_prediciton_key'])
-    fp = reg.get(model_key + core_keys['fp_key'])
-    
-    # Create plot 
-    r, c = 1, 3
-    fig, ax = plt.subplots(r,c, figsize=(13,5.1))
-    ax[0].imshow(y.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
-    ax[0].set_title("Original", fontsize=9)
-    ax[1].imshow(yp.reshape((img_dim_0,img_dim_1)), cmap= wb_gradient)
-    ax[1].set_title(f"Model output with\n{round(float(jnp.min(yp)),2)} - {round(float(jnp.max(yp)),2)} ", fontsize=9)
-    
-    # Conservativness
-    binary_yp = ((yp > threshold) * ( y == 0)).reshape((img_dim_0,img_dim_1))
-    ax[2].imshow(binary_yp, cmap= wb_gradient)
-    ax[2].set_title(f"False Positives {round(float(fp),8)}", fontsize=9)
-
-    for i in range(c):
-        ax[i].axis('off')
-
-    fig.text(0.013, 0.02, model_detail_str, fontsize=9)
-    plt.tight_layout(rect=[0, 0.05, 1, 1])
-    
-    # Export plot
-    path = result_dir_registry[dimension] + f"/{data_name}_{model_key}{id}_2D_internal.png"
-    plt.savefig(path)
-    plt.close()
 
 #------------------------------------------------------------------------------------
 
@@ -567,59 +514,5 @@ def export_plot_2D_binary_comparison_paper_row (
     sparse_binary = np.clip(sparse_binary, 0, 1)
     plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary.png", sparse_binary)
     plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_sparseMoE_binary_col.png", sparse_binary_col)
-
-    print('Decision boundaries exported as high-res images for figures.')
-
-#------------------------------------------------------------------------------------
-
-def export_plot_2D_binary_bvh_paper(
-    data_name : str,
-    model_key : str,
-    y : jax.Array,
-    reg : CoreRegistry,
-    configs : dict,
-    dimension : int,
-    threshold : float,
-    export_binary : bool = False):
-    '''Export bvh binary plots for creating figures and running BVH seperatly to neural experiment pipeline'''
-
-    current_size = model_key[-1]
-
-    # Dimension
-    img_dim_0, img_dim_1, _ = reg.get(core_keys['data_size_key'])
-    s = 1 #configs['general']['aa_scaling'] 
-
-    ## Color densen and sparse classification based on top1 experts
-    back_col = (1.0, 1.0, 1.0, 0.0) # background is transparent, make bright white to avoid outlines
-    back = (0.0, 0.0, 0.0, 0.0) # background is transparent, make bright white to avoid outlines
-
-    # MOEG
-    bvh_leaf_count = 2**configs[model_key]['max_depth']
-    bvh_leaf_activation = reg.get(model_key + core_keys['gate_top1_activation_key'])
-    yp = reg.get(model_key + core_keys['y_prediciton_key'])
-    moeg_mask = np.expand_dims(yp > threshold, axis=1)
-    moeg_binary_col = (0.0, 0.0, 0.0, 1.0) * moeg_mask + ~moeg_mask * back
-    # moeg_binary_col = color_by_expert(bvh_leaf_count, moeg_mask.flatten().astype(jnp.float32), bvh_leaf_activation)
-    # moeg_binary_col = moeg_binary_col * moeg_mask + ~moeg_mask * back_col
-    moeg_binary_col = moeg_binary_col.reshape((img_dim_0*s, img_dim_1*s, -1))
-
-    # Anti-Alias
-    interpolation = cv2.INTER_AREA
-    moeg_binary_col = cv2.resize(moeg_binary_col, None, fx=1/s, fy=1/s, interpolation=interpolation)
-
-    ## OpenCV swaps width and height such that we have to swap back
-    moeg_binary_col = np.transpose(moeg_binary_col, (1, 0, 2))
-    moeg_binary_col = np.clip(moeg_binary_col, 0, 1)
-
-    # Export binary classification image for mlp and sparse Moe.
-    # We want to export with an alpha channel and not as previously on background.
-    ## MoEG
-    moeg_binary = (0.0, 0.0, 0.0, 1.0) * moeg_mask + ~moeg_mask * back
-    moeg_binary = moeg_binary.reshape((img_dim_0 * s,img_dim_1 * s, -1))
-    moeg_binary = cv2.resize(moeg_binary, None, fx=1/s, fy=1/s, interpolation=interpolation)
-    moeg_binary = np.transpose(moeg_binary, (1, 0, 2))
-    moeg_binary = np.clip(moeg_binary, 0, 1)
-    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_bvh_binary.png", moeg_binary)
-    plt.imsave(result_dir_registry[dimension] + f"/{data_name}_{current_size}_bvh_binary_col.png", moeg_binary_col)
 
     print('Decision boundaries exported as high-res images for figures.')

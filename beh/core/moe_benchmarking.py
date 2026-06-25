@@ -21,11 +21,11 @@ def register_accuracy(
     \nBased on those model outputs conservativness is computed and registered with false-negative,FN and false-positive,FP rates in % of max FN or FP that could be reached.
     '''
     # Dense MoE inference
-    dense_yp, dense_yp_raw = batch_query_moe(x_batches, moe, moe_forward_dense_INF)
+    dense_yp = batch_query_moe(x_batches, moe, moe_forward_dense_INF)
     dense_fn, dense_fp = get_fn_fp_rate(dense_yp, y, threshold=threshold)
 
     # Sparse MoE inference
-    sparse_yp, sparse_yp_raw = batch_query_moe(x_batches, moe, moe_forward_sparse_INF)
+    sparse_yp = batch_query_moe(x_batches, moe, moe_forward_sparse_INF)
     sparse_fn, sparse_fp = get_fn_fp_rate(sparse_yp, y, threshold=threshold)
 
     # Save numerical results
@@ -41,13 +41,11 @@ def register_accuracy(
     
     ## Dense
     reg.add(dkey + core_keys['y_prediciton_key'], dense_yp)
-    reg.add(dkey + core_keys['y_prediciton_RAW_key'], dense_yp_raw)
     reg.add(dkey + core_keys['fn_key'], dense_fn)
     reg.add(dkey + core_keys['fp_key'], dense_fp)
     
     ## Sparse
     reg.add(skey + core_keys['y_prediciton_key'], sparse_yp)
-    reg.add(skey + core_keys['y_prediciton_RAW_key'], sparse_yp_raw)
     reg.add(skey + core_keys['fn_key'], sparse_fn)
     reg.add(skey + core_keys['fp_key'], sparse_fp)
 

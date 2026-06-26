@@ -7,7 +7,22 @@
 
 Python/JAX implementation of Bounding Expert Hierarchies, using many small neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 9D spaces. Using Mixture of Experts (MoE) the implict representation is distributed with a gate network and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the scene and collectivly learn the entire scene.
 
-![Paper thumbnail](docs/beh_2D_results.png)
+<style>
+.container{
+  background : #f2f2e987;
+  border-radius : 20px;
+}
+.container:has(+ .container) {
+  margin-bottom : 30px;
+}
+</style>
+<div class=container>
+  <img src="docs/beh_teaser.png">
+</div>
+
+<div class=container>
+  <img src="docs/beh_2D_results.png">
+</div>
 
 ## Getting Started
 Download or simply clone this repository using the command line:

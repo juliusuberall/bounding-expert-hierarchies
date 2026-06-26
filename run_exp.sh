@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
+# Activate .venv
+source .venv/bin/activate
+
 # Resolve workspace root as the current directory
 WORKSPACE_DIR="$(pwd)"
 export PYTHONPATH="${WORKSPACE_DIR}"

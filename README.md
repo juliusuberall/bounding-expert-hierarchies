@@ -49,7 +49,7 @@ bounding-expert-hierarchies/
 <details>
   <summary><strong>Install Dependencies</strong></summary>
 
-> *Tested on Ubuntu 24.04 with CUDA 12.6 and NVIDIA RTX 3090 GPU.*
+> *Tested on Ubuntu 24.04 with CUDA 12.6 / 13.1 and NVIDIA RTX 3090 GPU.*
 
 Navigate to the root directory of the cloned reposiroty:
 ```bash
@@ -75,7 +75,7 @@ To set a google spread up that the pipeline can log to, please follow these step
 5. Select the new created service account, move to the `Keys` tab and add a new JSON key. This key will be downloaded and should be added to this project.
 6. Now create a new Google Spreadsheet and make the sheet public accessible and that anyone can edit.
 7. Copy the Google Sheet ID out of your sheets URL. Usually between one of the `/` within the URL.
-8. Open the file `beh/gsheets_registry.py` and add the sheet `ID` in line 9 and the location to the JSON key in line 11.
+8. Open the file `beh/gsheets_registry.py` and add the sheet `ID` in line 9 and the location to the JSON key in line 11. If you just create a new Google Spreadsheet you are good to go. However if you renamed the sheet, please update the worksheet name to log to in line 77.
 
 Now you are ready to go and the pipeline will log the results to this sheet. Please check the name for each item that is beeing logged in the script itself.
 

@@ -74,7 +74,7 @@ def gsheet_log_results(model_key : str, dimension : int, reg : CoreRegistry, con
     Log all results in google sheets using google sheets api.
     '''
     # Set basic row arguments
-    worksheet_name = 'last_run'
+    worksheet_name = 'Sheet1' # IF YOU RENAMED THE SHEETS IN GOOGLE SPREADS, THEN UPDATE HERE ACCORDINGLY
     accelerator = jax.devices()[0].device_kind
     model_type = configs[model_key]['type']
     pe_num_freq = configs['general']['pe_num_freq']

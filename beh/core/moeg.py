@@ -67,7 +67,7 @@ def batch_query_moeg_OOM(x_batches : list, experts : list, at_once : int):
 
     yp_all, idx_all = [], []
     for i in range(0, len(x_batches), at_once):
-        yp, idx , _ = batch_query_moeg(x_batches[i:i+at_once], experts, remap_flag=False)
+        yp, idx = batch_query_moeg(x_batches[i:i+at_once], experts, remap_flag=False)
         # Unload from GPU
         yp_all.append(np.array(yp))
         idx_all.append(np.array(idx))

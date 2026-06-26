@@ -93,7 +93,7 @@ def export_plot_2D_moeg_internal (
 
     ## Predicitions
     ax[0,2].imshow(yp_col.reshape((img_dim_0,img_dim_1, -1)))
-    ax[0,2].set_title(f"Model output with\n{round(float(jnp.min(yp_raw)),2)} - {round(float(jnp.max(yp_raw)),2)} remapped to {round(float(jnp.min(yp)),2)} - {round(float(jnp.max(yp)),2)}", fontsize=9)
+    ax[0,2].set_title(f"Model output with\n{round(float(jnp.min(yp)),2)} - {round(float(jnp.max(yp)),2)}", fontsize=9)
     
     ## FN
     ax[1,1].imshow((yp_col_fn).reshape((img_dim_0,img_dim_1, -1)))
@@ -189,10 +189,10 @@ def export_plot_2D_moe_internal (
 
     ## Predicitions
     ax[0,2].imshow(dense_yp_col.reshape((img_dim_0,img_dim_1, -1)))
-    ax[0,2].set_title(f"Model output with\n{round(float(jnp.min(dense_yp_NOTremapped)),2)} - {round(float(jnp.max(dense_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(dense_yp)),2)} - {round(float(jnp.max(dense_yp)),2)}", fontsize=9)
+    ax[0,2].set_title(f"Model output with\n{round(float(jnp.min(dense_yp)),2)} - {round(float(jnp.max(dense_yp)),2)}", fontsize=9)
     
     ax[0,3].imshow(sparse_yp_col.reshape((img_dim_0,img_dim_1, -1)))
-    ax[0,3].set_title(f"Model output with\n{round(float(jnp.min(sparse_yp_NOTremapped)),2)} - {round(float(jnp.max(sparse_yp_NOTremapped)),2)} remapped to {round(float(jnp.min(sparse_yp)),2)} - {round(float(jnp.max(sparse_yp)),2)}", fontsize=9)
+    ax[0,3].set_title(f"Model output with\n{round(float(jnp.min(sparse_yp)),2)} - {round(float(jnp.max(sparse_yp)),2)}", fontsize=9)
 
     ## FN
     ax[1,1].imshow((sparse_yp_col_fn).reshape((img_dim_0,img_dim_1, -1)))

@@ -127,7 +127,7 @@ def train_moe(
 
             # Print epoch stats
             epoch_cache.append(i)     
-            print(f"Epoch {i:05d} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex} | Con Experts: {con_experts.size}/{active_e} | yp Range: {jnp.min(yp_raw):04f} to {jnp.max(yp_raw):04f}")
+            print(f"Epoch {i:05d} | Confidence: {round(float(confidence),4):04f} | Sparse FN: {round(float(fn),4):04f} | Sparse FP: {round(float(fp),4):04f} | Active Experts: {active_e}/{nex} | Con Experts: {con_experts.size}/{active_e} | yp Range: {jnp.min(yp):04f} to {jnp.max(yp):04f}")
             checkpoint_moe_export_plot_gradient(gradient, dimension, i)
 
             if i % min_epochs == 0 or making_conservative and len(slope_cache) == 10: 

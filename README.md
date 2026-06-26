@@ -2,7 +2,7 @@
 > [Julius Überall](https://juliusuberall.com/)<sup>1</sup>, [Tobias Ritschel](https://www.homepages.ucl.ac.uk/~ucactri/)<sup>1,</sup><sup>2</sup> <br>
 > <sup>1</sup> University College London, UK
 <sup>2</sup> Meta Reality Labs, USA <br>
-> July 2026 <br>
+> Eurographics Symposium on Rendering (EGSR) 2026 <br>
 > [Project page](https://juliusuberall.com/boundingExpertHierarchies.html) | [Paper]() | [Presentation]() | [BibTeX]()
 
 Python/JAX implementation of Bounding Expert Hierarchies, using many small neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 9D spaces. Using Mixture of Experts (MoE) the implict representation is distributed with a gate network and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the scene and collectivly learn the entire scene.

@@ -89,11 +89,17 @@ The easiest way is simply using our pre-defined launch and debugging profiles fo
 
 ### Local terminal
 Use our `run_exp.sh` script to run the experiment for 2D point queries for all 5 scenes. This includes training and evaluation, which will take a while depending on your hardware.
+
+### Output
+As we use the 2D scenes for demonstration, the expected output of the training and evaluation is (i) the metrics logged on the Google Spread, (ii) a plot that highlights the internal state of the MoE and (iii) a plot that compares the bounding across MLP, MoEG and MoE. All of these plots can be found in the `results/` directory which will be created when the pipeline runs. 
 </details>
+
 <details>
   <summary><strong>Scenes</strong></summary>
 
-As an example we provide our 2D scenes which are formatted as RGBA images. This allows to simply replace such with custom 2D scenes and running your own experiments.
+For demonstration purposes we provide our 2D scenes which are formatted as RGBA images. This allows to simply replace such with custom 2D scenes and running your own experiments.
+
+Given that the training samples for higher dimensions are sampled in some cases in external software e.g. the robot state space described in the paper we excluded this in the codebase. If there is interest in the data for this feel free to reach out or sample yourself, since we simply formatted our data as a .npz file that holds queries and labels.
 </details>
 
 ## Citation

@@ -3,7 +3,7 @@
 > <sup>1</sup> University College London, UK
 <sup>2</sup> Meta Reality Labs, USA <br>
 > Eurographics Symposium on Rendering (EGSR) 2026 <br>
-> [Project page](https://juliusuberall.com/boundingExpertHierarchies.html) | [Paper]() | [Presentation]() | [BibTeX]()
+> [Project page](https://juliusuberall.com/boundingExpertHierarchies.html) | [Paper](https://diglib.eg.org/items/e5d19c32-bd1f-405f-ba83-b7abb218b822) | [Presentation]()
 
 Python/JAX implementation of Bounding Expert Hierarchies, using many small neural networks to represent and learn bounding volumes of 2D, 3D, 4D and 9D spaces. Using Mixture of Experts (MoE) the implict representation is distributed with a gate network and learnt by multiple expert neural networks such that they indiviudally learn a fraction of the scene and collectivly learn the entire scene.
 
@@ -105,15 +105,15 @@ Given that the training samples for higher dimensions are sampled in some cases 
 ## Citation
 
 ```bibtex
-@article{something_interesting,
-   author = {xxx, XXX},
-   title = {xxx},
-   booktitle = {xxx},
-   year = {xxx},
-   location = {xxx},
-   publisher = {xxx},
-   address = {xxx},
-   pages = {xxx},
-   doi = {xxx}
-}
+@inproceedings{10.2312:sr.20261010,
+  booktitle = {Rendering 2026 Industry Track},
+  editor = {Gkioulekas, Ioannis and Jarabo, Adrian},
+  title = {Bounding Expert Hierarchies},
+  author = {J. Überall and T. Ritschel},
+  year = {2026},
+  publisher = {The Eurographics Association},
+  ISSN = {1727-3463},
+  ISBN = {978-3-03868-320-9},
+  DOI = {10.2312/sr.20261010}
+  }      
 ```
